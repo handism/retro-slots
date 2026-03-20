@@ -53,9 +53,9 @@ Assets/
   - [ ] DOTween（Asset Store）+ Setup 実行
   - [ ] TextMeshPro Essential Resources インポート
   - [ ] New Input System（`Both` モードで互換性確保）
-- [ ] Assembly Definition（`.asmdef`）を各フォルダに作成
+- [x] Assembly Definition（`.asmdef`）を各フォルダに作成
   - `SlotGame.Model`（Unity 参照なし）/ `SlotGame.Data` / `SlotGame.Core` / `SlotGame.View` / `SlotGame.Utility` / `SlotGame.Tests.EditMode` / `SlotGame.Tests.PlayMode`
-- [ ] フォルダ構成を作成
+- [x] フォルダ構成を作成
 
 ---
 
@@ -65,31 +65,31 @@ Assets/
 
 ### 1-1. ScriptableObject データ定義クラス（`Scripts/Data/`）
 
-- [ ] `SymbolData.cs`（`symbolId`, `symbolName`, `SymbolType enum`, `payouts[3]`, `sprite`, `winAnim`）
-- [ ] `ReelStripData.cs`（`reelIndex`, `List<SymbolData> strip`）
-- [ ] `PaylineData.cs` — **注意**: 設計書の `Vector2Int[] lines` は 5 列に対応不可。以下の構造を採用
+- [x] `SymbolData.cs`（`symbolId`, `symbolName`, `SymbolType enum`, `payouts[3]`, `sprite`, `winAnim`）
+- [x] `ReelStripData.cs`（`reelIndex`, `List<SymbolData> strip`）
+- [x] `PaylineData.cs` — **注意**: 設計書の `Vector2Int[] lines` は 5 列に対応不可。以下の構造を採用
   ```csharp
   [Serializable] public struct PaylineEntry { public int[] rows; } // 要素数 5
   public PaylineEntry[] lines; // 要素数 25
   ```
-- [ ] `PayoutTableData.cs`（`ScatterPayout[]`, `BonusRewardEntry[]`）
+- [x] `PayoutTableData.cs`（`ScatterPayout[]`, `BonusRewardEntry[]`）
 
 ### 1-2. Model クラス（`Scripts/Model/`）
 
-- [ ] `GameState.cs`
+- [x] `GameState.cs`
   - 全プロパティ `get; private set;`
   - コイン内部型は `long`（ボーナス重畳時の中間値オーバーフロー防止）、外部クランプ上限 9,999,999
   - コイン変化を通知する `event Action<long> OnCoinsChanged`（View 側がポーリング不要に）
   - フリースピン残数変化を通知する `event Action<int> OnFreeSpinsChanged`
-- [ ] `SpinResult.cs`（`sealed record`、`IReadOnlyList<LineWin>` で保護）
-- [ ] `SaveData.cs`（`[Serializable]`、デフォルト値明記。coins は `long` で保存）
-- [ ] `IRandomGenerator.cs` インターフェース
-- [ ] `SystemRandomGenerator.cs`（`System.Random` ラップ）
-- [ ] `SeededRandomGenerator.cs`（テスト用固定シード）
+- [x] `SpinResult.cs`（`sealed record`、`IReadOnlyList<LineWin>` で保護）
+- [x] `SaveData.cs`（`[Serializable]`、デフォルト値明記。coins は `long` で保存）
+- [x] `IRandomGenerator.cs` インターフェース
+- [x] `SystemRandomGenerator.cs`（`System.Random` ラップ）
+- [x] `SeededRandomGenerator.cs`（テスト用固定シード）
 
 ### 1-3. PaylineEvaluator（`Scripts/Utility/`）
 
-- [ ] `PaylineEvaluator.cs`（static クラス）
+- [x] `PaylineEvaluator.cs`（static クラス）
   - `Evaluate(int[,] grid, SymbolData[] defs, PaylineData paylines, PayoutTableData payouts, int bet) : SpinResult`
   - Wild 置換: 左端から連続一致カウント時に Wild を現在シンボルとして扱う
   - 全 Wild ライン → 最高配当シンボル相当とする（仕様外のため設計書に追記）
@@ -99,7 +99,7 @@ Assets/
 
 ### 1-4. SaveDataManager（`Scripts/Utility/`）
 
-- [ ] `SaveDataManager.cs`（コンストラクタで保存パスを DI、テスト可能にする）
+- [x] `SaveDataManager.cs`（コンストラクタで保存パスを DI、テスト可能にする）
   - `Load()`: ファイル不存在→デフォルト、JSON パース失敗→`.bak` リネーム後デフォルト
   - `SaveAsync(CancellationToken ct) : UniTask`: `File.WriteAllTextAsync` で非同期保存（メインスレッドブロッキング回避）
   - ダーティフラグ `_isDirty` を持ち、変更がない場合は Save をスキップ
@@ -107,24 +107,24 @@ Assets/
 
 ### 1-5. Edit Mode ユニットテスト（**必須**、`Tests/EditMode/`）
 
-- [ ] `PaylineEvaluatorTests.cs`
-  - [ ] 3/4/5 揃えの配当計算
-  - [ ] Wild 置換（Wild+2Normal=3揃え、Wild+Wild+Normal=3揃え）
-  - [ ] 全 Wild ライン判定
-  - [ ] Scatter 3/4/5 個判定
-  - [ ] ボーナス条件発動・非発動
-  - [ ] 複数ライン同時当選（配当合算）
-  - [ ] ハズレ（配当 0）
-- [ ] `GameStateTests.cs`
-  - [ ] `DeductBet()` が残高不足で `false` を返す
-  - [ ] コイン上限クランプ
-  - [ ] `FreeSpinsLeft` が 0 未満にならない
-  - [ ] `TotalSpins` インクリメント / `MaxWin` 更新
-- [ ] `SaveDataManagerTests.cs`
-  - [ ] 正常な JSON 読み込み
-  - [ ] ファイル不存在でデフォルト
-  - [ ] 破損 JSON で `.bak` 生成 + デフォルト
-  - [ ] 保存 → 読み込みのラウンドトリップ
+- [x] `PaylineEvaluatorTests.cs`
+  - [x] 3/4/5 揃えの配当計算
+  - [x] Wild 置換（Wild+2Normal=3揃え、Wild+Wild+Normal=3揃え）
+  - [x] 全 Wild ライン判定
+  - [x] Scatter 3/4/5 個判定
+  - [x] ボーナス条件発動・非発動
+  - [x] 複数ライン同時当選（配当合算）
+  - [x] ハズレ（配当 0）
+- [x] `GameStateTests.cs`
+  - [x] `DeductBet()` が残高不足で `false` を返す
+  - [x] コイン上限クランプ
+  - [x] `FreeSpinsLeft` が 0 未満にならない
+  - [x] `TotalSpins` インクリメント / `MaxWin` 更新
+- [x] `SaveDataManagerTests.cs`
+  - [x] 正常な JSON 読み込み
+  - [x] ファイル不存在でデフォルト
+  - [x] 破損 JSON で `.bak` 生成 + デフォルト
+  - [x] 保存 → 読み込みのラウンドトリップ
 
 ---
 
@@ -150,7 +150,7 @@ Assets/
 
 ### 3-1. ReelController（`Scripts/Core/`）
 
-- [ ] `ReelController.cs`
+- [x] `ReelController.cs`
   - `StartSpin()`: UniTask ループでスクロール開始
   - `StopSpin(int stopIndex, CancellationToken ct)`: 減速 → DOTween `Ease.OutBounce` でスナップ
   - `GetVisibleSymbolIds()`: 中段の行を基準に上段・下段 ID を返す
@@ -158,7 +158,7 @@ Assets/
 
 ### 3-2. SpinManager（`Scripts/Core/`）
 
-- [ ] `SpinManager.cs`
+- [x] `SpinManager.cs`
   - `ExecuteSpin(CancellationToken ct) : UniTask<SpinResult>`
   - 乱数で全リール停止位置を決定
   - 全リール同時 `StartSpin()` → 最低 2 秒後に 0.3 秒間隔で順次 `StopSpin()`
@@ -168,7 +168,7 @@ Assets/
 
 ### 3-3. BonusManager（`Scripts/Core/`）
 
-- [ ] `BonusManager.cs`
+- [x] `BonusManager.cs`
   - `RunFreeSpins(GameState state, int count, Func<SpinResult, UniTask> onSpin, CancellationToken ct)`
     - `state.AddFreeSpins(count)` → ループ、再トリガー時は `+count`（上限 +20）
   - `RunBonusRound(int betAmount, PayoutTableData payouts, CancellationToken ct) : UniTask<long>`
@@ -176,7 +176,7 @@ Assets/
 
 ### 3-4. AudioManager（`Scripts/Audio/`）
 
-- [ ] `AudioManager.cs`
+- [x] `AudioManager.cs`
   - BGM 用 `AudioSource` × 1、SE 用 `AudioSource` × 最大 4（`AudioSource[]` プール）
   - BGM フェード: `DOTween.To` で volume を補間 → `UniTask` で完了待機
   - SE 再生制限: 同一クリップの同時発音を最大 3 に制限、0.05 秒以内の連続要求は間引き（DSP スパイク防止）
@@ -184,7 +184,7 @@ Assets/
 
 ### 3-5. GameManager（`Scripts/Core/`）
 
-- [ ] `GameManager.cs`（ステートマシン。インスタンス参照は最小限に保ち、具体処理は各 Manager に委譲）
+- [x] `GameManager.cs`（ステートマシン。インスタンス参照は最小限に保ち、具体処理は各 Manager に委譲）
   - `GamePhase` enum: `Idle, Spinning, Evaluating, WinPresentation, BonusRound, FreeSpin, GameOver`
   - 各フェーズは `private async UniTask XxxPhase(CancellationToken ct)` に分離
   - `TransitionTo(GamePhase next)` でログ付き遷移
@@ -208,8 +208,8 @@ Assets/
 
 ### 4-2. ReelView（`Scripts/View/`）
 
-- [ ] `SymbolView.cs`（`Image` でスプライト表示、`PlayWinAnim()` で Animator 再生）
-- [ ] `ReelView.cs`
+- [x] `SymbolView.cs`（`Image` でスプライト表示、`PlayWinAnim()` で Animator 再生）
+- [x] `ReelView.cs`
   - **循環バッファ方式**（5 シンボル固定、Instantiate/Destroy なし）
   - `Update()` で `localPosition.y` を加算、上端超え → 下端に再配置
   - `SnapToPosition(int stopIndex)`: DOTween `Ease.OutBounce`
@@ -217,26 +217,26 @@ Assets/
 
 ### 4-3. 各 View パネル（`Scripts/View/`）
 
-- [ ] `MainHUDView.cs`
+- [x] `MainHUDView.cs`
   - `Awake()` で `GameState.OnCoinsChanged` を購読 → DOTween `DOCounter` でカウントアップ表示
   - `GameState.OnFreeSpinsChanged` を購読 → フリースピンHUD の残数を更新
   - ベット選択ボタン
-- [ ] `WinPopupView.cs`（当選額 + DOTween スケールアニメ）
-- [ ] `FreeSpinHUDView.cs`（残り回数・累計コイン表示、`SetActive()` で切替）
-- [ ] `SettingsView.cs`（BGM/SE スライダー、コインリセットボタン）
-- [ ] `PaytableView.cs`（`SymbolData[]` から配当テーブルを動的生成）
-- [ ] `UIManager.cs`（上記 View のコーディネーター）
+- [x] `WinPopupView.cs`（当選額 + DOTween スケールアニメ）
+- [x] `FreeSpinHUDView.cs`（残り回数・累計コイン表示、`SetActive()` で切替）
+- [x] `SettingsView.cs`（BGM/SE スライダー、コインリセットボタン）
+- [x] `PaytableView.cs`（`SymbolData[]` から配当テーブルを動的生成）
+- [x] `UIManager.cs`（上記 View のコーディネーター）
 
 ### 4-4. BonusRound シーン（BonusRound.unity）
 
-- [ ] `BonusRoundView.cs`
+- [x] `BonusRoundView.cs`
   - 9 箱を `GridLayout` で配置、選択後は非インタラクティブ化
   - `UniTaskCompletionSource<int[]>` で選択結果を返す
   - 開封アニメーション（DOTween スケール + 回転）後に報酬額表示
 
 ### 4-5. Boot シーン（Boot.unity）
 
-- [ ] `BootManager.cs`（**コンポジションルート**。全 Manager のインスタンス生成と依存注入を担う）
+- [x] `BootManager.cs`（**コンポジションルート**。全 Manager のインスタンス生成と依存注入を担う）
   1. `DOTween.Init()` 初期化
   2. `SaveDataManager` をインスタンス化し `LoadAsync()` でデータ読み込み → `GameState` を復元
   3. `IRandomGenerator`（`SystemRandomGenerator`）をインスタンス化
@@ -250,7 +250,7 @@ Assets/
 
 **全システムが動いてからシミュレーション実施**
 
-- [ ] `RtpCalculator.cs`（Editor Only、`[MenuItem]`）を作成
+- [x] `RtpCalculator.cs`（Editor Only、`[MenuItem]`）を作成
   - 10 万回スピンシミュレーション + 期待値計算
   - 各シンボル出現確率・ライン当選確率・期待配当を CSV 出力
 - [ ] シミュレーション実行（目標: 通常スピン RTP ≈ 88〜90%）
