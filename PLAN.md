@@ -101,7 +101,11 @@ Assets/
 
 - [x] `SaveDataManager.cs`（コンストラクタで保存パスを DI、テスト可能にする）
   - `Load()`: ファイル不存在→デフォルト、JSON パース失敗→`.bak` リネーム後デフォルト
-  - `SaveAsync(CancellationToken ct) : UniTask`: `File.WriteAllTextAsync` で非同期保存（メインスレッドブロッキング回避）
+    - 読み込み時に整合性ハッシュ（SHA256）を検証。不一致は破損扱い
+  - `SaveAsync(CancellationToken ct) : UniTask`: **アトミックな書き込み**
+    - `savedata.json.tmp` に書き込み → 成功したら `File.Move(overwrite:true)` でリネーム
+    - 書き込み途中でアプリが落ちても元ファイルを破損させない
+    - ハッシュ（JSON文字列の SHA256 hex）を `savedata.json.hash` に同時保存
   - ダーティフラグ `_isDirty` を持ち、変更がない場合は Save をスキップ
   - `Validate()`: コイン範囲・ベット値・バージョン等 5 条件チェック
 
@@ -188,6 +192,9 @@ Assets/
   - `GamePhase` enum: `Idle, Spinning, Evaluating, WinPresentation, BonusRound, FreeSpin, GameOver`
   - 各フェーズは `private async UniTask XxxPhase(CancellationToken ct)` に分離
   - `TransitionTo(GamePhase next)` でログ付き遷移
+  - **遷移ガード**: `CanTransitionTo(GamePhase next) : bool` を持ち、無効な遷移を拒否する
+    - `Spinning` 中は `Idle/Spinning/BonusRound` への遷移を拒否（設定パネル表示は View レベルで制限）
+    - `TransitionTo()` 冒頭でガードを呼び出し、失敗時は `Debug.LogWarning` のみで処理継続しない
   - `SpinManager`, `BonusManager`, `AudioManager`, `UIManager`, `GameState`, `SaveDataManager` への参照は `BootManager` から注入される（GameManager 自身では `new` しない）
   - `OnApplicationPause/Focus` で `SaveDataManager.SaveAsync()` を呼び出し（`async void` ラッパー経由）
   - オートスピン: `CancellationTokenSource _autoSpinCts` で管理（`Dispose() → 再生成`）
@@ -203,7 +210,10 @@ Assets/
 
 ### 4-1. シーン構築（Main.unity）
 
-- [ ] Canvas: `Screen Space - Camera`、Reference Resolution 1920×1080、`Scale With Screen Size`（Width/Height 0.5）
+- [ ] Canvas（メイン）: `Screen Space - Camera`、Reference Resolution 1920×1080、`Scale With Screen Size`（Width/Height 0.5）
+- [ ] Canvas（HUD専用、別 Canvas）: `Screen Space - Overlay`
+  - コイン・WIN表示の TMP_Text を独立 Canvas に分離
+  - **理由**: スピン中のカウントアップ演出で毎フレーム更新されるテキストが、リールグリッドの Canvas リビルドを誘発しないようにする
 - [ ] 5×3 リールグリッド: 各リールは `RectMask2D` 付き Panel、内部に `SymbolView` × 5（バッファ込み）
 
 ### 4-2. ReelView（`Scripts/View/`）

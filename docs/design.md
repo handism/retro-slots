@@ -222,6 +222,12 @@ public class GameManager : MonoBehaviour
     private async UniTask PlayWinPresentation(SpinResult result);
     private async UniTask HandleBonus(SpinResult result);
     private void          CheckGameOver();
+
+    // 遷移ガード: 現フェーズから next へ遷移可能かを判定する
+    // Spinning 中は Idle/Spinning/BonusRound への再遷移を拒否する（割り込み対策）
+    // TransitionTo() 冒頭で必ず呼び出し、false の場合は Debug.LogWarning を出して即リターン
+    private bool          CanTransitionTo(GamePhase next);
+    private void          TransitionTo(GamePhase next);   // CanTransitionTo のチェック込み
 }
 
 public enum GamePhase
@@ -363,9 +369,22 @@ public class SaveDataManager : MonoBehaviour
 {
     private static readonly string SavePath =
         Path.Combine(Application.persistentDataPath, "savedata.json");
+    // アトミック書き込み用の一時ファイルパス
+    private static readonly string TempPath =
+        Path.Combine(Application.persistentDataPath, "savedata.json.tmp");
+    // 整合性ハッシュファイルパス（JSON文字列の SHA256 hex を格納）
+    private static readonly string HashPath =
+        Path.Combine(Application.persistentDataPath, "savedata.json.hash");
 
-    public SaveData Load();        // 破損時はデフォルト値を返す
-    public void    Save(SaveData data);
+    // 読み込み: ファイル不存在→デフォルト、ハッシュ不一致→破損扱い→.bak リネーム後デフォルト
+    public SaveData Load();
+
+    // 保存: アトミック書き込み（temp ファイルに書き込んでからリネーム）
+    //   1. JSON を TempPath に書き込む
+    //   2. SHA256 ハッシュを HashPath に書き込む
+    //   3. File.Move(TempPath → SavePath, overwrite:true)
+    //   書き込み途中でアプリが終了しても SavePath の元ファイルは破損しない
+    public async UniTask SaveAsync(CancellationToken ct);
 
     // バリデーション: 以下をすべて検証する
     //   ① saveVersion が既知のバージョンであること
@@ -421,6 +440,12 @@ public class SeededRandomGenerator : IRandomGenerator { ... }
 - 乱数の予測可能性はローカルオフラインのアーケードゲームにおいてセキュリティリスクではないため、`System.Security.Cryptography.RandomNumberGenerator`（暗号論的乱数）は使用しない
 - `IRandomGenerator` でラップする主目的は**テスト容易性（決定論的な再現）**
 - `SpinManager` は DI（SerializeField または コンストラクタ）で `IRandomGenerator` を受け取る
+- **`SystemRandomGenerator` は `BootManager` が 1 インスタンスだけ生成し、使い回す**
+  - `new Random()` を毎スピン呼び出すと短い間隔で同じ系列が発生するリスクがある
+  - インスタンスは `BootManager` → `SpinManager` → `ReelController` に DI で伝達する
+- 配当計算のパイプラインに float を介在させない
+  - `SymbolData.payouts` は `int[]`（倍率を整数で保持）
+  - 最終配当は `betAmount * payouts[matchCount - 3]`（整数演算のみ）で算出する
 - `ReelStripData` のストリップは重み付き確率テーブルとして機能
   - 例: Dragon はストリップ 60 マス中 2 マス（出現率 3.3%）
 - フリースピン中の乱数は通常と同じ系列（有利化なし、倍率のみ変化）
@@ -529,6 +554,17 @@ Assets/
 └──────────────────────────────────────────────────┘
 解像度基準: 1920×1080 (16:9)、レターボックスでリサイズ対応
 ```
+
+### Canvas 分割方針
+
+| Canvas | 用途 | 更新頻度 |
+|--------|------|---------|
+| Main Canvas（Screen Space - Camera） | リールグリッド・ペイライン強調・ポップアップ | スピン開始/終了時のみ |
+| HUD Canvas（Screen Space - Overlay） | コイン表示・WIN額・BETボタン | カウントアップ中は毎フレーム |
+
+コイン/WIN表示を別 Canvas に分離することで、カウントアップ演出中の TMP_Text 更新が
+リールグリッドの Canvas リビルドを誘発しない。DOTween の DOCounter で毎フレーム更新される
+テキストノードのリビルドを HUD Canvas 内に閉じ込める。
 
 ---
 
