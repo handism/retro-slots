@@ -76,9 +76,13 @@ Assets/
 
 ### 1-2. Model クラス（`Scripts/Model/`）
 
-- [ ] `GameState.cs`（全プロパティ `get; private set;`、コイン上限 9,999,999 でクランプ）
+- [ ] `GameState.cs`
+  - 全プロパティ `get; private set;`
+  - コイン内部型は `long`（ボーナス重畳時の中間値オーバーフロー防止）、外部クランプ上限 9,999,999
+  - コイン変化を通知する `event Action<long> OnCoinsChanged`（View 側がポーリング不要に）
+  - フリースピン残数変化を通知する `event Action<int> OnFreeSpinsChanged`
 - [ ] `SpinResult.cs`（`sealed record`、`IReadOnlyList<LineWin>` で保護）
-- [ ] `SaveData.cs`（`[Serializable]`、デフォルト値明記）
+- [ ] `SaveData.cs`（`[Serializable]`、デフォルト値明記。coins は `long` で保存）
 - [ ] `IRandomGenerator.cs` インターフェース
 - [ ] `SystemRandomGenerator.cs`（`System.Random` ラップ）
 - [ ] `SeededRandomGenerator.cs`（テスト用固定シード）
@@ -97,7 +101,8 @@ Assets/
 
 - [ ] `SaveDataManager.cs`（コンストラクタで保存パスを DI、テスト可能にする）
   - `Load()`: ファイル不存在→デフォルト、JSON パース失敗→`.bak` リネーム後デフォルト
-  - `Save()`: `File.WriteAllText` で上書き
+  - `SaveAsync(CancellationToken ct) : UniTask`: `File.WriteAllTextAsync` で非同期保存（メインスレッドブロッキング回避）
+  - ダーティフラグ `_isDirty` を持ち、変更がない場合は Save をスキップ
   - `Validate()`: コイン範囲・ベット値・バージョン等 5 条件チェック
 
 ### 1-5. Edit Mode ユニットテスト（**必須**、`Tests/EditMode/`）
@@ -159,7 +164,7 @@ Assets/
   - 全リール同時 `StartSpin()` → 最低 2 秒後に 0.3 秒間隔で順次 `StopSpin()`
   - 早期停止フラグ `_skipRequested`（スピン中のボタン押下で全リール即スナップ）
   - `UniTask.WhenAll` で全リール停止を待機 → `PaylineEvaluator.Evaluate()` を呼び結果を返す
-  - `IRandomGenerator` を `GameManager` から受け取る（DI）
+  - `IRandomGenerator` を `BootManager`（コンポジションルート）から受け取る（DI）
 
 ### 3-3. BonusManager（`Scripts/Core/`）
 
@@ -172,22 +177,23 @@ Assets/
 ### 3-4. AudioManager（`Scripts/Audio/`）
 
 - [ ] `AudioManager.cs`
-  - BGM 用・SE 用の `AudioSource` を 2 つ保持
+  - BGM 用 `AudioSource` × 1、SE 用 `AudioSource` × 最大 4（`AudioSource[]` プール）
   - BGM フェード: `DOTween.To` で volume を補間 → `UniTask` で完了待機
-  - SE: `PlayOneShot()` で重複再生許可
+  - SE 再生制限: 同一クリップの同時発音を最大 3 に制限、0.05 秒以内の連続要求は間引き（DSP スパイク防止）
   - ボリューム設定は `SaveData` 経由（PlayerPrefs 不使用）
 
 ### 3-5. GameManager（`Scripts/Core/`）
 
-- [ ] `GameManager.cs`（ステートマシン）
+- [ ] `GameManager.cs`（ステートマシン。インスタンス参照は最小限に保ち、具体処理は各 Manager に委譲）
   - `GamePhase` enum: `Idle, Spinning, Evaluating, WinPresentation, BonusRound, FreeSpin, GameOver`
   - 各フェーズは `private async UniTask XxxPhase(CancellationToken ct)` に分離
   - `TransitionTo(GamePhase next)` でログ付き遷移
-  - `Awake()` で `SaveDataManager.Load()` → `GameState` 復元
-  - `OnApplicationPause/Focus` で `SaveDataManager.Save()` 呼び出し
+  - `SpinManager`, `BonusManager`, `AudioManager`, `UIManager`, `GameState`, `SaveDataManager` への参照は `BootManager` から注入される（GameManager 自身では `new` しない）
+  - `OnApplicationPause/Focus` で `SaveDataManager.SaveAsync()` を呼び出し（`async void` ラッパー経由）
   - オートスピン: `CancellationTokenSource _autoSpinCts` で管理（`Dispose() → 再生成`）
   - ボーナスラウンド + フリースピン同時発動: ボーナスラウンド優先、終了後にフリースピン移行
   - `OperationCanceledException` は最上位（`GameManager` のフローメソッド）のみでキャッチ → `Idle` へ遷移
+  - **キャンセル時クリーンアップ方針**: 各 `XxxPhase` メソッド内の DOTween Tween は `ct.Register(() => tween.Kill())` または `using` スコープで必ず終了させる。View の表示ステートは `TransitionTo(Idle)` 内でリセットする
 
 ---
 
@@ -211,7 +217,10 @@ Assets/
 
 ### 4-3. 各 View パネル（`Scripts/View/`）
 
-- [ ] `MainHUDView.cs`（コイン表示: DOTween `DOCounter`、ベット選択ボタン）
+- [ ] `MainHUDView.cs`
+  - `Awake()` で `GameState.OnCoinsChanged` を購読 → DOTween `DOCounter` でカウントアップ表示
+  - `GameState.OnFreeSpinsChanged` を購読 → フリースピンHUD の残数を更新
+  - ベット選択ボタン
 - [ ] `WinPopupView.cs`（当選額 + DOTween スケールアニメ）
 - [ ] `FreeSpinHUDView.cs`（残り回数・累計コイン表示、`SetActive()` で切替）
 - [ ] `SettingsView.cs`（BGM/SE スライダー、コインリセットボタン）
@@ -227,10 +236,13 @@ Assets/
 
 ### 4-5. Boot シーン（Boot.unity）
 
-- [ ] `BootManager.cs`
+- [ ] `BootManager.cs`（**コンポジションルート**。全 Manager のインスタンス生成と依存注入を担う）
   1. `DOTween.Init()` 初期化
-  2. `SaveDataManager.Load()` でデータ読み込み
-  3. `LoadSceneAsync("Main", Single)` で遷移
+  2. `SaveDataManager` をインスタンス化し `LoadAsync()` でデータ読み込み → `GameState` を復元
+  3. `IRandomGenerator`（`SystemRandomGenerator`）をインスタンス化
+  4. `SpinManager`, `BonusManager`, `AudioManager` に必要な依存を注入
+  5. `GameManager` に各 Manager・GameState・SaveDataManager を渡す
+  6. `LoadSceneAsync("Main", Single)` で遷移
 
 ---
 
@@ -276,6 +288,10 @@ Assets/
 1. **PaylineData の型定義を修正**: `Vector2Int[] lines` → `PaylineEntry[] lines`（5 列 × 25 ライン対応）
 2. **全 Wild ライン の配当ルールを明記**: 最高配当シンボル（Dragon）と同等扱い
 3. **ボーナスシンボルの定義を追記**: `SymbolType.Bonus` を新設、Scatter とは独立したシンボルとする
+4. **GameState の coins 型を `long` に変更**: ボーナス重畳時の中間値オーバーフロー防止
+5. **イベント通知パターンを追記**: `GameState` が `OnCoinsChanged`/`OnFreeSpinsChanged` を持ち View が購読する一方向データフロー
+6. **BootManager をコンポジションルートとして追記**: 全依存注入の起点
+7. **SaveDataManager の非同期 I/O を明記**: `SaveAsync(UniTask)` で同期ブロッキングを排除
 
 ---
 
