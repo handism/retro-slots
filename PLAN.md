@@ -34,25 +34,25 @@ Assets/
 
 ## 技術選定補足（Unity 6.3 ベストプラクティス）
 
-| 技術 | 採用 | 理由 |
-|------|------|------|
-| URP 2D | 採用 | Unity 6.3 デフォルト。新規プロジェクトは `Universal 2D` テンプレートで作成 |
-| New Input System | 採用 | Space=Spin 等のショートカット管理に使用。UGUI の Button は OnClick() 継続 |
-| Addressables | 不採用 | BonusRound.unity の Additive ロードのみ。`LoadSceneAsync` で十分 |
-| UI Toolkit | 不採用 | UGUI + DOTween + TextMeshPro の組み合わせで実績あり |
-| Unity 6 Awaitable | 不採用 | `WhenAll` 等が不足。UniTask が上位互換（ADR-005） |
+| 技術              | 採用   | 理由                                                                       |
+| ----------------- | ------ | -------------------------------------------------------------------------- |
+| URP 2D            | 採用   | Unity 6.3 デフォルト。新規プロジェクトは `Universal 2D` テンプレートで作成 |
+| New Input System  | 採用   | Space=Spin 等のショートカット管理に使用。UGUI の Button は OnClick() 継続  |
+| Addressables      | 不採用 | BonusRound.unity の Additive ロードのみ。`LoadSceneAsync` で十分           |
+| UI Toolkit        | 不採用 | UGUI + DOTween + TextMeshPro の組み合わせで実績あり                        |
+| Unity 6 Awaitable | 不採用 | `WhenAll` 等が不足。UniTask が上位互換（ADR-005）                          |
 
 ---
 
 ## フェーズ 0: プロジェクト初期設定
 
-- [ ] Unity 6.3 LTS で新規プロジェクト作成（テンプレート: `Universal 2D`）
-- [ ] ProjectSettings: 解像度 1920×1080、16:9 固定
-- [ ] UPM パッケージ導入
-  - [ ] UniTask（GitHub URL 経由）
-  - [ ] DOTween（Asset Store）+ Setup 実行
-  - [ ] TextMeshPro Essential Resources インポート
-  - [ ] New Input System（`Both` モードで互換性確保）
+- [x] Unity 6.3 LTS で新規プロジェクト作成（テンプレート: `Universal 2D`）
+- [x] ProjectSettings: 解像度 1920×1080、16:9 固定
+- [x] UPM パッケージ導入
+  - [x] UniTask（GitHub URL 経由）
+  - [x] DOTween（Asset Store）+ Setup 実行
+  - [x] TextMeshPro Essential Resources インポート
+  - [x] New Input System（`Both` モードで互換性確保）
 - [x] Assembly Definition（`.asmdef`）を各フォルダに作成
   - `SlotGame.Model`（Unity 参照なし）/ `SlotGame.Data` / `SlotGame.Core` / `SlotGame.View` / `SlotGame.Utility` / `SlotGame.Tests.EditMode` / `SlotGame.Tests.PlayMode`
 - [x] フォルダ構成を作成
