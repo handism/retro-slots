@@ -1,2 +1,19 @@
 fileFormatVersion: 2
 guid: e47f3ae76eaca4ef5829db61d6f55476
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - mainHUD: {instanceID: 0}
+  - freeSpinHUD: {instanceID: 0}
+  - winPopup: {instanceID: 0}
+  - settingsView: {instanceID: 0}
+  - paytableView: {instanceID: 0}
+  - paylinePrefab: {fileID: 6289988904971302765, guid: e09662fb78ba04c63abd7101fdb41551, type: 3}
+  - paylineParent: {instanceID: 0}
+  - paylineData: {fileID: 11400000, guid: d17e0e0a474fb46a69a417ebf69645aa, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
