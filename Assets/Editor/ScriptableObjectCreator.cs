@@ -69,14 +69,14 @@ namespace SlotGame.Editor
             // Normal 以外は payouts を 0 で登録（PaylineEvaluator では参照されない）
             var defs = new (int id, string name, SymbolType type, int p3, int p4, int p5)[]
             {
-                (0,  "Dragon",  SymbolType.Normal,  50,  100, 500),
-                (1,  "Phoenix", SymbolType.Normal,  40,   80, 400),
-                (2,  "Crystal", SymbolType.Normal,  30,   60, 300),
-                (3,  "Sword",   SymbolType.Normal,  20,   40, 200),
-                (4,  "Ace",     SymbolType.Normal,  10,   20, 100),
-                (5,  "King",    SymbolType.Normal,   8,   15,  80),
-                (6,  "Queen",   SymbolType.Normal,   6,   12,  60),
-                (7,  "Jack",    SymbolType.Normal,   4,    8,  40),
+                (0,  "Dragon",  SymbolType.Normal,  60,  120, 600),
+                (1,  "Phoenix", SymbolType.Normal,  50,  100, 500),
+                (2,  "Crystal", SymbolType.Normal,  40,   80, 400),
+                (3,  "Sword",   SymbolType.Normal,  30,   60, 300),
+                (4,  "Ace",     SymbolType.Normal,  15,   30, 150),
+                (5,  "King",    SymbolType.Normal,  10,   20, 100),
+                (6,  "Queen",   SymbolType.Normal,   8,   15,  80),
+                (7,  "Jack",    SymbolType.Normal,   5,   10,  50),
                 (8,  "Wild",    SymbolType.Wild,     0,    0,   0),
                 (9,  "Scatter", SymbolType.Scatter,  0,    0,   0),
                 (10, "Bonus",   SymbolType.Bonus,    0,    0,   0),
@@ -306,8 +306,8 @@ namespace SlotGame.Editor
             // + 低配当各1追加（Ace+2, King+2, Queen+2, Jack+2 = +8）→ 60
             var baseCounts = new (SymbolData sym, int count)[]
             {
-                (jack,      9),
-                (queen,     9),
+                (jack,     10),
+                (queen,    10),
                 (king,     10),
                 (ace,      10),
                 (sword,     5),
@@ -315,8 +315,8 @@ namespace SlotGame.Editor
                 (phoenix,   3),
                 (wild,      3),
                 (dragon,    2),
-                (scatter,   3),
-                (bonus,     2),
+                (scatter,   2),
+                (bonus,     1),
             };
 
             for (int reelIdx = 0; reelIdx < 5; reelIdx++)
