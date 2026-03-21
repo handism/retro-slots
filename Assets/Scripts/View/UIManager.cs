@@ -164,7 +164,5 @@ namespace SlotGame.View
         {
             return left.transform.position.x.CompareTo(right.transform.position.x);
         }
-
-        }
     }
 }
