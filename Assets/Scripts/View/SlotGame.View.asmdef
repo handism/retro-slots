@@ -2,10 +2,10 @@
     "name": "SlotGame.View",
     "rootNamespace": "SlotGame.View",
     "references": [
-        "SlotGame.Core",
         "SlotGame.Model",
         "SlotGame.Data",
         "UniTask",
+        "UniTask.DOTween",
         "DOTween.Modules",
         "Unity.TextMeshPro"
     ],

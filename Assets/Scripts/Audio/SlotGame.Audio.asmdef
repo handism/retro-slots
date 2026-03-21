@@ -4,6 +4,7 @@
     "references": [
         "SlotGame.Model",
         "UniTask",
+        "UniTask.DOTween",
         "DOTween.Modules"
     ],
     "includePlatforms": [],

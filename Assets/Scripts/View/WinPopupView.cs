@@ -43,7 +43,12 @@ namespace SlotGame.View
             await UniTask.Delay(TimeSpan.FromSeconds(displayDuration), cancellationToken: ct);
 
             // フェードアウト
-            await _canvasGroup.DOFade(0f, 0.3f).ToUniTask(cancellationToken: ct);
+            await DOTween.To(
+                    () => _canvasGroup.alpha,
+                    value => _canvasGroup.alpha = value,
+                    0f,
+                    0.3f)
+                .ToUniTask(cancellationToken: ct);
             _canvasGroup.alpha = 0;
         }
     }

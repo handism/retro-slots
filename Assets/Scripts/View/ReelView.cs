@@ -89,10 +89,18 @@ namespace SlotGame.View
             float targetY = rt.anchoredPosition.y;
 
             // 少し行き過ぎてからバウンスで戻る
-            await rt.DOAnchorPosY(targetY - 20f, 0.1f)
+            await DOTween.To(
+                        () => rt.anchoredPosition,
+                        value => rt.anchoredPosition = value,
+                        new Vector2(rt.anchoredPosition.x, targetY - 20f),
+                        0.1f)
                     .SetEase(Ease.OutQuad)
                     .ToUniTask(cancellationToken: ct);
-            await rt.DOAnchorPosY(targetY, 0.15f)
+            await DOTween.To(
+                        () => rt.anchoredPosition,
+                        value => rt.anchoredPosition = value,
+                        new Vector2(rt.anchoredPosition.x, targetY),
+                        0.15f)
                     .SetEase(Ease.OutBounce)
                     .ToUniTask(cancellationToken: ct);
 

@@ -89,7 +89,7 @@ namespace SlotGame.Utility
             if (File.Exists(_savePath))
             {
                 string bakPath = _savePath + ".bak";
-                try { File.Move(_savePath, bakPath, overwrite: true); }
+                try { if (File.Exists(bakPath)) File.Delete(bakPath); File.Move(_savePath, bakPath); }
                 catch (Exception) { /* バックアップ失敗は無視してデフォルト値を返す */ }
             }
             return new SaveData();

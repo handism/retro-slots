@@ -5,7 +5,10 @@
         "SlotGame.Model",
         "SlotGame.Data",
         "SlotGame.Utility",
-        "UniTask"
+        "SlotGame.View",
+        "SlotGame.Audio",
+        "UniTask",
+        "DOTween.Modules"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
