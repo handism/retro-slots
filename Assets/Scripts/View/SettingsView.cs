@@ -1,3 +1,5 @@
+using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,6 +16,8 @@ namespace SlotGame.View
         [SerializeField] private Button   resetCoinsButton;
         [SerializeField] private Button   closeButton;
 
+        private CanvasGroup _canvasGroup;
+
         public event System.Action<float> OnBGMVolumeChanged;
         public event System.Action<float> OnSEVolumeChanged;
         public event System.Action        OnResetCoinsRequested;
@@ -21,6 +25,10 @@ namespace SlotGame.View
 
         private void Awake()
         {
+            _canvasGroup = GetComponent<CanvasGroup>();
+            if (_canvasGroup == null) _canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            _canvasGroup.alpha = 0;
+
             bgmSlider.onValueChanged.AddListener(v =>
             {
                 bgmValueText.text = $"{(int)(v * 100)}%";
@@ -43,6 +51,27 @@ namespace SlotGame.View
             seSlider.SetValueWithoutNotify(se);
             bgmValueText.text = $"{(int)(bgm * 100)}%";
             seValueText.text  = $"{(int)(se  * 100)}%";
+        }
+
+        public async UniTask ShowAsync(System.Threading.CancellationToken ct = default)
+        {
+            gameObject.SetActive(true);
+            transform.localScale = Vector3.one * 0.9f;
+            _canvasGroup.alpha = 0f;
+
+            await UniTask.WhenAll(
+                _canvasGroup.DOFade(1f, 0.2f).SetEase(Ease.OutQuad).ToUniTask(cancellationToken: ct),
+                transform.DOScale(1f, 0.2f).SetEase(Ease.OutBack).ToUniTask(cancellationToken: ct)
+            );
+        }
+
+        public async UniTask HideAsync(System.Threading.CancellationToken ct = default)
+        {
+            await UniTask.WhenAll(
+                _canvasGroup.DOFade(0f, 0.15f).SetEase(Ease.InQuad).ToUniTask(cancellationToken: ct),
+                transform.DOScale(0.9f, 0.15f).SetEase(Ease.InBack).ToUniTask(cancellationToken: ct)
+            );
+            gameObject.SetActive(false);
         }
     }
 }

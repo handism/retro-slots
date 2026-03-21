@@ -146,10 +146,10 @@ namespace SlotGame.View
 
         public void HideFreeSpinHUD() => freeSpinHUD.gameObject.SetActive(false);
 
-        public void ShowSettings()  => settingsView.gameObject.SetActive(true);
-        public void HideSettings()  => settingsView.gameObject.SetActive(false);
-        public void ShowPaytable()  => paytableView.gameObject.SetActive(true);
-        public void HidePaytable()  => paytableView.gameObject.SetActive(false);
+        public void ShowSettings()  => settingsView.ShowAsync(this.GetCancellationTokenOnDestroy()).Forget();
+        public void HideSettings()  => settingsView.HideAsync(this.GetCancellationTokenOnDestroy()).Forget();
+        public void ShowPaytable()  => paytableView.ShowAsync(this.GetCancellationTokenOnDestroy()).Forget();
+        public void HidePaytable()  => paytableView.HideAsync(this.GetCancellationTokenOnDestroy()).Forget();
 
         public void SetSettingsVolumes(float bgm, float se)
         {

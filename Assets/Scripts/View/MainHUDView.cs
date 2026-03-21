@@ -19,6 +19,7 @@ namespace SlotGame.View
         [SerializeField] private int[]    betValues;   // { 10, 20, 50, 100 }
 
         private long _displayedCoins;
+        private long _displayedWin;
 
         private void Awake()
         {
@@ -28,8 +29,18 @@ namespace SlotGame.View
             for (int i = 0; i < betButtons.Length; i++)
             {
                 int bet = betValues[i];
-                betButtons[i].onClick.AddListener(() => OnBetButtonClicked(bet));
+                var btn = betButtons[i];
+                btn.onClick.AddListener(() => {
+                    btn.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetIndependentUpdate(true);
+                    OnBetButtonClicked(bet);
+                });
             }
+
+            if (spinButton != null)
+                spinButton.onClick.AddListener(() => spinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetIndependentUpdate(true));
+            
+            if (autoSpinButton != null)
+                autoSpinButton.onClick.AddListener(() => autoSpinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetIndependentUpdate(true));
         }
 
         public void SetCoins(long coins)
@@ -65,7 +76,18 @@ namespace SlotGame.View
 
         public void SetWin(long amount)
         {
-            winText.text = amount > 0 ? amount.ToString("N0") : "------";
+            if (amount <= 0)
+            {
+                winText.text = "------";
+                _displayedWin = 0;
+                return;
+            }
+
+            DOTween.To(() => _displayedWin, v =>
+            {
+                _displayedWin = v;
+                winText.text = v.ToString("N0");
+            }, amount, 1.0f).SetEase(Ease.OutCubic);
         }
 
         private void OnBetButtonClicked(int bet)

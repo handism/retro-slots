@@ -1,3 +1,5 @@
+using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using SlotGame.Data;
 using TMPro;
 using UnityEngine;
@@ -18,10 +20,16 @@ namespace SlotGame.View
         [SerializeField] private GameObject    rowPrefab;   // Image + TMP_Text × 3（3/4/5 揃え）
         [SerializeField] private Button        closeButton;
 
+        private CanvasGroup _canvasGroup;
+
         public event System.Action OnCloseRequested;
 
         private void Awake()
         {
+            _canvasGroup = GetComponent<CanvasGroup>();
+            if (_canvasGroup == null) _canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            _canvasGroup.alpha = 0;
+
             closeButton.onClick.AddListener(() => OnCloseRequested?.Invoke());
         }
 
@@ -116,6 +124,27 @@ namespace SlotGame.View
 
             var rect = go.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(ColumnWidth, 40f);
+        }
+
+        public async UniTask ShowAsync(System.Threading.CancellationToken ct = default)
+        {
+            gameObject.SetActive(true);
+            transform.localScale = Vector3.one * 0.9f;
+            _canvasGroup.alpha = 0f;
+
+            await UniTask.WhenAll(
+                _canvasGroup.DOFade(1f, 0.2f).SetEase(Ease.OutQuad).ToUniTask(cancellationToken: ct),
+                transform.DOScale(1f, 0.2f).SetEase(Ease.OutBack).ToUniTask(cancellationToken: ct)
+            );
+        }
+
+        public async UniTask HideAsync(System.Threading.CancellationToken ct = default)
+        {
+            await UniTask.WhenAll(
+                _canvasGroup.DOFade(0f, 0.15f).SetEase(Ease.InQuad).ToUniTask(cancellationToken: ct),
+                transform.DOScale(0.9f, 0.15f).SetEase(Ease.InBack).ToUniTask(cancellationToken: ct)
+            );
+            gameObject.SetActive(false);
         }
     }
 }
