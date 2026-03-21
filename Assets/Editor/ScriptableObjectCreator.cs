@@ -69,8 +69,8 @@ namespace SlotGame.Editor
             // Normal 以外は payouts を 0 で登録（PaylineEvaluator では参照されない）
             var defs = new (int id, string name, SymbolType type, int p3, int p4, int p5)[]
             {
-                (0,  "Dragon",  SymbolType.Normal,  60,  120, 600),
-                (1,  "Phoenix", SymbolType.Normal,  45,   90, 450),
+                (0,  "Dragon",  SymbolType.Normal,  70,  140, 700),
+                (1,  "Phoenix", SymbolType.Normal,  50,  100, 500),
                 (2,  "Crystal", SymbolType.Normal,  35,   70, 350),
                 (3,  "Sword",   SymbolType.Normal,  25,   50, 250),
                 (4,  "Ace",     SymbolType.Normal,  12,   24, 120),
@@ -89,10 +89,10 @@ namespace SlotGame.Editor
                     continue;
 
                 var asset = ScriptableObject.CreateInstance<SymbolData>();
-                asset.symbolId   = d.id;
+                asset.symbolId = d.id;
                 asset.symbolName = d.name;
-                asset.type       = d.type;
-                asset.payouts    = new[] { d.p3, d.p4, d.p5 };
+                asset.type = d.type;
+                asset.payouts = new[] { d.p3, d.p4, d.p5 };
                 // sprite / winAnim は Art アセット整備後に Unity Editor で設定する
                 AssetDatabase.CreateAsset(asset, path);
             }
@@ -287,17 +287,17 @@ namespace SlotGame.Editor
             SymbolData Load(string name) =>
                 AssetDatabase.LoadAssetAtPath<SymbolData>($"{BasePath}/Symbols/{name}.asset");
 
-            var dragon  = Load("Dragon");
+            var dragon = Load("Dragon");
             var phoenix = Load("Phoenix");
             var crystal = Load("Crystal");
-            var sword   = Load("Sword");
-            var ace     = Load("Ace");
-            var king    = Load("King");
-            var queen   = Load("Queen");
-            var jack    = Load("Jack");
-            var wild    = Load("Wild");
+            var sword = Load("Sword");
+            var ace = Load("Ace");
+            var king = Load("King");
+            var queen = Load("Queen");
+            var jack = Load("Jack");
+            var wild = Load("Wild");
             var scatter = Load("Scatter");
-            var bonus   = Load("Bonus");
+            var bonus = Load("Bonus");
 
             // 各リールのシンボル出現数（計 60）
             // Dragon×2, Phoenix×3, Crystal×4, Sword×5,
@@ -327,7 +327,7 @@ namespace SlotGame.Editor
 
                 var asset = ScriptableObject.CreateInstance<ReelStripData>();
                 asset.reelIndex = reelIdx;
-                asset.strip     = BuildStrip(baseCounts, reelIdx);
+                asset.strip = BuildStrip(baseCounts, reelIdx);
                 AssetDatabase.CreateAsset(asset, path);
             }
         }
@@ -341,7 +341,7 @@ namespace SlotGame.Editor
             (SymbolData sym, int count)[] counts, int reelOffset)
         {
             const int totalSlots = 60;
-            const int step       = 7; // gcd(7, 60) = 1 → 全スロットを一巡する
+            const int step = 7; // gcd(7, 60) = 1 → 全スロットを一巡する
 
             // フラットリストを作成（出現数分のシンボル）
             var flat = new List<SymbolData>(totalSlots);
