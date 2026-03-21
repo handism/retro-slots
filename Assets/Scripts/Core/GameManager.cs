@@ -34,6 +34,7 @@ namespace SlotGame.Core
         private SaveDataManager        _saveDataManager;
         private GamePhase              _currentPhase;
         private CancellationTokenSource _autoSpinCts;
+        private bool                   _isAutoSpinning;
         private float                  _bgmVolume = 0.8f;
         private float                  _seVolume  = 1f;
 
@@ -137,6 +138,12 @@ namespace SlotGame.Core
 
         public void OnAutoSpinButtonPressed(int count)
         {
+            if (_isAutoSpinning)
+            {
+                OnAutoSpinStopRequested();
+                return;
+            }
+
             if (_currentPhase != GamePhase.Idle) return;
             RunAutoSpinAsync(count, this.GetCancellationTokenOnDestroy()).Forget();
         }
@@ -185,6 +192,9 @@ namespace SlotGame.Core
             _autoSpinCts = CancellationTokenSource.CreateLinkedTokenSource(destroyToken);
             var ct = _autoSpinCts.Token;
 
+            _isAutoSpinning = true;
+            uiManager.SetAutoButtonText("STOP");
+
             try
             {
                 for (int i = 0; i < count; i++)
@@ -198,6 +208,13 @@ namespace SlotGame.Core
             catch (OperationCanceledException)
             {
                 TransitionTo(GamePhase.Idle);
+            }
+            finally
+            {
+                _isAutoSpinning = false;
+                uiManager.SetAutoButtonText("AUTO");
+                _autoSpinCts?.Dispose();
+                _autoSpinCts = null;
             }
         }
 

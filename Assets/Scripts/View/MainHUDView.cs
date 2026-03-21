@@ -12,6 +12,7 @@ namespace SlotGame.View
         [SerializeField] private TMP_Text winText;
         [SerializeField] private Button   spinButton;
         [SerializeField] private Button   autoSpinButton;
+        [SerializeField] private TMP_Text autoButtonText;
 
         // ベット選択ボタン群（Inspector でボタンと値を紐付け）
         [SerializeField] private Button[] betButtons;
@@ -21,6 +22,9 @@ namespace SlotGame.View
 
         private void Awake()
         {
+            if (autoButtonText == null && autoSpinButton != null)
+                autoButtonText = autoSpinButton.GetComponentInChildren<TMP_Text>();
+
             for (int i = 0; i < betButtons.Length; i++)
             {
                 int bet = betValues[i];
@@ -51,6 +55,12 @@ namespace SlotGame.View
         public void SetSpinInteractable(bool interactable)
         {
             spinButton.interactable = interactable;
+        }
+
+        public void SetAutoButtonText(string text)
+        {
+            if (autoButtonText != null)
+                autoButtonText.text = text;
         }
 
         public void SetWin(long amount)

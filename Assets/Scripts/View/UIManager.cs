@@ -47,6 +47,7 @@ namespace SlotGame.View
         public void UpdateCoins(long coins)    => mainHUD.SetCoins(coins);
         public void UpdateBet(int bet)         => mainHUD.SetBet(bet);
         public void SetSpinButtonInteractable(bool interactable) => mainHUD.SetSpinInteractable(interactable);
+        public void SetAutoButtonText(string text) => mainHUD.SetAutoButtonText(text);
 
         public async UniTask ShowWinAmount(long amount, WinLevel level)
             => await winPopup.Show(amount, level, this.GetCancellationTokenOnDestroy());
