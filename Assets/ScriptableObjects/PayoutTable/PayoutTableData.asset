@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09cd6443295d94028bf2ff0c77cacabc, type: 3}
+  m_Name: PayoutTableData
+  m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.PayoutTableData
+  scatterPayouts:
+  - scatterCount: 3
+    multiplier: 2
+  - scatterCount: 4
+    multiplier: 10
+  - scatterCount: 5
+    multiplier: 50
+  bonusRewards:
+  - multiplier: 5
+    weight: 40
+  - multiplier: 10
+    weight: 25
+  - multiplier: 20
+    weight: 15
+  - multiplier: 30
+    weight: 10
+  - multiplier: 50
+    weight: 7
+  - multiplier: 100
+    weight: 3

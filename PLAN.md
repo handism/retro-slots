@@ -213,11 +213,11 @@ Assets/
 
 ### 4-1. シーン構築（Main.unity）
 
-- [ ] Canvas（メイン）: `Screen Space - Camera`、Reference Resolution 1920×1080、`Scale With Screen Size`（Width/Height 0.5）
-- [ ] Canvas（HUD専用、別 Canvas）: `Screen Space - Overlay`
+- [x] Canvas（メイン）: `Screen Space - Camera`、Reference Resolution 1920×1080、`Scale With Screen Size`（Width/Height 0.5）
+- [x] Canvas（HUD専用、別 Canvas）: `Screen Space - Overlay`
   - コイン・WIN表示の TMP_Text を独立 Canvas に分離
   - **理由**: スピン中のカウントアップ演出で毎フレーム更新されるテキストが、リールグリッドの Canvas リビルドを誘発しないようにする
-- [ ] 5×3 リールグリッド: 各リールは `RectMask2D` 付き Panel、内部に `SymbolView` × 5（バッファ込み）
+- [x] 5×3 リールグリッド: 各リールは `RectMask2D` 付き Panel、内部に `SymbolView` × 5（バッファ込み）
 
 ### 4-2. ReelView（`Scripts/View/`）
 
