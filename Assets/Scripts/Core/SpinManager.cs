@@ -17,7 +17,15 @@ namespace SlotGame.Core
         private bool             _skipRequested;
         private SlotGame.Data.SymbolData[] _cachedSymbolDefs;
 
-        public void Initialize(IRandomGenerator random) => _random = random;
+        public void Initialize(IRandomGenerator random, ReelStripData[] strips = null)
+        {
+            _random = random;
+
+            if (strips == null) return;
+
+            for (int i = 0; i < reels.Length && i < strips.Length; i++)
+                reels[i].Initialize(strips[i]);
+        }
 
         /// <summary>
         /// スピンを 1 回実行して結果を返す。

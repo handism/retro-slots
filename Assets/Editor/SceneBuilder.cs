@@ -1,7 +1,9 @@
 using UnityEditor;
+using UnityEditor.Events;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
@@ -28,6 +30,12 @@ namespace SlotGame.Editor
         [MenuItem("SlotGame/Build All Scenes")]
         public static void BuildAllScenes()
         {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                Debug.LogError("[SceneBuilder] Build All Scenes cannot run during Play Mode. Stop Play Mode and run it again.");
+                return;
+            }
+
             EnsureFolder("Assets", "Scenes");
             EnsureFolder("Assets", "Art");
             EnsureFolder("Assets/Art", "Prefabs");
@@ -42,6 +50,12 @@ namespace SlotGame.Editor
             AssetDatabase.Refresh();
 
             Debug.Log("[SceneBuilder] All scenes built successfully!");
+        }
+
+        [MenuItem("SlotGame/Build All Scenes", true)]
+        private static bool ValidateBuildAllScenes()
+        {
+            return !EditorApplication.isPlayingOrWillChangePlaymode;
         }
 
         // ─── SymbolView Prefab ──────────────────────────────────────────
@@ -148,7 +162,7 @@ namespace SlotGame.Editor
             hudCanvasGO.GetComponent<Canvas>().sortingOrder = 10;
             SetupCanvasScaler(hudCanvasGO, 0.5f);
 
-            var (mainHUDGO, mainHUDView)   = CreateMainHUD(hudCanvasGO);
+            var (mainHUDGO, mainHUDView, spinButton, autoSpinButton, betButtons) = CreateMainHUD(hudCanvasGO);
             var (freeSpinGO, freeSpinView) = CreateFreeSpinHUD(hudCanvasGO);
             freeSpinGO.SetActive(false);
 
@@ -222,6 +236,15 @@ namespace SlotGame.Editor
             gso.FindProperty("payoutData").objectReferenceValue =
                 AssetDatabase.LoadAssetAtPath<PayoutTableData>($"{SOBasePath}/PayoutTable/PayoutTableData.asset");
             gso.ApplyModifiedPropertiesWithoutUndo();
+
+            // HUD button bindings
+            UnityEventTools.AddPersistentListener(spinButton.onClick, gameManager.OnSpinButtonPressed);
+            UnityEventTools.AddIntPersistentListener(autoSpinButton.onClick, gameManager.OnAutoSpinButtonPressed, 10);
+            for (int i = 0; i < betButtons.Length; i++)
+            {
+                int bet = new[] { 10, 20, 50, 100 }[i];
+                UnityEventTools.AddIntPersistentListener(betButtons[i].onClick, gameManager.OnBetChanged, bet);
+            }
 
             EditorSceneManager.SaveScene(scene, $"{ScenesPath}/Main.unity");
             Debug.Log("[SceneBuilder] Main.unity built.");
@@ -380,7 +403,7 @@ namespace SlotGame.Editor
 
         // ─── MainHUD ───────────────────────────────────────────────────
 
-        private static (GameObject, MainHUDView) CreateMainHUD(GameObject parent)
+        private static (GameObject, MainHUDView, Button, Button, Button[]) CreateMainHUD(GameObject parent)
         {
             var go = new GameObject("MainHUD");
             SetParent(go, parent);
@@ -393,10 +416,10 @@ namespace SlotGame.Editor
             var spinBtn       = CreateButton(go, "SpinButton",      "SPIN");
             var autoSpinBtn   = CreateButton(go, "AutoSpinButton",  "AUTO");
 
-            PositionHUD(coinText,    new Vector2(-400, -40));
-            PositionHUD(winText,     new Vector2(-400, -90));
-            PositionHUD(spinBtn,     new Vector2(800,  -40));
-            PositionHUD(autoSpinBtn, new Vector2(800,  -100));
+            PositionHUD(coinText,    new Vector2(40, -40));
+            PositionHUD(winText,     new Vector2(40, -90));
+            PositionHUD(spinBtn,     new Vector2(1500, -40));
+            PositionHUD(autoSpinBtn, new Vector2(1500, -110));
 
             // Bet ボタン × 4
             var betValues  = new[] { 10, 20, 50, 100 };
@@ -404,7 +427,7 @@ namespace SlotGame.Editor
             for (int i = 0; i < 4; i++)
             {
                 var btn = CreateButton(go, $"BetButton{i}", $"BET {betValues[i]}");
-                PositionHUD(btn, new Vector2(800 + (i - 1.5f) * 90, -160));
+                PositionHUD(btn, new Vector2(960 + i * 180, -180));
                 betButtons[i] = btn.GetComponent<Button>();
             }
 
@@ -426,7 +449,7 @@ namespace SlotGame.Editor
 
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            return (go, view);
+            return (go, view, spinBtn.GetComponent<Button>(), autoSpinBtn.GetComponent<Button>(), betButtons);
         }
 
         // ─── FreeSpinHUD ───────────────────────────────────────────────
@@ -594,7 +617,7 @@ namespace SlotGame.Editor
 
         private static void CreateEventSystem()
         {
-            var go = new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
+            var go = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             SceneManager.MoveGameObjectToScene(go, SceneManager.GetActiveScene());
         }
 
@@ -640,7 +663,7 @@ namespace SlotGame.Editor
             go.AddComponent<Button>();
 
             var rt = go.GetComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(160, 50);
+            rt.sizeDelta = new Vector2(170, 56);
 
             var labelGO = CreateTMPText(go, "Label", label, 22);
             StretchFull(labelGO);

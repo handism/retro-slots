@@ -6,7 +6,8 @@
         "SlotGame.Core",
         "SlotGame.View",
         "SlotGame.Audio",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [
         "Editor"

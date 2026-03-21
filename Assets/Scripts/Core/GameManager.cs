@@ -71,7 +71,7 @@ namespace SlotGame.Core
             _gameState       = gameState;
             _saveDataManager = saveDataManager;
 
-            spinManager.Initialize(random);
+            spinManager.Initialize(random, reelStrips);
             bonusManager.Initialize(random);
 
             audioManager.SetBGMVolume(save.bgmVolume);
