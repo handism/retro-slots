@@ -42,13 +42,22 @@ Model（ピュア C#・Unity 非依存）
 
 Presenter（MonoBehaviour・フロー制御）
   GameManager      ← ステートマシン頂点。状態遷移のみ担当
-  SpinManager      ← リール回転・停止の調整
+  SpinManager      ← 5リール回転・停止の調整（0.3 秒ずらし停止）
+  ReelController   ← 個別リールの回転・停止制御
   BonusManager     ← フリースピン・ボーナスラウンドのフロー
-  AudioManager     ← BGM/SE 再生
+  AudioManager     ← BGM/SE 再生（プール方式・DOTween フェード）
+  BootManager      ← 起動時の依存注入（Composition Root）
+  GameContext      ← Presenter 間で共有するコンテキスト
 
 View（MonoBehaviour・表示専用）
   UIManager        ← 各 View パネルの統括
-  ReelView         ← シンボルスクロールアニメーション
+  ReelView         ← シンボルスクロールアニメーション（循環バッファ）
+  SymbolView       ← 個別シンボルのスプライト・アニメーション
+  MainHUDView      ← コイン残高・ベット額・スピンボタン表示
+  WinPopupView     ← 獲得コインポップアップ
+  FreeSpinHUDView  ← フリースピン残数表示
+  SettingsView     ← 音量設定パネル
+  PaytableView     ← 配当表パネル
   BonusRoundView   ← 宝箱選択 UI
 ```
 
@@ -62,8 +71,8 @@ View（MonoBehaviour・表示専用）
 
 | アセット | 内容 |
 |---------|------|
-| `SymbolData` × 10 | 各シンボルの配当倍率・スプライト・アニメ |
-| `ReelStripData` × 5 | リールの出目テーブル（重み付き確率） |
+| `SymbolData` × 11 | 各シンボルの配当倍率・スプライト・アニメ（Bonus シンボル含む） |
+| `ReelStripData` × 5 | リールの出目テーブル（重み付き確率、1リール 60 スロット） |
 | `PaylineData` | 25 ペイラインの定義（行インデックス配列） |
 | `PayoutTableData` | Scatter 配当・ボーナス報酬の重み |
 
@@ -71,6 +80,15 @@ View（MonoBehaviour・表示専用）
 
 UniTask（`async UniTask`）を使用。Coroutine は使わない。
 キャンセルは `this.GetCancellationTokenOnDestroy()` で取得した `CancellationToken` を渡す。
+
+### Canvas アーキテクチャ
+
+デュアルキャンバス構成を採用。コイン残高カウントアップアニメーション中に HUD 再構築が走らないよう分離。
+
+| キャンバス | 用途 |
+|-----------|------|
+| Main Canvas | リールグリッド・ポップアップ |
+| HUD Canvas | コイン残高・WIN 表示（カウンターアニメーション対象） |
 
 ### 配当判定
 
@@ -102,6 +120,7 @@ UniTask（`async UniTask`）を使用。Coroutine は使わない。
 | `PaylineEvaluator` | Edit Mode ユニットテスト（必須） |
 | `GameState` | Edit Mode ユニットテスト（必須） |
 | `SaveDataManager` | Edit Mode テスト（仮想パス使用） |
+| `RtpCalculator` | Edit Mode（エディタ専用、10 万回シミュレーション） |
 | スピンフロー | Play Mode テスト |
 
 ---

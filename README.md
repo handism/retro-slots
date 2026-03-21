@@ -35,13 +35,22 @@ Model（ピュア C#・Unity 非依存）
 
 Presenter（MonoBehaviour・フロー制御）
   GameManager      ← ステートマシン頂点。状態遷移のみ担当
-  SpinManager      ← リール回転・停止の調整
+  SpinManager      ← 5リール回転・停止の調整（0.3 秒ずらし停止）
+  ReelController   ← 個別リールの回転・停止制御
   BonusManager     ← フリースピン・ボーナスラウンドのフロー
-  AudioManager     ← BGM/SE 再生
+  AudioManager     ← BGM/SE 再生（プール方式・DOTween フェード）
+  BootManager      ← 起動時の依存注入（Composition Root）
+  GameContext      ← Presenter 間で共有するコンテキスト
 
 View（MonoBehaviour・表示専用）
   UIManager        ← 各 View パネルの統括
-  ReelView         ← シンボルスクロールアニメーション
+  ReelView         ← シンボルスクロールアニメーション（循環バッファ）
+  SymbolView       ← 個別シンボルのスプライト・アニメーション
+  MainHUDView      ← コイン残高・ベット額・スピンボタン表示
+  WinPopupView     ← 獲得コインポップアップ
+  FreeSpinHUDView  ← フリースピン残数表示
+  SettingsView     ← 音量設定パネル
+  PaytableView     ← 配当表パネル
   BonusRoundView   ← 宝箱選択 UI
 ```
 
@@ -63,14 +72,19 @@ View（MonoBehaviour・表示専用）
 Assets/
   Scenes/
   Scripts/
-    Core/       ← GameManager, SpinManager, BonusManager
+    Core/       ← GameManager, SpinManager, ReelController,
+                   BonusManager, AudioManager, BootManager, GameContext
     Model/      ← GameState, SpinResult, SaveData（ピュア C#）
-    View/       ← UIManager, ReelView, BonusRoundView 等
+    View/       ← UIManager, ReelView, SymbolView, MainHUDView,
+                   WinPopupView, FreeSpinHUDView, SettingsView,
+                   PaytableView, BonusRoundView
     Audio/      ← AudioManager
     Data/       ← ScriptableObject 定義クラス群
-    Utility/    ← PaylineEvaluator（static）, SaveDataManager
+    Utility/    ← PaylineEvaluator（static）, SaveDataManager,
+                   IRandomGenerator, SystemRandomGenerator,
+                   SeededRandomGenerator, RtpCalculator（エディタ専用）
   ScriptableObjects/
-    Symbols/    ← SymbolData × 10
+    Symbols/    ← SymbolData × 11（Bonus シンボル含む）
     Reels/      ← ReelStripData × 5
     Paylines/   ← PaylineData
     PayoutTable/← PayoutTableData
@@ -79,7 +93,7 @@ Assets/
 docs/
   requirements.md   ← 要件定義書
   design.md         ← 設計書
-  adr/              ← Architecture Decision Records
+  adr/              ← Architecture Decision Records（ADR-001〜006）
 ```
 
 ## 外部ライブラリ
@@ -89,6 +103,8 @@ docs/
 | [UniTask](https://github.com/Cysharp/UniTask) | 非同期処理（async/await） | UPM |
 | TextMeshPro | テキスト表示 | Unity 組み込み |
 | DOTween（無料版） | UI / シンボルアニメーション補完 | Asset Store / UPM |
+| Universal RP（URP） | 2D レンダリングパイプライン | UPM |
+| New Input System | キーボード・マウス入力 | UPM |
 
 ## テストの実行
 
@@ -103,6 +119,18 @@ docs/
   -batchmode -projectPath . -runTests -testPlatform PlayMode \
   -testResults TestResults-PlayMode.xml -logFile test-playmode.log
 ```
+
+## 実装状況
+
+| フェーズ | 内容 | 状態 |
+|---------|------|------|
+| Phase 0 | 環境構築（アセンブリ定義・UPM パッケージ導入） | 完了 |
+| Phase 1 | Model + ユニットテスト | 完了 |
+| Phase 2 | ScriptableObject アセット作成 | 完了 |
+| Phase 3 | Presenter / Core 実装 | 完了 |
+| Phase 4 | View 実装・シーン構築 | 完了 |
+| Phase 5 | RTP 検証・リールストリップ調整 | 進行中 |
+| Phase 6 | 統合テスト・最終ビルド確認 | 未着手 |
 
 ## ドキュメント
 
