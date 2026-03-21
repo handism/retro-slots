@@ -199,8 +199,12 @@ namespace SlotGame.Core
             {
                 for (int i = 0; i < count; i++)
                 {
-                    ct.ThrowIfCancellationRequested();
-                    bool shouldStopAutoSpin = await SpinOnceAsync(ct);
+                    // ストップがリクエストされていたら、次のスピンを開始せずに抜ける
+                    if (ct.IsCancellationRequested) break;
+
+                    // destroyToken を渡すことで、現在の 1 ゲームが完了するまでは中断されないようにする
+                    bool shouldStopAutoSpin = await SpinOnceAsync(destroyToken);
+                    
                     // ボーナス発動・フリースピン発動・コイン不足で自動停止
                     if (shouldStopAutoSpin || _currentPhase != GamePhase.Idle) break;
                 }
