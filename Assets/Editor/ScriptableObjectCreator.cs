@@ -306,17 +306,17 @@ namespace SlotGame.Editor
             // + 低配当各1追加（Ace+2, King+2, Queen+2, Jack+2 = +8）→ 60
             var baseCounts = new (SymbolData sym, int count)[]
             {
-                (jack,     25),
-                (queen,    20),
-                (king,     14),
-                (ace,      12),
-                (sword,    10),
-                (crystal,   8),
-                (phoenix,   4),
+                (jack,     64),
+                (queen,    42),
+                (king,     30),
+                (ace,      25),
+                (sword,    15),
+                (crystal,  10),
+                (phoenix,   5),
                 (wild,      1),
                 (dragon,    2),
-                (scatter,   2),
-                (bonus,     2),
+                (scatter,   3),
+                (bonus,     3),
             };
 
             for (int reelIdx = 0; reelIdx < 5; reelIdx++)
@@ -340,8 +340,8 @@ namespace SlotGame.Editor
         private static List<SymbolData> BuildStrip(
             (SymbolData sym, int count)[] counts, int reelOffset)
         {
-            const int totalSlots = 100;
-            const int step       = 13; // gcd(13, 100) = 1 → 全スロットを一巡する
+            const int totalSlots = 200;
+            const int step       = 17; // gcd(17, 200) = 1 → 全スロットを一巡する
 
             // フラットリストを作成（出現数分のシンボル）
             var flat = new List<SymbolData>(totalSlots);
