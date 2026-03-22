@@ -990,7 +990,7 @@ namespace SlotGame.Editor
             StyleSectionLabel(labelText);
 
             var valueGo = CreateTMPText(card, $"{name}Value", value, 34);
-            AnchorBottomLeft(valueGo, new Vector2(18f, 8f), new Vector2(size.x - 36f, 34f));
+            AnchorBottomLeft(valueGo, new Vector2(18f, 4f), new Vector2(size.x - 36f, 40f));
             var valueText = valueGo.GetComponent<TMP_Text>();
             valueText.alignment = TextAlignmentOptions.Right;
             StyleValueText(valueText, 1f);

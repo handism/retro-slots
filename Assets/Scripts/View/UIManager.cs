@@ -403,6 +403,11 @@ namespace SlotGame.View
 
             var text = go.GetComponent<TextMeshProUGUI>();
             text.font = TMP_Settings.defaultFontAsset;
+            if (text.font == null)
+            {
+                Debug.LogError($"TMP default font asset is missing for {name}.");
+                return text;
+            }
             text.fontSize = fontSize;
             text.fontStyle = fontStyle;
             text.textWrappingMode = TextWrappingModes.NoWrap;

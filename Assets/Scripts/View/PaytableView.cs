@@ -5,6 +5,8 @@ using SlotGame.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SlotGame.View
 {
@@ -12,9 +14,9 @@ namespace SlotGame.View
     public class PaytableView : MonoBehaviour
     {
         public const float SymbolColumnWidth = 120f;
-        public const float ColumnWidth = 100f;
+        public const float ColumnWidth = 112f;
         public const float ColumnSpacing = 20f;
-        public const float RowHeight = 56f;
+        public const float RowHeight = 60f;
         public const float RowSidePadding = 12f;
         public const float IconSize = 44f;
 
@@ -83,24 +85,56 @@ namespace SlotGame.View
             }
 
             // 既存の行を削除
+            var staleRows = new List<GameObject>();
             foreach (Transform child in contentRoot)
-                Destroy(child.gameObject);
+            {
+                if (child == null) continue;
+                if (rowPrefab != null && child.gameObject == rowPrefab) continue;
+                staleRows.Add(child.gameObject);
+            }
+
+            foreach (var staleRow in staleRows)
+                Destroy(staleRow);
 
             foreach (var sym in symbols)
             {
                 if (sym.type != SymbolType.Normal) continue;
                 var row = Instantiate(rowPrefab, contentRoot);
                 row.SetActive(true);
+                row.name = $"Row_{sym.symbolName}";
 
-                var texts = row.GetComponentsInChildren<TMP_Text>();
+                var rowRect = row.GetComponent<RectTransform>();
+                if (rowRect != null)
+                {
+                    rowRect.localScale = Vector3.one;
+                    rowRect.anchoredPosition3D = Vector3.zero;
+                }
+
+                var texts = row.GetComponentsInChildren<TMP_Text>(true)
+                    .Where(t => t.transform.parent == row.transform)
+                    .OrderBy(t => t.transform.GetSiblingIndex())
+                    .ToArray();
                 var iconTransform = row.transform.Find("SymbolCell/Icon");
                 var img = iconTransform != null ? iconTransform.GetComponent<Image>() : null;
 
-                if (img != null)   img.sprite    = sym.sprite;
+                if (img != null)
+                {
+                    img.sprite = sym.sprite;
+                    img.preserveAspect = true;
+                    img.SetNativeSize();
+
+                    var iconRect = img.rectTransform;
+                    iconRect.sizeDelta = new Vector2(IconSize, IconSize);
+                }
                 if (texts.Length > 0) texts[0].text = sym.payouts.Length > 0 ? sym.payouts[0].ToString("N0") : "-";
                 if (texts.Length > 1) texts[1].text = sym.payouts.Length > 1 ? sym.payouts[1].ToString("N0") : "-";
                 if (texts.Length > 2) texts[2].text = sym.payouts.Length > 2 ? sym.payouts[2].ToString("N0") : "-";
             }
+
+            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)contentRoot);
+            if (contentRoot.parent is RectTransform parentRect)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(parentRect);
+            Canvas.ForceUpdateCanvases();
         }
 
         private void EnsureRowPrefab()
@@ -161,13 +195,14 @@ namespace SlotGame.View
             go.GetComponent<LayoutElement>().preferredWidth = ColumnWidth;
 
             var text = go.AddComponent<TextMeshProUGUI>();
+            text.font = TMP_Settings.defaultFontAsset;
             text.text = "-";
             text.fontSize = 24f;
             text.alignment = TextAlignmentOptions.Center;
             text.color = Color.white;
 
             var rect = go.GetComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(ColumnWidth, 40f);
+            rect.sizeDelta = new Vector2(ColumnWidth, 44f);
         }
 
         public async UniTask ShowAsync(System.Threading.CancellationToken ct = default)
