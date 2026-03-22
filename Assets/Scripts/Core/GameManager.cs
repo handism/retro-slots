@@ -89,6 +89,7 @@ namespace SlotGame.Core
         {
             uiManager.UpdateCoins(_gameState.Coins);
             uiManager.UpdateBet(_gameState.BetAmount);
+            uiManager.UpdateWin(0);
             uiManager.SetSettingsVolumes(_bgmVolume, _seVolume);
             uiManager.PopulatePaytable(CollectSymbolDefinitions());
             uiManager.BgmVolumeChanged += HandleBgmVolumeChanged;
@@ -234,6 +235,7 @@ namespace SlotGame.Core
             }
 
             uiManager.UpdateCoins(_gameState.Coins);
+            uiManager.UpdateWin(0); // Reset win display
             uiManager.SetSpinButtonInteractable(false);
             audioManager.PlaySE(SEType.SpinStart);
 
@@ -258,7 +260,10 @@ namespace SlotGame.Core
 
                 TransitionTo(GamePhase.WinPresentation);
                 if (result.TotalWinAmount > 0)
+                {
+                    uiManager.UpdateWin(result.TotalWinAmount);
                     await uiManager.ShowWinAmount(result.TotalWinAmount, CalcWinLevel(result.TotalWinAmount));
+                }
 
                 uiManager.HighlightWinLines(result);
                 await UniTask.Delay(TimeSpan.FromSeconds(1.5f), cancellationToken: ct);
@@ -300,6 +305,7 @@ namespace SlotGame.Core
             long win = await bonusManager.RunBonusRound(_gameState.BetAmount, payoutData, ct);
             _gameState.AddCoins(win);
             uiManager.UpdateCoins(_gameState.Coins);
+            uiManager.UpdateWin(win);
             SaveGame();
 
             await audioManager.FadeOutBGM(0.5f, ct);
@@ -331,6 +337,7 @@ namespace SlotGame.Core
                 {
                     cumulativeFreeSpinWin += result.TotalWinAmount * 2;
                     uiManager.UpdateCoins(_gameState.Coins);
+                    uiManager.UpdateWin(result.TotalWinAmount * 2);
                     uiManager.ShowFreeSpinHUD(_gameState.FreeSpinsLeft, cumulativeFreeSpinWin);
                     if (result.TotalWinAmount > 0)
                         await uiManager.ShowWinAmount(result.TotalWinAmount * 2, CalcWinLevel(result.TotalWinAmount * 2));

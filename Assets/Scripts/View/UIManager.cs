@@ -51,6 +51,7 @@ namespace SlotGame.View
 
         public void UpdateCoins(long coins)    => mainHUD.SetCoins(coins);
         public void UpdateBet(int bet)         => mainHUD.SetBet(bet);
+        public void UpdateWin(long amount)     => mainHUD.SetWin(amount);
         public void SetSpinButtonInteractable(bool interactable) => mainHUD.SetSpinInteractable(interactable);
         public void SetAutoButtonText(string text) => mainHUD.SetAutoButtonText(text);
 
