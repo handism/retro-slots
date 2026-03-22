@@ -289,7 +289,7 @@ Assets/
   - [x] ウィンドウリサイズ・フルスクリーン切り替えでレイアウトが崩れない
   - [x] ペイテーブルの配当値が requirements.md の値と一致する
   - [x] セーブデータ破損時にデフォルト値でフォールバックする
-- [ ] Profiler で 60FPS 維持・GC Alloc スパイクなしを確認
+- [x] Profiler で 60FPS 維持・GC Alloc スパイクなしを確認
 - [x] Windows / macOS ビルド確認
 
 ---
