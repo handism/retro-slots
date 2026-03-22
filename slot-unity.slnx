@@ -1,5 +1,6 @@
 ﻿<Solution>
   <Project Path="SlotGame.Utility.csproj" />
+  <Project Path="SlotGame.Tests.PlayMode.csproj" />
   <Project Path="SlotGame.View.csproj" />
   <Project Path="Assembly-CSharp-firstpass.csproj" />
   <Project Path="SlotGame.Model.csproj" />
