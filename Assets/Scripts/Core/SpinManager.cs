@@ -12,8 +12,7 @@ namespace SlotGame.Core
     public class SpinManager : MonoBehaviour
     {
         [SerializeField] private ReelController[] reels;   // 5 個
-15: 
-16:         public IReadOnlyList<ReelController> Reels => reels;
+        public IReadOnlyList<ReelController> Reels => reels;
 
         private IRandomGenerator _random;
         private bool             _skipRequested;
