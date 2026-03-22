@@ -27,6 +27,9 @@ namespace SlotGame.View
         {
             _audioManager = FindFirstObjectByType<AudioManager>();
 
+            ConfigureNumericText(coinText, 22f);
+            ConfigureNumericText(winText, 22f);
+
             if (autoButtonText == null && autoSpinButton != null)
                 autoButtonText = autoSpinButton.GetComponentInChildren<TMP_Text>();
 
@@ -138,6 +141,19 @@ namespace SlotGame.View
         {
             _audioManager ??= FindFirstObjectByType<AudioManager>();
             _audioManager?.PlaySE(SEType.ButtonClick);
+        }
+
+        private static void ConfigureNumericText(TMP_Text text, float minFontSize)
+        {
+            if (text == null) return;
+
+            text.enableAutoSizing = true;
+            text.fontSizeMax = text.fontSize;
+            text.fontSizeMin = minFontSize;
+            text.enableWordWrapping = false;
+            text.overflowMode = TextOverflowModes.Truncate;
+            text.characterSpacing = 0f;
+            text.margin = new Vector4(0f, 0f, 4f, 0f);
         }
     }
 }

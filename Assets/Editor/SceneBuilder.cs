@@ -983,6 +983,7 @@ namespace SlotGame.Editor
             var valueText = valueGo.GetComponent<TMP_Text>();
             valueText.alignment = TextAlignmentOptions.Right;
             StyleValueText(valueText, 1f);
+            ConfigureNumericValueText(valueText, 22f);
 
             return (card, labelGo, valueGo);
         }
@@ -1037,6 +1038,18 @@ namespace SlotGame.Editor
             text.fontStyle = FontStyles.Bold;
             text.characterSpacing = spacing;
             text.color = new Color(0.98f, 0.99f, 1f, 1f);
+        }
+
+        private static void ConfigureNumericValueText(TMP_Text text, float minFontSize)
+        {
+            if (text == null) return;
+            text.enableAutoSizing = true;
+            text.fontSizeMax = text.fontSize;
+            text.fontSizeMin = minFontSize;
+            text.enableWordWrapping = false;
+            text.overflowMode = TextOverflowModes.Truncate;
+            text.characterSpacing = 0f;
+            text.margin = new Vector4(0f, 0f, 4f, 0f);
         }
 
         private static void AnchorTopLeft(GameObject go, Vector2 anchoredPos, Vector2 size)
