@@ -327,7 +327,7 @@ namespace SlotGame.Core
         {
             await uiManager.ShowModeTransitionAsync(
                 "BONUS ROUND",
-                "宝箱ボーナスへ突入",
+                "PICK CHESTS",
                 ModeVisualType.BonusRound,
                 ct);
 
@@ -360,7 +360,7 @@ namespace SlotGame.Core
 
             await uiManager.ShowModeTransitionAsync(
                 "FREE SPINS",
-                $"{freeSpinCount}回のフリースピン開始",
+                $"{freeSpinCount} FREE SPINS",
                 ModeVisualType.FreeSpin,
                 ct);
 

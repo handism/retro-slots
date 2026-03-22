@@ -494,11 +494,16 @@ namespace SlotGame.Editor
             StyleImage(header.AddComponent<Image>(), new Color(1f, 1f, 1f, 0.03f), new Color(0.24f, 0.77f, 0.95f, 0.22f), 1f);
             var symbolHeaderText = CreateSizedLabel(header, "SYMBOL", PaytableView.ColumnWidth, 28).GetComponent<TMP_Text>();
             StyleSectionLabel(symbolHeaderText);
-            symbolHeaderText.margin = new Vector4(18f, 0f, 0f, 0f);
             symbolHeaderText.enableWordWrapping = false;
-            StyleSectionLabel(CreateSizedLabel(header, "3", PaytableView.ColumnWidth, 28).GetComponent<TMP_Text>());
-            StyleSectionLabel(CreateSizedLabel(header, "4", PaytableView.ColumnWidth, 28).GetComponent<TMP_Text>());
-            StyleSectionLabel(CreateSizedLabel(header, "5", PaytableView.ColumnWidth, 28).GetComponent<TMP_Text>());
+            var payout3HeaderText = CreateSizedLabel(header, "3", PaytableView.ColumnWidth, 28).GetComponent<TMP_Text>();
+            StyleSectionLabel(payout3HeaderText);
+            payout3HeaderText.enableWordWrapping = false;
+            var payout4HeaderText = CreateSizedLabel(header, "4", PaytableView.ColumnWidth, 28).GetComponent<TMP_Text>();
+            StyleSectionLabel(payout4HeaderText);
+            payout4HeaderText.enableWordWrapping = false;
+            var payout5HeaderText = CreateSizedLabel(header, "5", PaytableView.ColumnWidth, 28).GetComponent<TMP_Text>();
+            StyleSectionLabel(payout5HeaderText);
+            payout5HeaderText.enableWordWrapping = false;
 
             var scrollView = new GameObject("ScrollView", typeof(Image), typeof(Mask), typeof(ScrollRect));
             SetParent(scrollView, dialog);
