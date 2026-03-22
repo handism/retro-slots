@@ -263,9 +263,21 @@ namespace SlotGame.View
 
             try
             {
-                await _modeAnnouncementGroup.DOFade(1f, 0.2f).SetEase(Ease.OutQuad).ToUniTask(cancellationToken: cancellationToken);
+                await DOTween.To(
+                        () => _modeAnnouncementGroup.alpha,
+                        value => _modeAnnouncementGroup.alpha = value,
+                        1f,
+                        0.2f)
+                    .SetEase(Ease.OutQuad)
+                    .ToUniTask(cancellationToken: cancellationToken);
                 await UniTask.Delay(900, cancellationToken: cancellationToken);
-                await _modeAnnouncementGroup.DOFade(0f, 0.25f).SetEase(Ease.InQuad).ToUniTask(cancellationToken: cancellationToken);
+                await DOTween.To(
+                        () => _modeAnnouncementGroup.alpha,
+                        value => _modeAnnouncementGroup.alpha = value,
+                        0f,
+                        0.25f)
+                    .SetEase(Ease.InQuad)
+                    .ToUniTask(cancellationToken: cancellationToken);
             }
             finally
             {
@@ -393,7 +405,7 @@ namespace SlotGame.View
             text.font = TMP_Settings.defaultFontAsset;
             text.fontSize = fontSize;
             text.fontStyle = fontStyle;
-            text.enableWordWrapping = false;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
             text.text = string.Empty;
 
             return text;

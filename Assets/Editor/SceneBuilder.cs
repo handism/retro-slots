@@ -25,8 +25,16 @@ namespace SlotGame.Editor
         private const string PrefabPath   = "Assets/Art/Prefabs/SymbolView.prefab";
         private const string SOBasePath   = "Assets/ScriptableObjects";
         private const string AudioBasePath = "Assets/Audio";
-        private const string DefaultBgmPath = AudioBasePath + "/BGM/017ed614-80c0-01d6-ef6e-7e3732003482.mp3";
-        private const string DefaultSePath  = AudioBasePath + "/SE/se_click.mp3";
+        private const string BgmNormalPath      = AudioBasePath + "/BGM/bgm_normal.mp3";
+        private const string BgmFreeSpinPath    = AudioBasePath + "/BGM/bgm_free_spin.mp3";
+        private const string BgmBonusRoundPath  = AudioBasePath + "/BGM/bgm_bonus_round.mp3";
+        private const string SeSpinStartPath    = AudioBasePath + "/SE/se_spin_start.mp3";
+        private const string SeReelStopPath     = AudioBasePath + "/SE/se_reel_stop.mp3";
+        private const string SeSmallWinPath     = AudioBasePath + "/SE/se_small_win.mp3";
+        private const string SeBigWinPath       = AudioBasePath + "/SE/se_big_win.mp3";
+        private const string SeMegaWinPath      = AudioBasePath + "/SE/se_mega_win.mp3";
+        private const string SeScatterAppearPath = AudioBasePath + "/SE/se_scatter_appear.mp3";
+        private const string SeButtonClickPath  = AudioBasePath + "/SE/se_button_click.mp3";
 
         // ─── エントリーポイント ─────────────────────────────────────────
 
@@ -1087,34 +1095,43 @@ namespace SlotGame.Editor
 
         private static void WireAudioClips(AudioManager audioManager)
         {
-            var bgmClip = AssetDatabase.LoadAssetAtPath<AudioClip>(DefaultBgmPath);
-            var seClip = AssetDatabase.LoadAssetAtPath<AudioClip>(DefaultSePath);
+            var bgmNormal      = LoadAudioClip(BgmNormalPath);
+            var bgmFreeSpin    = LoadAudioClip(BgmFreeSpinPath);
+            var bgmBonusRound  = LoadAudioClip(BgmBonusRoundPath);
+            var seSpinStart    = LoadAudioClip(SeSpinStartPath);
+            var seReelStop     = LoadAudioClip(SeReelStopPath);
+            var seSmallWin     = LoadAudioClip(SeSmallWinPath);
+            var seBigWin       = LoadAudioClip(SeBigWinPath);
+            var seMegaWin      = LoadAudioClip(SeMegaWinPath);
+            var seScatter      = LoadAudioClip(SeScatterAppearPath);
+            var seButtonClick  = LoadAudioClip(SeButtonClickPath);
 
-            if (bgmClip == null)
+            WireField(audioManager, "bgmNormal", bgmNormal);
+            WireField(audioManager, "bgmFreeSpin", bgmFreeSpin);
+            WireField(audioManager, "bgmBonusRound", bgmBonusRound);
+
+            WireField(audioManager, "seSpinStart", seSpinStart);
+            WireField(audioManager, "seReelStop", seReelStop);
+            WireField(audioManager, "seSmallWin", seSmallWin);
+            WireField(audioManager, "seBigWin", seBigWin);
+            WireField(audioManager, "seMegaWin", seMegaWin);
+            WireField(audioManager, "seScatterAppear", seScatter);
+            WireField(audioManager, "seFreeSpinStart", seScatter);
+            WireField(audioManager, "seBonusStart", seBigWin);
+            WireField(audioManager, "seChestSelect", seButtonClick);
+            WireField(audioManager, "seChestOpen", seBigWin);
+            WireField(audioManager, "seButtonClick", seButtonClick);
+        }
+
+        private static AudioClip LoadAudioClip(string assetPath)
+        {
+            var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(assetPath);
+            if (clip == null)
             {
-                Debug.LogWarning($"[SceneBuilder] Default BGM clip not found: {DefaultBgmPath}");
+                Debug.LogWarning($"[SceneBuilder] Audio clip not found: {assetPath}");
             }
 
-            if (seClip == null)
-            {
-                Debug.LogWarning($"[SceneBuilder] Default SE clip not found: {DefaultSePath}");
-            }
-
-            WireField(audioManager, "bgmNormal", bgmClip);
-            WireField(audioManager, "bgmFreeSpin", bgmClip);
-            WireField(audioManager, "bgmBonusRound", bgmClip);
-
-            WireField(audioManager, "seSpinStart", seClip);
-            WireField(audioManager, "seReelStop", seClip);
-            WireField(audioManager, "seSmallWin", seClip);
-            WireField(audioManager, "seBigWin", seClip);
-            WireField(audioManager, "seMegaWin", seClip);
-            WireField(audioManager, "seScatterAppear", seClip);
-            WireField(audioManager, "seFreeSpinStart", seClip);
-            WireField(audioManager, "seBonusStart", seClip);
-            WireField(audioManager, "seChestSelect", seClip);
-            WireField(audioManager, "seChestOpen", seClip);
-            WireField(audioManager, "seButtonClick", seClip);
+            return clip;
         }
     }
 }
