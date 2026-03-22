@@ -600,7 +600,7 @@ namespace SlotGame.Editor
             StyleImage(betDock.GetComponent<Image>(), new Color(1f, 1f, 1f, 0.04f), new Color(0.24f, 0.76f, 0.95f, 0.12f), 1.5f);
 
             var betLabel = CreateTMPText(betDock, "BetLabel", "BET", 22);
-            AnchorCenter(betLabel, new Vector2(-272f, 0f), new Vector2(84f, 34f));
+            AnchorCenter(betLabel, new Vector2(-266f, 0f), new Vector2(76f, 34f));
             var betLabelText = betLabel.GetComponent<TMP_Text>();
             betLabelText.alignment = TextAlignmentOptions.Center;
             StyleSectionLabel(betLabelText);
@@ -620,7 +620,7 @@ namespace SlotGame.Editor
             for (int i = 0; i < 4; i++)
             {
                 var btn = CreateButton(betDock, $"BetButton{i}", betValues[i].ToString(), new Vector2(120f, 52f), new Color(0.16f, 0.23f, 0.37f));
-                AnchorCenter(btn, new Vector2(-146f + i * 132f, 0f), new Vector2(120f, 52f));
+                AnchorCenter(btn, new Vector2(-160f + i * 132f, 0f), new Vector2(120f, 52f));
                 betButtons[i] = btn.GetComponent<Button>();
             }
 
