@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.SymbolData
   symbolId: 10
   symbolName: Bonus
-  sprite: {fileID: 3822108714260272289, guid: 183914e99cfaa4eb4ace42634fa1eb9f, type: 3}
+  sprite: {fileID: 4815476061570213978, guid: 84191106dcca4453594c7d2b63087502, type: 3}
   type: 3
   payouts: 000000000000000000000000
   winAnim: {fileID: 0}

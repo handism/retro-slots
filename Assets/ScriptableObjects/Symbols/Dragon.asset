@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: SlotGame.Data::SlotGame.Data.SymbolData
   symbolId: 0
   symbolName: Dragon
-  sprite: {fileID: 3428391033546482049, guid: 71cbbd4a3a0224e7ea693f749c1d2a2c, type: 3}
+  sprite: {fileID: 7044563021175377470, guid: 7deb8d028a7924907bd74774191b96d5, type: 3}
   type: 0
   payouts: 460000008c000000bc020000
   winAnim: {fileID: 0}
