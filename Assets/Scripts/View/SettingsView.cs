@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
+using SlotGame.Audio;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,6 +18,7 @@ namespace SlotGame.View
         [SerializeField] private Button   closeButton;
 
         private CanvasGroup _canvasGroup;
+        private AudioManager _audioManager;
 
         public event System.Action<float> OnBGMVolumeChanged;
         public event System.Action<float> OnSEVolumeChanged;
@@ -25,6 +27,7 @@ namespace SlotGame.View
 
         private void Awake()
         {
+            _audioManager = FindFirstObjectByType<AudioManager>();
             _canvasGroup = GetComponent<CanvasGroup>();
             if (_canvasGroup == null) _canvasGroup = gameObject.AddComponent<CanvasGroup>();
             _canvasGroup.alpha = 0;
@@ -41,8 +44,16 @@ namespace SlotGame.View
                 OnSEVolumeChanged?.Invoke(v);
             });
 
-            resetCoinsButton.onClick.AddListener(() => OnResetCoinsRequested?.Invoke());
-            closeButton.onClick.AddListener(()       => OnCloseRequested?.Invoke());
+            resetCoinsButton.onClick.AddListener(() =>
+            {
+                PlayButtonClickSe();
+                OnResetCoinsRequested?.Invoke();
+            });
+            closeButton.onClick.AddListener(() =>
+            {
+                PlayButtonClickSe();
+                OnCloseRequested?.Invoke();
+            });
         }
 
         public void SetVolumes(float bgm, float se)
@@ -72,6 +83,12 @@ namespace SlotGame.View
                 transform.DOScale(0.9f, 0.15f).SetEase(Ease.InBack).ToUniTask(cancellationToken: ct)
             );
             gameObject.SetActive(false);
+        }
+
+        private void PlayButtonClickSe()
+        {
+            _audioManager ??= FindFirstObjectByType<AudioManager>();
+            _audioManager?.PlaySE(SEType.ButtonClick);
         }
     }
 }

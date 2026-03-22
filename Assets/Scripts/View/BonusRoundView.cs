@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
+using SlotGame.Audio;
 using SlotGame.Data;
 using TMPro;
 using UnityEngine;
@@ -26,9 +27,11 @@ namespace SlotGame.View
         private List<int>                      _selectedRewards;
         private int                            _selectRemaining;
         private int[]                          _rewards;         // 事前に BonusManager が設定した報酬値
+        private AudioManager                   _audioManager;
 
         private void Awake()
         {
+            _audioManager = FindFirstObjectByType<AudioManager>();
             for (int i = 0; i < chestButtons.Length; i++)
             {
                 int idx = i;
@@ -69,6 +72,7 @@ namespace SlotGame.View
         {
             if (_selectRemaining <= 0) return;
             chestButtons[index].interactable = false;
+            PlaySe(SEType.ChestSelect);
 
             int reward = _rewards[index];
             _selectedRewards.Add(reward);
@@ -83,6 +87,7 @@ namespace SlotGame.View
             var rt = chestButtons[index].GetComponent<RectTransform>();
 
             await rt.DOScale(1.3f, 0.1f).SetEase(Ease.OutBack).ToUniTask();
+            PlaySe(SEType.ChestOpen);
             await rt.DOScale(1.0f, 0.1f).ToUniTask();
             await rt.DORotate(new Vector3(0, 0, 10f), 0.05f).ToUniTask();
             await rt.DORotate(Vector3.zero, 0.05f).ToUniTask();
@@ -110,6 +115,12 @@ namespace SlotGame.View
                 await UniTask.Delay(1500);
                 _tcs.TrySetResult(_selectedRewards.ToArray());
             }
+        }
+
+        private void PlaySe(SEType type)
+        {
+            _audioManager ??= FindFirstObjectByType<AudioManager>();
+            _audioManager?.PlaySE(type);
         }
     }
 }

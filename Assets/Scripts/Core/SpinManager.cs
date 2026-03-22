@@ -14,6 +14,7 @@ namespace SlotGame.Core
     {
         [SerializeField] private ReelController[] reels;   // 5 個
         public IReadOnlyList<ReelController> Reels => reels;
+        public event Action<int> ReelStopped;
 
         private IRandomGenerator _random;
         private bool             _skipRequested;
@@ -66,6 +67,7 @@ namespace SlotGame.Core
                 {
                     reels[i].RequestSkip();
                     await reels[i].StopSpin(stopIndices[i], ct);
+                    ReelStopped?.Invoke(i);
                 }
             }
             else
@@ -76,6 +78,7 @@ namespace SlotGame.Core
                     if (i > 0)
                         await UniTask.Delay(TimeSpan.FromSeconds(0.3f), cancellationToken: ct);
                     await reels[i].StopSpin(stopIndices[i], ct);
+                    ReelStopped?.Invoke(i);
                 }
             }
 

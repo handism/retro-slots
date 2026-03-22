@@ -1,4 +1,5 @@
 using DG.Tweening;
+using SlotGame.Audio;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,9 +21,12 @@ namespace SlotGame.View
 
         private long _displayedCoins;
         private long _displayedWin;
+        private AudioManager _audioManager;
 
         private void Awake()
         {
+            _audioManager = FindFirstObjectByType<AudioManager>();
+
             if (autoButtonText == null && autoSpinButton != null)
                 autoButtonText = autoSpinButton.GetComponentInChildren<TMP_Text>();
 
@@ -32,15 +36,24 @@ namespace SlotGame.View
                 var btn = betButtons[i];
                 btn.onClick.AddListener(() => {
                     btn.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
+                    PlayButtonClickSe();
                     OnBetButtonClicked(bet);
                 });
             }
 
             if (spinButton != null)
-                spinButton.onClick.AddListener(() => spinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true));
+                spinButton.onClick.AddListener(() =>
+                {
+                    spinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
+                    PlayButtonClickSe();
+                });
             
             if (autoSpinButton != null)
-                autoSpinButton.onClick.AddListener(() => autoSpinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true));
+                autoSpinButton.onClick.AddListener(() =>
+                {
+                    autoSpinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
+                    PlayButtonClickSe();
+                });
         }
 
         public void SetCoins(long coins)
@@ -119,6 +132,12 @@ namespace SlotGame.View
         private void OnBetButtonClicked(int bet)
         {
             // GameManager の OnBetChanged に委譲（Inspector でイベントを登録する）
+        }
+
+        private void PlayButtonClickSe()
+        {
+            _audioManager ??= FindFirstObjectByType<AudioManager>();
+            _audioManager?.PlaySE(SEType.ButtonClick);
         }
     }
 }

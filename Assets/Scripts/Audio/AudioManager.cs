@@ -43,6 +43,7 @@ namespace SlotGame.Audio
         private void Awake()
         {
             ValidateConfiguration();
+            PreloadAssignedClips();
         }
 
         public void PlayBGM(BGMType type)
@@ -126,6 +127,35 @@ namespace SlotGame.Audio
             {
                 Debug.LogWarning($"[AudioManager] Missing audio assignments: {string.Join(", ", missing)}", this);
             }
+        }
+
+        private void PreloadAssignedClips()
+        {
+            foreach (var clip in EnumerateAssignedClips())
+            {
+                if (clip != null && clip.loadState == AudioDataLoadState.Unloaded)
+                {
+                    clip.LoadAudioData();
+                }
+            }
+        }
+
+        private IEnumerable<AudioClip> EnumerateAssignedClips()
+        {
+            yield return bgmNormal;
+            yield return bgmFreeSpin;
+            yield return bgmBonusRound;
+            yield return seSpinStart;
+            yield return seReelStop;
+            yield return seSmallWin;
+            yield return seBigWin;
+            yield return seMegaWin;
+            yield return seScatterAppear;
+            yield return seFreeSpinStart;
+            yield return seBonusStart;
+            yield return seChestSelect;
+            yield return seChestOpen;
+            yield return seButtonClick;
         }
     }
 }

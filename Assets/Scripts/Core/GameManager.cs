@@ -106,6 +106,7 @@ namespace SlotGame.Core
             uiManager.ResetCoinsRequested += HandleResetCoinsRequested;
             uiManager.SettingsCloseRequested += uiManager.HideSettings;
             uiManager.PaytableCloseRequested += uiManager.HidePaytable;
+            spinManager.ReelStopped += HandleReelStopped;
             TransitionTo(GamePhase.Idle);
         }
 
@@ -128,6 +129,11 @@ namespace SlotGame.Core
                 uiManager.ResetCoinsRequested -= HandleResetCoinsRequested;
                 uiManager.SettingsCloseRequested -= uiManager.HideSettings;
                 uiManager.PaytableCloseRequested -= uiManager.HidePaytable;
+            }
+
+            if (spinManager != null)
+            {
+                spinManager.ReelStopped -= HandleReelStopped;
             }
 
             _autoSpinCts?.Dispose();
@@ -272,7 +278,12 @@ namespace SlotGame.Core
                 if (result.TotalWinAmount > 0)
                 {
                     uiManager.UpdateWin(result.TotalWinAmount);
+                    PlayWinSe(result.TotalWinAmount);
                     await uiManager.ShowWinAmount(result.TotalWinAmount, CalcWinLevel(result.TotalWinAmount));
+                }
+                else if (result.HasScatter)
+                {
+                    audioManager.PlaySE(SEType.ScatterAppear);
                 }
 
                 uiManager.HighlightWinLines(result, paylineData);
@@ -456,6 +467,11 @@ namespace SlotGame.Core
             SaveGame();
         }
 
+        private void HandleReelStopped(int reelIndex)
+        {
+            audioManager.PlaySE(SEType.ReelStop);
+        }
+
         private SymbolData[] CollectSymbolDefinitions()
         {
             var symbols = new System.Collections.Generic.Dictionary<int, SymbolData>();
@@ -478,6 +494,17 @@ namespace SlotGame.Core
             if (amount >= 5000) return WinLevel.Mega;
             if (amount >= 1000) return WinLevel.Big;
             return WinLevel.Small;
+        }
+
+        private void PlayWinSe(long amount)
+        {
+            var seType = CalcWinLevel(amount) switch
+            {
+                WinLevel.Mega => SEType.MegaWin,
+                WinLevel.Big => SEType.BigWin,
+                _ => SEType.SmallWin
+            };
+            audioManager.PlaySE(seType);
         }
 
         private string GetAutoSpinButtonText() => $"AUTO x{_autoSpinCount}";

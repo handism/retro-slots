@@ -2,6 +2,7 @@
     "name": "SlotGame.View",
     "rootNamespace": "SlotGame.View",
     "references": [
+        "SlotGame.Audio",
         "SlotGame.Model",
         "SlotGame.Data",
         "UniTask",
