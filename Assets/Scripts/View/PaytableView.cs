@@ -53,9 +53,9 @@ namespace SlotGame.View
                 var img = iconTransform != null ? iconTransform.GetComponent<Image>() : null;
 
                 if (img != null)   img.sprite    = sym.sprite;
-                if (texts.Length > 0) texts[0].text = sym.payouts.Length > 0 ? sym.payouts[0].ToString() : "-";
-                if (texts.Length > 1) texts[1].text = sym.payouts.Length > 1 ? sym.payouts[1].ToString() : "-";
-                if (texts.Length > 2) texts[2].text = sym.payouts.Length > 2 ? sym.payouts[2].ToString() : "-";
+                if (texts.Length > 0) texts[0].text = sym.payouts.Length > 0 ? sym.payouts[0].ToString("N0") : "-";
+                if (texts.Length > 1) texts[1].text = sym.payouts.Length > 1 ? sym.payouts[1].ToString("N0") : "-";
+                if (texts.Length > 2) texts[2].text = sym.payouts.Length > 2 ? sym.payouts[2].ToString("N0") : "-";
             }
         }
 

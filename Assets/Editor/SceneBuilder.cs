@@ -530,7 +530,7 @@ namespace SlotGame.Editor
             bottomBar.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.22f);
 
             var coinLabel = CreateTMPText(bottomBar, "CoinLabel", "COIN", 26);
-            var coinText  = CreateTMPText(bottomBar, "CoinText", "1000", 36);
+            var coinText  = CreateTMPText(bottomBar, "CoinText", "1,000", 36);
             var winLabel  = CreateTMPText(bottomBar, "WinLabel", "WIN", 26);
             var winText   = CreateTMPText(bottomBar, "WinText", "------", 32);
             AnchorTopLeft(coinLabel, new Vector2(36f, -24f), new Vector2(90f, 32f));
