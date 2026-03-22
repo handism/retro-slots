@@ -12,7 +12,7 @@ namespace SlotGame.View
     public class PaytableView : MonoBehaviour
     {
         public const float SymbolColumnWidth = 120f;
-        public const float ColumnWidth = 180f;
+        public const float ColumnWidth = 100f;
         public const float ColumnSpacing = 20f;
         public const float RowHeight = 56f;
         public const float RowSidePadding = 12f;
@@ -45,6 +45,42 @@ namespace SlotGame.View
         {
             EnsureRowPrefab();
             if (rowPrefab == null || contentRoot == null) return;
+
+            // RowTemplate: childControlWidth=true にして preferredWidth で列幅を制御
+            var rowHlg = rowPrefab.GetComponent<HorizontalLayoutGroup>();
+            if (rowHlg != null) rowHlg.childControlWidth = true;
+
+            // RowTemplate のペイアウト列幅を ColumnWidth に統一（0番目はシンボル列なのでスキップ）
+            int rowColIdx = 0;
+            foreach (Transform child in rowPrefab.transform)
+            {
+                if (rowColIdx > 0)
+                {
+                    var le = child.GetComponent<LayoutElement>();
+                    if (le != null) le.preferredWidth = ColumnWidth;
+                }
+                rowColIdx++;
+            }
+
+            // HeaderRow: childControlWidth=true にして同じ列幅を適用
+            foreach (var hlg in GetComponentsInChildren<HorizontalLayoutGroup>(true))
+            {
+                if (hlg.gameObject.name != "HeaderRow") continue;
+                hlg.childControlWidth = true;
+                int headerColIdx = 0;
+                foreach (Transform child in hlg.transform)
+                {
+                    if (headerColIdx > 0)
+                    {
+                        var le = child.GetComponent<LayoutElement>();
+                        if (le != null) le.preferredWidth = ColumnWidth;
+                        var txt = child.GetComponent<TMP_Text>();
+                        if (txt != null) txt.alignment = TextAlignmentOptions.Right;
+                    }
+                    headerColIdx++;
+                }
+                break;
+            }
 
             // 既存の行を削除
             foreach (Transform child in contentRoot)
