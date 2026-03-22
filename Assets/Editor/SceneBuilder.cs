@@ -425,7 +425,7 @@ namespace SlotGame.Editor
             var dialog = CreatePanel(go, "Dialog", new Vector2(780f, 470f), new Color(0.05f, 0.08f, 0.13f, 0.98f));
             StyleImage(dialog.GetComponent<Image>(), new Color(0.05f, 0.08f, 0.13f, 0.98f), new Color(0.25f, 0.78f, 0.96f, 0.2f), 2f);
             AddEdgeShadow(dialog, new Color(0f, 0f, 0f, 0.35f), new Vector2(0f, -12f));
-            var title = CreateTMPText(dialog, "Title", "SETTINGS", 42);
+            var title = CreateTMPText(dialog, "Title", "設定", 42);
             StyleHeadline(title.GetComponent<TMP_Text>(), 10f);
             StretchTo(title, new Vector2(0f, 0.82f), new Vector2(1f, 1f), new Vector2(0f, -16f), new Vector2(0f, -24f));
 
@@ -439,8 +439,8 @@ namespace SlotGame.Editor
             StyleSectionLabel(seLabel.GetComponent<TMP_Text>());
             StyleValueText(bgmValText.GetComponent<TMP_Text>(), 4f);
             StyleValueText(seValText.GetComponent<TMP_Text>(), 4f);
-            var resetBtn   = CreateButton(dialog, "ResetCoinsButton", "RESET COINS", new Vector2(240f, 62f), new Color(0.42f, 0.22f, 0.18f));
-            var closeBtn   = CreateButton(dialog, "CloseButton", "CLOSE", new Vector2(180f, 62f), new Color(0.14f, 0.24f, 0.38f));
+            var resetBtn   = CreateButton(dialog, "ResetCoinsButton", "コインリセット", new Vector2(240f, 62f), new Color(0.42f, 0.22f, 0.18f));
+            var closeBtn   = CreateButton(dialog, "CloseButton", "閉じる", new Vector2(180f, 62f), new Color(0.14f, 0.24f, 0.38f));
 
             AnchorTopLeft(bgmLabel, new Vector2(84f, -138f), new Vector2(100f, 36f));
             AnchorTopLeft(bgmSlider, new Vector2(82f, -186f), new Vector2(470f, 30f));
@@ -477,7 +477,7 @@ namespace SlotGame.Editor
             var dialog = CreatePanel(go, "Dialog", new Vector2(1000f, 840f), new Color(0.05f, 0.08f, 0.13f, 0.98f));
             StyleImage(dialog.GetComponent<Image>(), new Color(0.05f, 0.08f, 0.13f, 0.98f), new Color(0.95f, 0.73f, 0.23f, 0.18f), 2f);
             AddEdgeShadow(dialog, new Color(0f, 0f, 0f, 0.35f), new Vector2(0f, -12f));
-            var title = CreateTMPText(dialog, "Title", "PAYTABLE", 40);
+            var title = CreateTMPText(dialog, "Title", "配当表", 40);
             StyleHeadline(title.GetComponent<TMP_Text>(), 10f);
             StretchTo(title, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(200f, -74f), new Vector2(-200f, -18f));
 
@@ -492,7 +492,7 @@ namespace SlotGame.Editor
             headerLayout.childControlHeight = true;
             headerLayout.childForceExpandWidth = false;
             StyleImage(header.AddComponent<Image>(), new Color(1f, 1f, 1f, 0.03f), new Color(0.24f, 0.77f, 0.95f, 0.22f), 1f);
-            var symbolHeaderText = CreateSizedLabel(header, "SYMBOL", PaytableView.SymbolColumnWidth, 28).GetComponent<TMP_Text>();
+            var symbolHeaderText = CreateSizedLabel(header, "シンボル", PaytableView.SymbolColumnWidth, 28).GetComponent<TMP_Text>();
             StyleSectionLabel(symbolHeaderText);
             symbolHeaderText.enableWordWrapping = false;
             var payout3HeaderText = CreateSizedLabel(header, "3", PaytableView.ColumnWidth, 28).GetComponent<TMP_Text>();
@@ -563,7 +563,7 @@ namespace SlotGame.Editor
                 text.alignment = TextAlignmentOptions.Right;
             }
 
-            var closeBtn = CreateButton(dialog, "CloseButton", "CLOSE", new Vector2(180f, 58f), new Color(0.14f, 0.24f, 0.38f));
+            var closeBtn = CreateButton(dialog, "CloseButton", "閉じる", new Vector2(180f, 58f), new Color(0.14f, 0.24f, 0.38f));
             AnchorBottomRight(closeBtn, new Vector2(-48f, 52f), new Vector2(180f, 58f));
 
             WireField(view, "contentRoot", contentRoot.GetComponent<Transform>());
@@ -589,14 +589,14 @@ namespace SlotGame.Editor
             StyleImage(topBar.GetComponent<Image>(), new Color(0.04f, 0.08f, 0.13f, 0.72f), new Color(0.24f, 0.76f, 0.95f, 0.18f), 2f);
             AddEdgeShadow(topBar, new Color(0f, 0f, 0f, 0.22f), new Vector2(0f, -8f));
 
-            var logoText = CreateTMPText(topBar, "LogoText", "FANTASY SLOT", 42);
+            var logoText = CreateTMPText(topBar, "LogoText", "スロットマシーン", 42);
             AnchorTopLeft(logoText, new Vector2(28f, -14f), new Vector2(420f, 54f));
             var logoLabel = logoText.GetComponent<TMP_Text>();
             logoLabel.alignment = TextAlignmentOptions.Left;
             StyleHeadline(logoLabel, 10f);
 
-            var paytableBtn = CreateButton(topBar, "PaytableButton", "PAYTABLE", new Vector2(190f, 58f), new Color(0.14f, 0.24f, 0.38f));
-            var settingsBtn = CreateButton(topBar, "SettingsButton", "SETTINGS", new Vector2(190f, 58f), new Color(0.1f, 0.18f, 0.3f));
+            var paytableBtn = CreateButton(topBar, "PaytableButton", "配当表", new Vector2(190f, 58f), new Color(0.14f, 0.24f, 0.38f));
+            var settingsBtn = CreateButton(topBar, "SettingsButton", "設定", new Vector2(190f, 58f), new Color(0.1f, 0.18f, 0.3f));
             AnchorTopRight(paytableBtn, new Vector2(-28f, -16f), new Vector2(190f, 58f));
             AnchorTopRight(settingsBtn, new Vector2(-234f, -16f), new Vector2(190f, 58f));
 
@@ -624,8 +624,8 @@ namespace SlotGame.Editor
             betLabelText.alignment = TextAlignmentOptions.Center;
             StyleSectionLabel(betLabelText);
 
-            var autoSpinBtn = CreateButton(bottomBar, "AutoSpinButton", "AUTO x10", new Vector2(170f, 72f), new Color(0.14f, 0.24f, 0.38f));
-            var spinBtn     = CreateButton(bottomBar, "SpinButton", "SPIN", new Vector2(186f, 72f), new Color(0.95f, 0.72f, 0.22f));
+            var autoSpinBtn = CreateButton(bottomBar, "AutoSpinButton", "オート x10", new Vector2(170f, 72f), new Color(0.14f, 0.24f, 0.38f));
+            var spinBtn     = CreateButton(bottomBar, "SpinButton", "GO！", new Vector2(186f, 72f), new Color(0.95f, 0.72f, 0.22f));
             AnchorBottomRight(autoSpinBtn, new Vector2(-226f, 24f), new Vector2(170f, 72f));
             AnchorBottomRight(spinBtn, new Vector2(-28f, 24f), new Vector2(186f, 72f));
 
@@ -684,7 +684,7 @@ namespace SlotGame.Editor
 
             var view = go.AddComponent<FreeSpinHUDView>();
 
-            var remainText  = CreateTMPText(go, "RemainingText", "FREE SPINS: 0", 30);
+            var remainText  = CreateTMPText(go, "RemainingText", "フリースピン残り: 0", 30);
             var totalWinTxt = CreateTMPText(go, "TotalWinText",  "TOTAL WIN: 0", 24);
             StyleHeadline(remainText.GetComponent<TMP_Text>(), 8f);
             StyleValueText(totalWinTxt.GetComponent<TMP_Text>(), 4f);

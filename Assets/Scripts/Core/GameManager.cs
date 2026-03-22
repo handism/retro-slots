@@ -214,7 +214,7 @@ namespace SlotGame.Core
             var ct = _autoSpinCts.Token;
 
             _isAutoSpinning = true;
-            uiManager.SetAutoButtonText("STOP");
+            uiManager.SetAutoButtonText("ストップ");
 
             try
             {
@@ -359,8 +359,8 @@ namespace SlotGame.Core
             };
 
             await uiManager.ShowModeTransitionAsync(
-                "FREE SPINS",
-                $"{freeSpinCount} FREE SPINS",
+                "フリースピン",
+                $"{freeSpinCount} フリースピン",
                 ModeVisualType.FreeSpin,
                 ct);
 
@@ -531,6 +531,6 @@ namespace SlotGame.Core
             audioManager.PlaySE(seType);
         }
 
-        private string GetAutoSpinButtonText() => $"AUTO x{_autoSpinCount}";
+        private string GetAutoSpinButtonText() => $"オート x{_autoSpinCount}";
     }
 }

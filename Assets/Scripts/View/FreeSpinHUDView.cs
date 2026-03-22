@@ -11,7 +11,7 @@ namespace SlotGame.View
 
         public void UpdateDisplay(int remaining, long totalWin)
         {
-            remainingText.text = $"FREE SPINS: {remaining}";
+            remainingText.text = $"フリースピン残り: {remaining}";
             totalWinText.text  = $"TOTAL WIN: {totalWin:N0}";
         }
     }
