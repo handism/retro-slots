@@ -11,25 +11,25 @@ namespace SlotGame.View
     /// <summary>各 View パネルを統括する UIManager。</summary>
     public class UIManager : MonoBehaviour
     {
-        [SerializeField] private MainHUDView     mainHUD;
-        [SerializeField] private FreeSpinHUDView freeSpinHUD;
-        [SerializeField] private WinPopupView    winPopup;
-        [SerializeField] private SettingsView    settingsView;
-        [SerializeField] private PaytableView    paytableView;
-        [SerializeField] private PaylineView     paylinePrefab;
-        [SerializeField] private Transform       paylineParent;
+        [SerializeField] private MainHUDView     mainHUD = null!;
+        [SerializeField] private FreeSpinHUDView freeSpinHUD = null!;
+        [SerializeField] private WinPopupView    winPopup = null!;
+        [SerializeField] private SettingsView    settingsView = null!;
+        [SerializeField] private PaytableView    paytableView = null!;
+        [SerializeField] private PaylineView     paylinePrefab = null!;
+        [SerializeField] private Transform       paylineParent = null!;
         [Header("Debug/Fallback")]
-        [SerializeField] private PaylineData     paylineData;
+        [SerializeField] private PaylineData     paylineData = null!;
 
         private List<PaylineView> _activePaylines = new();
 
-        private ReelView[] _reelViews;
+        private ReelView[]? _reelViews;
 
-        public event System.Action<float> BgmVolumeChanged;
-        public event System.Action<float> SeVolumeChanged;
-        public event System.Action ResetCoinsRequested;
-        public event System.Action SettingsCloseRequested;
-        public event System.Action PaytableCloseRequested;
+        public event System.Action<float>? BgmVolumeChanged;
+        public event System.Action<float>? SeVolumeChanged;
+        public event System.Action? ResetCoinsRequested;
+        public event System.Action? SettingsCloseRequested;
+        public event System.Action? PaytableCloseRequested;
 
         private void Awake()
         {

@@ -59,12 +59,12 @@ namespace SlotGame.View
             _currentSequence = DOTween.Sequence();
             
             // 1. 豪華な登場アニメーション
-            _currentSequence.Append(transform.DOScale(1.5f, 0.4f).SetEase(Ease.OutBack, 3.5f));
-            _currentSequence.Append(transform.DOScale(1.0f, 0.15f).SetEase(Ease.OutSine));
+            _ = _currentSequence.Append(transform.DOScale(1.5f, 0.4f).SetEase(Ease.OutBack, 3.5f));
+            _ = _currentSequence.Append(transform.DOScale(1.0f, 0.15f).SetEase(Ease.OutSine));
 
             // 2. カウントアップ演出（金額を徐々に増やす）
             float countDuration = (level == WinLevel.Mega) ? 1.5f : (level == WinLevel.Big) ? 1.0f : 0.5f;
-            _currentSequence.Join(DOTween.To(() => _countValue, x => {
+            _ = _currentSequence.Join(DOTween.To(() => _countValue, x => {
                 _countValue = x;
                 winAmountText.text = _countValue.ToString("N0");
             }, amount, countDuration).SetEase(Ease.OutCubic));
@@ -73,14 +73,14 @@ namespace SlotGame.View
             if (level >= WinLevel.Big)
             {
                 // BIG 以上は脈動と光のゆらぎ（Sequence の完了後に開始するようにし、Sequence 内には含めない）
-                _currentSequence.OnComplete(() => {
-                    transform.DOScale(1.15f, 0.4f).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
+                _ = _currentSequence.OnComplete(() => {
+                    _ = transform.DOScale(1.15f, 0.4f).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine);
                     
                     if (level == WinLevel.Mega)
                     {
                         // MEGA は回転シェイクとズーム
-                        transform.DOShakeRotation(1f, 8f, 15, 90f, false).SetLoops(-1);
-                        winAmountText.transform.DOScale(1.2f, 0.3f).SetLoops(-1, LoopType.Yoyo);
+                        _ = transform.DOShakeRotation(1f, 8f, 15, 90f, false).SetLoops(-1);
+                        _ = winAmountText.transform.DOScale(1.2f, 0.3f).SetLoops(-1, LoopType.Yoyo);
                     }
                 });
             }
