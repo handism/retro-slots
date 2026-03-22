@@ -492,7 +492,7 @@ namespace SlotGame.Editor
             headerLayout.childControlHeight = true;
             headerLayout.childForceExpandWidth = false;
             StyleImage(header.AddComponent<Image>(), new Color(1f, 1f, 1f, 0.03f), new Color(0.24f, 0.77f, 0.95f, 0.22f), 1f);
-            var symbolHeaderText = CreateSizedLabel(header, "SYMBOL", PaytableView.ColumnWidth, 28).GetComponent<TMP_Text>();
+            var symbolHeaderText = CreateSizedLabel(header, "SYMBOL", PaytableView.SymbolColumnWidth, 28).GetComponent<TMP_Text>();
             StyleSectionLabel(symbolHeaderText);
             symbolHeaderText.enableWordWrapping = false;
             var payout3HeaderText = CreateSizedLabel(header, "3", PaytableView.ColumnWidth, 28).GetComponent<TMP_Text>();
@@ -551,7 +551,7 @@ namespace SlotGame.Editor
 
             var symbolCell = new GameObject("SymbolCell", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
             SetParent(symbolCell, rowTemplate);
-            symbolCell.GetComponent<LayoutElement>().preferredWidth = PaytableView.ColumnWidth;
+            symbolCell.GetComponent<LayoutElement>().preferredWidth = PaytableView.SymbolColumnWidth;
             StyleImage(symbolCell.GetComponent<Image>(), new Color(1f, 1f, 1f, 0.02f), new Color(0.95f, 0.73f, 0.23f, 0.08f), 1f);
             var icon = new GameObject("Icon", typeof(RectTransform), typeof(Image));
             SetParent(icon, symbolCell);

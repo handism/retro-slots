@@ -11,6 +11,7 @@ namespace SlotGame.View
     /// <summary>配当テーブルを ScrollView で動的生成して表示する View。</summary>
     public class PaytableView : MonoBehaviour
     {
+        public const float SymbolColumnWidth = 120f;
         public const float ColumnWidth = 180f;
         public const float ColumnSpacing = 20f;
         public const float RowHeight = 56f;
@@ -105,7 +106,7 @@ namespace SlotGame.View
             var cell = new GameObject("SymbolCell", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
             cell.transform.SetParent(parent, false);
             cell.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.02f);
-            cell.GetComponent<LayoutElement>().preferredWidth = ColumnWidth;
+            cell.GetComponent<LayoutElement>().preferredWidth = SymbolColumnWidth;
 
             var icon = new GameObject("Icon", typeof(RectTransform), typeof(Image));
             icon.transform.SetParent(cell.transform, false);
