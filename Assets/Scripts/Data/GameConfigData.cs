@@ -24,5 +24,8 @@ namespace SlotGame.Data
         [Header("Audio Defaults")]
         public float defaultBgmVolume = 0.8f;
         public float defaultSeVolume = 1.0f;
+
+        [Header("Security")]
+        public string checksumSalt = "SALTY_SLOT_2026";
     }
 }

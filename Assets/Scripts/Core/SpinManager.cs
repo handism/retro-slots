@@ -45,7 +45,8 @@ namespace SlotGame.Core
             PaylineData      paylines,
             PayoutTableData  payouts,
             int              betAmount,
-            CancellationToken ct)
+            CancellationToken ct,
+            GameConfigData?  config = null)
         {
             _skipRequested = false;
 
@@ -95,7 +96,7 @@ namespace SlotGame.Core
             if (_cachedSymbolDefs == null)
                 _cachedSymbolDefs = CollectSymbolDefs(strips);
 
-            var result = PaylineEvaluator.Evaluate(grid, _cachedSymbolDefs, paylines, payouts, betAmount);
+            var result = PaylineEvaluator.Evaluate(grid, _cachedSymbolDefs, paylines, payouts, betAmount, config);
 
             // 当たりがあれば詳細をログ出力
             if (result.TotalWinAmount > 0 || result.HasScatter || result.HasBonusCondition)

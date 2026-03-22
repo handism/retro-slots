@@ -45,7 +45,7 @@ namespace SlotGame.Core
                 ct.ThrowIfCancellationRequested();
 
                 state.ConsumeFreeSpin();
-                var result = await spinManager.ExecuteSpin(strips, paylines, payouts, state.BetAmount, ct);
+                var result = await spinManager.ExecuteSpin(strips, paylines, payouts, state.BetAmount, ct, _config);
 
                 // フリースピン中は配当 ×2
                 long freeSpinWin = result.TotalWinAmount * 2;

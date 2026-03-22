@@ -5,6 +5,7 @@ namespace SlotGame.Model
     /// <summary>ゲーム全体の状態を保持するモデル（ピュア C#、Unity 非依存）</summary>
     public class GameState
     {
+        public long InitialCoins     { get; }
         public long MaxCoins         { get; }
         public int[] ValidBetAmounts { get; }
 
@@ -17,6 +18,7 @@ namespace SlotGame.Model
 
         public GameState(long initialCoins, long maxCoins, int[] validBetAmounts, long currentCoins, int currentBetAmount)
         {
+            InitialCoins = initialCoins;
             MaxCoins = maxCoins;
             ValidBetAmounts = validBetAmounts;
             Coins = Math.Clamp(currentCoins, 0, MaxCoins);

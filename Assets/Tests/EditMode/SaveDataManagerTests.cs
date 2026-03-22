@@ -25,7 +25,7 @@ namespace SlotGame.Tests.EditMode
         [Test]
         public void Load_FileNotExists_ReturnsDefault()
         {
-            var mgr  = new SaveDataManager(_tempPath);
+            var mgr  = new SaveDataManager(_tempPath, null);
             var data = mgr.Load();
 
             Assert.AreEqual(1000,  data.coins);
@@ -36,7 +36,7 @@ namespace SlotGame.Tests.EditMode
         [Test]
         public void Save_ThenLoad_RoundTrip()
         {
-            var mgr  = new SaveDataManager(_tempPath);
+            var mgr  = new SaveDataManager(_tempPath, null);
             var save = new SaveData { coins = 5000, betAmount = 50, bgmVolume = 0.5f };
             mgr.Save(save);
 
@@ -50,7 +50,7 @@ namespace SlotGame.Tests.EditMode
         public void Load_CorruptedJson_ReturnsDefaultAndCreatesBak()
         {
             File.WriteAllText(_tempPath, "{ invalid json !!!");
-            var mgr  = new SaveDataManager(_tempPath);
+            var mgr  = new SaveDataManager(_tempPath, null);
             var data = mgr.Load();
 
             Assert.AreEqual(1000, data.coins);
@@ -62,7 +62,7 @@ namespace SlotGame.Tests.EditMode
         {
             var bad = new SaveData { saveVersion = "9.9" };
             File.WriteAllText(_tempPath, UnityEngine.JsonUtility.ToJson(bad));
-            var mgr  = new SaveDataManager(_tempPath);
+            var mgr  = new SaveDataManager(_tempPath, null);
             var data = mgr.Load();
 
             Assert.AreEqual(1000, data.coins);
@@ -73,7 +73,7 @@ namespace SlotGame.Tests.EditMode
         {
             var bad = new SaveData { coins = -100 };
             File.WriteAllText(_tempPath, UnityEngine.JsonUtility.ToJson(bad));
-            var mgr  = new SaveDataManager(_tempPath);
+            var mgr  = new SaveDataManager(_tempPath, null);
             var data = mgr.Load();
 
             Assert.AreEqual(1000, data.coins);
@@ -82,7 +82,7 @@ namespace SlotGame.Tests.EditMode
         [Test]
         public void Load_TamperedData_ReturnsDefault()
         {
-            var mgr = new SaveDataManager(_tempPath);
+            var mgr = new SaveDataManager(_tempPath, null);
             var save = new SaveData { coins = 5000 };
             mgr.Save(save);
 

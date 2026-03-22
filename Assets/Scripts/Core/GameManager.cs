@@ -59,7 +59,7 @@ namespace SlotGame.Core
             else
             {
                 // デバッグ用（Boot シーンを通さず起動した場合）
-                _saveDataManager = new SaveDataManager();
+                _saveDataManager = new SaveDataManager(gameConfig);
                 var save = _saveDataManager.Load();
                 _gameState = new GameState(
                     gameConfig.initialCoins,
@@ -81,7 +81,7 @@ namespace SlotGame.Core
             IRandomGenerator random,
             SaveData save)
         {
-            _saveDataManager = saveDataManager ?? new SaveDataManager();
+            _saveDataManager = saveDataManager ?? new SaveDataManager(gameConfig);
             save ??= _saveDataManager.Load();
             _gameState = gameState ?? new GameState(
                 gameConfig.initialCoins,
@@ -100,6 +100,13 @@ namespace SlotGame.Core
 
             _bgmVolume = save.bgmVolume;
             _seVolume  = save.seVolume;
+
+            if (save.totalSpins == 0) // Assume new game
+            {
+                _bgmVolume = gameConfig.defaultBgmVolume;
+                _seVolume  = gameConfig.defaultSeVolume;
+                _autoSpinCount = gameConfig.defaultAutoSpinCount;
+            }
 
             audioManager.SetBGMVolume(_bgmVolume);
             audioManager.SetSEVolume(_seVolume);
@@ -276,7 +283,7 @@ namespace SlotGame.Core
             audioManager.PlaySE(SEType.SpinStart);
 
             TransitionTo(GamePhase.Spinning);
-            var result = await spinManager.ExecuteSpin(reelStrips, paylineData, payoutData, _gameState.BetAmount, ct);
+            var result = await spinManager.ExecuteSpin(reelStrips, paylineData, payoutData, _gameState.BetAmount, ct, gameConfig);
 
             TransitionTo(GamePhase.Evaluating);
 
