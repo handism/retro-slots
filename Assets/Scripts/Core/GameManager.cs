@@ -422,7 +422,6 @@ namespace SlotGame.Core
                 return;
             }
 
-            Debug.Log($"[GameManager] {_currentPhase} → {next}");
             _currentPhase = next;
         }
 
