@@ -54,12 +54,38 @@ namespace SlotGame.View
 
         public void SetBet(int bet)
         {
-            // ベット選択ボタンのハイライト更新
             for (int i = 0; i < betButtons.Length; i++)
             {
-                var colors = betButtons[i].colors;
-                colors.normalColor = (betValues[i] == bet) ? Color.yellow : Color.white;
-                betButtons[i].colors = colors;
+                bool isSelected = betValues[i] == bet;
+                var button = betButtons[i];
+                var image = button != null ? button.GetComponent<Image>() : null;
+                var label = button != null ? button.GetComponentInChildren<TMP_Text>() : null;
+                if (image != null)
+                {
+                    var baseColor = isSelected
+                        ? new Color(0.95f, 0.71f, 0.24f, 0.96f)
+                        : new Color(0.16f, 0.23f, 0.37f, 0.92f);
+                    image.color = baseColor;
+
+                    var colors = button.colors;
+                    colors.normalColor = baseColor;
+                    colors.highlightedColor = isSelected
+                        ? new Color(1f, 0.78f, 0.34f, 1f)
+                        : new Color(0.22f, 0.3f, 0.46f, 1f);
+                    colors.pressedColor = isSelected
+                        ? new Color(0.82f, 0.58f, 0.16f, 1f)
+                        : new Color(0.1f, 0.16f, 0.28f, 1f);
+                    colors.selectedColor = colors.highlightedColor;
+                    colors.disabledColor = new Color(baseColor.r, baseColor.g, baseColor.b, 0.45f);
+                    button.colors = colors;
+                }
+
+                if (label != null)
+                {
+                    label.color = isSelected
+                        ? new Color(0.11f, 0.09f, 0.06f, 1f)
+                        : new Color(0.92f, 0.96f, 1f, 0.96f);
+                }
             }
         }
 

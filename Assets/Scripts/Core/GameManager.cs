@@ -38,6 +38,7 @@ namespace SlotGame.Core
         private bool                   _isAutoSpinning;
         private float                  _bgmVolume = 0.8f;
         private float                  _seVolume  = 1f;
+        private bool                   _hasLoggedSaveSkip;
 
         // ─── ライフサイクル ──────────────────────────────────────────────
 
@@ -72,8 +73,10 @@ namespace SlotGame.Core
             IRandomGenerator random,
             SaveData save)
         {
-            _gameState       = gameState;
-            _saveDataManager = saveDataManager;
+            _saveDataManager = saveDataManager ?? new SaveDataManager();
+            save ??= _saveDataManager.Load();
+            _gameState = gameState ?? new GameState(save.coins, save.betAmount);
+            random ??= new SystemRandomGenerator();
 
             spinManager.Initialize(random, reelStrips);
             bonusManager.Initialize(random);
@@ -407,6 +410,17 @@ namespace SlotGame.Core
 
         private void SaveGame()
         {
+            if (_saveDataManager == null || _gameState == null)
+            {
+                if (!_hasLoggedSaveSkip)
+                {
+                    Debug.LogWarning("[GameManager] Save skipped because initialization is not complete yet.");
+                    _hasLoggedSaveSkip = true;
+                }
+                return;
+            }
+
+            _hasLoggedSaveSkip = false;
             _saveDataManager.Save(new SaveData
             {
                 coins      = _gameState.Coins,
