@@ -583,44 +583,39 @@ namespace SlotGame.Editor
 
             var bottomBar = new GameObject("BottomBar", typeof(Image));
             SetParent(bottomBar, go);
-            StretchTo(bottomBar, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(48f, 28f), new Vector2(-48f, 248f));
+            StretchTo(bottomBar, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(48f, 28f), new Vector2(-48f, 152f));
             StyleImage(bottomBar.GetComponent<Image>(), new Color(0.04f, 0.08f, 0.13f, 0.76f), new Color(0.95f, 0.72f, 0.22f, 0.14f), 2f);
             AddEdgeShadow(bottomBar, new Color(0f, 0f, 0f, 0.28f), new Vector2(0f, -8f));
 
-            var statsRow = new GameObject("StatsRow", typeof(RectTransform));
-            SetParent(statsRow, bottomBar);
-            AnchorTopLeft(statsRow, new Vector2(28f, -22f), new Vector2(524f, 72f));
+            var blockBottom = 24f;
+            var blockHeight = 72f;
+            var blockSpacing = 16f;
 
-            var coinCard = CreateInfoCard(statsRow, "CoinCard", "COIN", "1,000", new Vector2(0f, 0f), new Vector2(250f, 72f));
-            var winCard  = CreateInfoCard(statsRow, "WinCard", "WIN", "------", new Vector2(274f, 0f), new Vector2(250f, 72f));
+            var coinCard = CreateInfoCard(bottomBar, "CoinCard", "COIN", "1,000", new Vector2(28f, blockBottom), new Vector2(200f, blockHeight));
+            var winCard  = CreateInfoCard(bottomBar, "WinCard", "WIN", "------", new Vector2(28f + 200f + blockSpacing, blockBottom), new Vector2(200f, blockHeight));
 
             var betDock = new GameObject("BetDock", typeof(Image));
             SetParent(betDock, bottomBar);
-            AnchorBottomLeft(betDock, new Vector2(28f, 18f), new Vector2(620f, 68f));
+            AnchorBottomLeft(betDock, new Vector2(28f + 200f + blockSpacing + 200f + blockSpacing, blockBottom), new Vector2(518f, blockHeight));
             StyleImage(betDock.GetComponent<Image>(), new Color(1f, 1f, 1f, 0.04f), new Color(0.24f, 0.76f, 0.95f, 0.12f), 1.5f);
 
             var betLabel = CreateTMPText(betDock, "BetLabel", "BET", 22);
-            AnchorCenter(betLabel, new Vector2(-266f, 0f), new Vector2(76f, 34f));
+            AnchorCenter(betLabel, new Vector2(-208f, 0f), new Vector2(76f, 34f));
             var betLabelText = betLabel.GetComponent<TMP_Text>();
             betLabelText.alignment = TextAlignmentOptions.Center;
             StyleSectionLabel(betLabelText);
 
-            var actionDock = new GameObject("ActionDock", typeof(RectTransform));
-            SetParent(actionDock, bottomBar);
-            StretchTo(actionDock, new Vector2(0.58f, 0f), new Vector2(1f, 1f), new Vector2(18f, 18f), new Vector2(-24f, -18f));
+            var autoSpinBtn = CreateButton(bottomBar, "AutoSpinButton", "AUTO x10", new Vector2(170f, 72f), new Color(0.14f, 0.24f, 0.38f));
+            var spinBtn     = CreateButton(bottomBar, "SpinButton", "SPIN", new Vector2(186f, 72f), new Color(0.95f, 0.72f, 0.22f));
+            AnchorBottomRight(autoSpinBtn, new Vector2(-226f, 24f), new Vector2(170f, 72f));
+            AnchorBottomRight(spinBtn, new Vector2(-28f, 24f), new Vector2(186f, 72f));
 
-            var spinBtn     = CreateButton(actionDock, "SpinButton", "SPIN", new Vector2(210f, 74f), new Color(0.95f, 0.72f, 0.22f));
-            var autoSpinBtn = CreateButton(actionDock, "AutoSpinButton", "AUTO x10", new Vector2(178f, 74f), new Color(0.14f, 0.24f, 0.38f));
-            AnchorBottomRight(spinBtn, new Vector2(-12f, 0f), new Vector2(210f, 74f));
-            AnchorBottomRight(autoSpinBtn, new Vector2(-238f, 0f), new Vector2(178f, 74f));
-
-            // Bet ボタン × 4
             var betValues  = new[] { 10, 20, 50, 100 };
             var betButtons = new Button[4];
             for (int i = 0; i < 4; i++)
             {
-                var btn = CreateButton(betDock, $"BetButton{i}", betValues[i].ToString(), new Vector2(120f, 52f), new Color(0.16f, 0.23f, 0.37f));
-                AnchorCenter(btn, new Vector2(-160f + i * 132f, 0f), new Vector2(120f, 52f));
+                var btn = CreateButton(betDock, $"BetButton{i}", betValues[i].ToString(), new Vector2(92f, 52f), new Color(0.16f, 0.23f, 0.37f));
+                AnchorCenter(btn, new Vector2(-98f + i * 98f, 0f), new Vector2(92f, 52f));
                 betButtons[i] = btn.GetComponent<Button>();
             }
 
@@ -966,7 +961,7 @@ namespace SlotGame.Editor
         {
             var card = new GameObject(name, typeof(Image));
             SetParent(card, parent);
-            AnchorTopLeft(card, anchoredPos, size);
+            AnchorBottomLeft(card, anchoredPos, size);
             StyleImage(card.GetComponent<Image>(), new Color(1f, 1f, 1f, 0.04f), new Color(0.24f, 0.76f, 0.95f, 0.14f), 1.5f);
 
             var labelGo = CreateTMPText(card, $"{name}Label", label, 18);
