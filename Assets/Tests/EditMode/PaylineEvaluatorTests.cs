@@ -88,6 +88,19 @@ namespace SlotGame.Tests.EditMode
         // ─── Wild 置換テスト ─────────────────────────────────────────────
 
         [Test]
+        public void Wild_DoesNotSubstitute_Scatter()
+        {
+            // Wild Wild Scatter Phoenix Phoenix
+            // もし Wild が Scatter に置換されるなら Scatter 3 揃えになるはずだが、
+            // 実際には Scatter はペイライン配当の対象外（かつ Wild は置換しない）であるべき。
+            var grid = MakeGrid(Wild, Wild, Scatter, Phoenix, Phoenix);
+            var result = Evaluate(grid, bet: 10);
+
+            // Scatter x3 という LineWin が発生していないことを確認
+            Assert.IsFalse(result.LineWins.Any(w => w.SymbolId == Scatter));
+        }
+
+        [Test]
         public void Wild_PlusTwo_CountsAsThreeMatch()
         {
             // Wild Dragon Dragon Phoenix Phoenix → Dragon 3 揃え

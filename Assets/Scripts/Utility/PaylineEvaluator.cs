@@ -131,7 +131,7 @@ namespace SlotGame.Utility
                 var sym  = FindSymbol(defs, id);
                 if (sym == null) return null;
 
-                if (sym.type != SymbolType.Wild)
+                if (sym.type == SymbolType.Normal)
                 {
                     baseSymbolId = id;
                     break;
