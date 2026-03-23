@@ -131,6 +131,9 @@ namespace SlotGame.Editor
             // EventSystem
             CreateEventSystem();
 
+            // Main Camera
+            CreateUICamera(scene, "Main Camera", new Color(0.03f, 0.05f, 0.09f));
+
             // Canvas
             var canvas = CreateCanvas("Canvas", RenderMode.ScreenSpaceOverlay);
 
@@ -143,13 +146,14 @@ namespace SlotGame.Editor
             // Logo
             var logo = CreateTMPText(canvas, "Logo", "FANTASY SLOT", 120);
             StyleHeadline(logo.GetComponent<TMP_Text>(), 12f);
-            var logoRT = logo.GetComponent<RectTransform>();
-            logoRT.anchoredPosition = new Vector2(0, 200);
+            var logoText = logo.GetComponent<TMP_Text>();
+            logoText.textWrappingMode = TextWrappingModes.NoWrap;
+            logoText.overflowMode = TextOverflowModes.Overflow;
+            AnchorCenter(logo, new Vector2(0f, 190f), new Vector2(1500f, 180f));
 
             // Start Button
-            var startBtnGO = CreateButton(canvas, "StartButton", "START GAME", new Vector2(400, 100), new Color(0.95f, 0.72f, 0.22f));
-            var startBtnRT = startBtnGO.GetComponent<RectTransform>();
-            startBtnRT.anchoredPosition = new Vector2(0, -100);
+            var startBtnGO = CreateButton(canvas, "StartButton", "START GAME", new Vector2(360, 88), new Color(0.95f, 0.72f, 0.22f));
+            AnchorCenter(startBtnGO, new Vector2(0f, -170f), new Vector2(360f, 88f));
             var startBtn = startBtnGO.GetComponent<Button>();
 
             // TitleManager
@@ -867,6 +871,14 @@ namespace SlotGame.Editor
             var canvas = go.GetComponent<Canvas>();
             canvas.renderMode = renderMode;
 
+            var rectTransform = go.GetComponent<RectTransform>();
+            rectTransform.anchorMin = Vector2.zero;
+            rectTransform.anchorMax = Vector2.one;
+            rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            rectTransform.anchoredPosition = Vector2.zero;
+            rectTransform.sizeDelta = Vector2.zero;
+            rectTransform.localScale = Vector3.one;
+
             SetupCanvasScaler(go, 0.5f);
             return go;
         }
@@ -884,6 +896,24 @@ namespace SlotGame.Editor
         {
             var go = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
             SceneManager.MoveGameObjectToScene(go, SceneManager.GetActiveScene());
+        }
+
+        private static Camera CreateUICamera(Scene scene, string name, Color backgroundColor)
+        {
+            var camGO = new GameObject(name);
+            SceneManager.MoveGameObjectToScene(camGO, scene);
+
+            var cam = camGO.AddComponent<Camera>();
+            camGO.AddComponent<AudioListener>();
+            camGO.tag = "MainCamera";
+            cam.clearFlags = CameraClearFlags.SolidColor;
+            cam.backgroundColor = backgroundColor;
+            cam.orthographic = true;
+            cam.orthographicSize = 5f;
+            cam.nearClipPlane = 0.3f;
+            cam.farClipPlane = 1000f;
+
+            return cam;
         }
 
         private static void SetParent(GameObject child, GameObject parent)
