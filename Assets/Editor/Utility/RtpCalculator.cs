@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using SlotGame.Data;
 using SlotGame.Utility;
@@ -45,6 +46,7 @@ namespace SlotGame.Utility.Editor
 
             var random   = new SeededRandomGenerator(12345);
             var allDefs  = CollectDefs(strips);
+            var defDict  = allDefs.ToDictionary(d => d.symbolId);
 
             var sb = new StringBuilder();
             sb.AppendLine("spin,bet,normalWin,freeSpinWin,bonusWin,totalWin,rtp_cumulative");
@@ -54,7 +56,7 @@ namespace SlotGame.Utility.Editor
                 totalBet += BetAmount;
 
                 var grid   = RollGrid(strips, random);
-                var result = PaylineEvaluator.Evaluate(grid, allDefs, paylines, payouts, BetAmount);
+                var result = PaylineEvaluator.Evaluate(grid, defDict, paylines, payouts, BetAmount);
 
                 long spinNormalWin   = result.TotalWinAmount;
                 long spinFreeSpinWin = 0;
@@ -138,6 +140,7 @@ namespace SlotGame.Utility.Editor
         {
             long freeSpinWin = 0;
             int  remaining   = initialCount;
+            var  defDict     = defs.ToDictionary(d => d.symbolId);
 
             while (remaining > 0)
             {
@@ -145,7 +148,7 @@ namespace SlotGame.Utility.Editor
                 totalFreeSpinsOut++;
 
                 var grid   = RollGrid(strips, rng);
-                var result = PaylineEvaluator.Evaluate(grid, defs, paylines, payouts, bet);
+                var result = PaylineEvaluator.Evaluate(grid, defDict, paylines, payouts, bet);
 
                 freeSpinWin += result.TotalWinAmount * 2; // フリースピン中は ×2 倍
 

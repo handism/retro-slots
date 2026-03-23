@@ -22,6 +22,8 @@ namespace SlotGame.View
     /// <summary>各 View パネルを統括する UIManager。</summary>
     public class UIManager : MonoBehaviour
     {
+        private const int MaxPaylinePoolSize = 50;
+
         [SerializeField] private MainHUDView     mainHUD = null!;
         [SerializeField] private FreeSpinHUDView freeSpinHUD = null!;
         [SerializeField] private WinPopupView    winPopup = null!;
@@ -33,6 +35,7 @@ namespace SlotGame.View
         [SerializeField] private PaylineData     paylineData = null!;
 
         private List<PaylineView> _activePaylines = new();
+        private Queue<PaylineView> _paylinePool = new();
 
         private ReelView[]? _reelViews;
         private Canvas? _rootCanvas;
@@ -123,7 +126,7 @@ namespace SlotGame.View
                         points[i] = _reelViews[i].GetSymbolWorldPosition(row);
                     }
 
-                    var lineView = Instantiate(paylinePrefab, paylineParent != null ? paylineParent : transform);
+                    var lineView = GetPaylineView();
                     lineView.DrawLine(points, GetLineColor(win.LineIndex));
                     _activePaylines.Add(lineView);
 
@@ -177,11 +180,35 @@ namespace SlotGame.View
             rows.Add(row);
         }
 
+        private PaylineView GetPaylineView()
+        {
+            if (_paylinePool.Count > 0)
+            {
+                var view = _paylinePool.Dequeue();
+                view.gameObject.SetActive(true);
+                return view;
+            }
+
+            return Instantiate(paylinePrefab, paylineParent != null ? paylineParent : transform);
+        }
+
         private void ClearPaylines()
         {
             foreach (var pl in _activePaylines)
             {
-                if (pl != null) Destroy(pl.gameObject);
+                if (pl != null)
+                {
+                    pl.Clear();
+                    pl.gameObject.SetActive(false);
+                    if (_paylinePool.Count < MaxPaylinePoolSize)
+                    {
+                        _paylinePool.Enqueue(pl);
+                    }
+                    else
+                    {
+                        Destroy(pl.gameObject);
+                    }
+                }
             }
             _activePaylines.Clear();
         }

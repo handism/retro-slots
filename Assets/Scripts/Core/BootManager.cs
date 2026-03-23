@@ -8,11 +8,13 @@ namespace SlotGame.Core
 {
     using SlotGame.Model;
     using SlotGame.Utility;
+    using SlotGame.Data;
 
     /// <summary>Boot シーンの初期化処理。依存性の注入を行い Main シーンへ遷移する。</summary>
     public class BootManager : MonoBehaviour
     {
-        [SerializeField] private Slider progressBar;
+        [SerializeField] private Slider         progressBar;
+        [SerializeField] private GameConfigData gameConfig;
 
         private async void Start()
         {
@@ -23,15 +25,22 @@ namespace SlotGame.Core
             if (progressBar != null) progressBar.value = 0;
 
             // 2. データのロードと Model の生成
-            var saveDataManager = new SaveDataManager();
+            var config = gameConfig != null ? gameConfig.ToModelConfig() : null;
+            var saveDataManager = new SaveDataManager(config);
             var save = saveDataManager.Load();
-            var gameState = new GameState(save.coins, save.betAmount);
+            var gameState = new GameState(
+                config?.InitialCoins ?? 1000,
+                config?.MaxCoins ?? 9_999_999,
+                config?.ValidBetAmounts ?? new[] { 10, 20, 50, 100 },
+                save.coins,
+                save.betAmount
+            );
             gameState.RestoreStats(save.totalSpins, save.maxWin);
 
             var random = new SystemRandomGenerator();
 
-            // 3. Main シーンのロード
-            var op = SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
+            // 3. Title シーンのロード
+            var op = SceneManager.LoadSceneAsync("Title", LoadSceneMode.Single);
             op.allowSceneActivation = false;
 
             while (op.progress < 0.9f)
