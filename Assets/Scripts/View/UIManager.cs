@@ -237,6 +237,7 @@ namespace SlotGame.View
 
         public void ShowFreeSpinHUD(int remaining, long totalWin)
         {
+            if (freeSpinHUD == null) return;
             freeSpinHUD.gameObject.SetActive(true);
             freeSpinHUD.UpdateDisplay(remaining, totalWin);
         }
