@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using SlotGame.Data;
@@ -131,7 +132,7 @@ namespace SlotGame.Utility.Editor
 
         private static long SimulateFreeSpins(
             int initialCount,
-            ReelStripData[] strips, SymbolData[] defs,
+            ReelStripData[] strips, IReadOnlyDictionary<int, SymbolData> defs,
             PaylineData paylines, PayoutTableData payouts,
             int bet, IRandomGenerator rng,
             ref int totalFreeSpinsOut)
@@ -226,15 +227,14 @@ namespace SlotGame.Utility.Editor
             return arr.Length > 0 ? arr[0] : null;
         }
 
-        private static Data.SymbolData[] CollectDefs(ReelStripData[] strips)
+        private static Dictionary<int, SymbolData> CollectDefs(ReelStripData[] strips)
         {
-            var set = new System.Collections.Generic.HashSet<Data.SymbolData>();
+            var dict = new Dictionary<int, SymbolData>();
             foreach (var s in strips)
                 foreach (var sym in s.strip)
-                    set.Add(sym);
-            var arr = new Data.SymbolData[set.Count];
-            set.CopyTo(arr);
-            return arr;
+                    if (!dict.ContainsKey(sym.symbolId))
+                        dict[sym.symbolId] = sym;
+            return dict;
         }
     }
 }

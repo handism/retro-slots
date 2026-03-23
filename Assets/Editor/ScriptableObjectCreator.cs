@@ -20,11 +20,12 @@ namespace SlotGame.Editor
         {
             EnsureFolders();
 
-            // SymbolData → PaylineData → PayoutTableData の順に作成（参照なし）
+            // SymbolData → PaylineData → PayoutTableData → GameConfigData の順に作成（参照なし）
             CreateSymbolAssets();
             CreatePlaceholderSpritesAndAssign();
             CreatePaylineAsset();
             CreatePayoutTableAsset();
+            CreateGameConfigAsset();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
@@ -282,6 +283,18 @@ namespace SlotGame.Editor
                 new BonusRewardEntry { multiplier = 100, weight =  3 },
             };
 
+            AssetDatabase.CreateAsset(asset, path);
+        }
+
+        // ---------------------------------------------------------------
+        // GameConfigData
+        // ---------------------------------------------------------------
+
+        private static void CreateGameConfigAsset()
+        {
+            string path = $"{BasePath}/GameConfig.asset";
+            if (AssetDatabase.LoadAssetAtPath<GameConfigData>(path) != null) return;
+            var asset = ScriptableObject.CreateInstance<GameConfigData>();
             AssetDatabase.CreateAsset(asset, path);
         }
 

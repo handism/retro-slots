@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using UnityEngine;
+using SlotGame.Data;
 using SlotGame.Model;
 
 namespace SlotGame.Utility
