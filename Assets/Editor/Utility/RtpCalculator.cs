@@ -47,7 +47,7 @@ namespace SlotGame.Utility.Editor
 
             var random   = new SeededRandomGenerator(12345);
             var allDefs  = CollectDefs(strips);
-            var defDict  = allDefs.ToDictionary(d => d.symbolId);
+            var defDict  = allDefs;
 
             var sb = new StringBuilder();
             sb.AppendLine("spin,bet,normalWin,freeSpinWin,bonusWin,totalWin,rtp_cumulative");
@@ -141,7 +141,7 @@ namespace SlotGame.Utility.Editor
         {
             long freeSpinWin = 0;
             int  remaining   = initialCount;
-            var  defDict     = defs.ToDictionary(d => d.symbolId);
+            var  defDict     = defs;
 
             while (remaining > 0)
             {

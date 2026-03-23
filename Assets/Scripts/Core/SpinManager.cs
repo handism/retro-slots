@@ -50,7 +50,7 @@ namespace SlotGame.Core
             int              reelCount = 5,
             int              rowCount = 3,
             int              minMatch = 3,
-            int[]?           bonusReels = null)
+            int[]            bonusReels = null)
         {
             _skipRequested = false;
 
