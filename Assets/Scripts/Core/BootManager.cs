@@ -45,8 +45,8 @@ namespace SlotGame.Core
 
             var random = new SystemRandomGenerator();
 
-            // 3. Main シーンのロード
-            var op = SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
+            // 3. Title シーンのロード
+            var op = SceneManager.LoadSceneAsync("Title", LoadSceneMode.Single);
             op.allowSceneActivation = false;
 
             while (op.progress < 0.9f)
