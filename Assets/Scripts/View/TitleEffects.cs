@@ -1,7 +1,7 @@
 using UnityEngine;
-using TMPro;
 using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using System.Threading;
 
 namespace SlotGame.View
@@ -32,109 +32,95 @@ namespace SlotGame.View
         [SerializeField] private float floatAmount = 20f;
         [SerializeField] private float floatSpeed = 1f;
 
-        private Vector2[] initialSymbolPositions;
-        private CancellationTokenSource cts;
-
         private void Start()
         {
-            if (floatingSymbols != null)
-            {
-                initialSymbolPositions = new Vector2[floatingSymbols.Length];
-                for (int i = 0; i < floatingSymbols.Length; i++)
-                {
-                    if (floatingSymbols[i] != null)
-                        initialSymbolPositions[i] = floatingSymbols[i].anchoredPosition;
-                }
-            }
-
-            cts = new CancellationTokenSource();
-            StartAnimations(cts.Token).Forget();
+            StartAnimations();
         }
 
         private void OnDestroy()
         {
-            cts?.Cancel();
-            cts?.Dispose();
+            DOTween.Kill(this);
         }
 
-        private async UniTaskVoid StartAnimations(CancellationToken token)
+        private void StartAnimations()
         {
-            float elapsed = 0f;
-
-            while (!token.IsCancellationRequested)
+            float breathHalfPeriod = Mathf.PI / breathingSpeed;
+            if (logoTransform != null)
             {
-                elapsed += Time.deltaTime;
+                logoTransform.DOScale(1f + breathingAmount, breathHalfPeriod)
+                    .From(1f - breathingAmount)
+                    .SetLoops(-1, LoopType.Yoyo)
+                    .SetEase(Ease.InOutSine)
+                    .SetTarget(this);
+            }
 
-                // ロゴのブレス演出 (Scale)
-                if (logoTransform != null)
+            float pulseHalfPeriod = Mathf.PI / pulseSpeed;
+            if (startButtonCanvasGroup != null)
+            {
+                DOTween.To(() => startButtonCanvasGroup.alpha, a => startButtonCanvasGroup.alpha = a, 1f, pulseHalfPeriod)
+                    .From(pulseMinAlpha)
+                    .SetLoops(-1, LoopType.Yoyo)
+                    .SetEase(Ease.InOutSine)
+                    .SetTarget(this);
+            }
+            if (startButtonTransform != null)
+            {
+                startButtonTransform.DOScale(1.02f, pulseHalfPeriod)
+                    .From(0.98f)
+                    .SetLoops(-1, LoopType.Yoyo)
+                    .SetEase(Ease.InOutSine)
+                    .SetTarget(this);
+            }
+
+            if (backgroundGlows != null)
+            {
+                float rotationPeriod = 360f / glowRotationSpeed;
+                for (int i = 0; i < backgroundGlows.Length; i++)
                 {
-                    float scale = 1f + Mathf.Sin(elapsed * breathingSpeed) * breathingAmount;
-                    logoTransform.localScale = new Vector3(scale, scale, 1f);
+                    if (backgroundGlows[i] == null) continue;
+                    float direction = (i % 2 == 0) ? 1f : -1f;
+                    backgroundGlows[i]
+                        .DORotate(new Vector3(0f, 0f, direction * 360f), rotationPeriod, RotateMode.FastBeyond360)
+                        .SetLoops(-1, LoopType.Restart)
+                        .SetEase(Ease.Linear)
+                        .SetTarget(this);
                 }
+            }
 
-                // スタートボタンの明滅演出 (Alpha)
-                if (startButtonCanvasGroup != null)
+            if (floatingSymbols != null)
+            {
+                float floatHalfPeriod = Mathf.PI / floatSpeed;
+                for (int i = 0; i < floatingSymbols.Length; i++)
                 {
-                    float alpha = pulseMinAlpha + (1f - pulseMinAlpha) * (0.5f + 0.5f * Mathf.Sin(elapsed * pulseSpeed));
-                    startButtonCanvasGroup.alpha = alpha;
+                    if (floatingSymbols[i] == null) continue;
+                    var sym = floatingSymbols[i];
+                    float startY = sym.anchoredPosition.y;
+                    DOTween.To(
+                            () => sym.anchoredPosition.y,
+                            y => sym.anchoredPosition = new Vector2(sym.anchoredPosition.x, y),
+                            startY + floatAmount,
+                            floatHalfPeriod)
+                        .From(startY - floatAmount)
+                        .SetLoops(-1, LoopType.Yoyo)
+                        .SetEase(Ease.InOutSine)
+                        .SetDelay(i * floatHalfPeriod * 0.5f)
+                        .SetTarget(this);
                 }
-
-                // スタートボタンの微かな拡大縮小
-                if (startButtonTransform != null)
-                {
-                    float btnScale = 1f + Mathf.Sin(elapsed * pulseSpeed) * 0.02f;
-                    startButtonTransform.localScale = new Vector3(btnScale, btnScale, 1f);
-                }
-
-                // 背景グローの回転
-                if (backgroundGlows != null)
-                {
-                    for (int i = 0; i < backgroundGlows.Length; i++)
-                    {
-                        if (backgroundGlows[i] != null)
-                        {
-                            float direction = (i % 2 == 0) ? 1f : -1f;
-                            backgroundGlows[i].Rotate(Vector3.forward, direction * glowRotationSpeed * Time.deltaTime);
-                        }
-                    }
-                }
-
-                // 装飾シンボルの浮遊
-                if (floatingSymbols != null && initialSymbolPositions != null)
-                {
-                    for (int i = 0; i < floatingSymbols.Length; i++)
-                    {
-                        if (floatingSymbols[i] != null && i < initialSymbolPositions.Length)
-                        {
-                            float offset = i * 1.5f;
-                            float y = Mathf.Sin((elapsed + offset) * floatSpeed) * floatAmount;
-                            floatingSymbols[i].anchoredPosition = initialSymbolPositions[i] + new Vector2(0f, y);
-                        }
-                    }
-                }
-
-                await UniTask.Yield(PlayerLoopTiming.Update, token);
             }
         }
 
-        /// <summary>
-        /// シーン遷移時のフェードアウト演出（例）
-        /// </summary>
-        public async UniTask FadeOutAsync()
+        public async UniTask FadeOutAsync(CancellationToken ct = default)
         {
             if (overlayFade == null) return;
 
             overlayFade.gameObject.SetActive(true);
-            float duration = 0.5f;
-            float elapsed = 0f;
-
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                float t = elapsed / duration;
-                overlayFade.color = new Color(0, 0, 0, t);
-                await UniTask.Yield();
-            }
+            await DOTween.To(
+                    () => overlayFade.color.a,
+                    a => overlayFade.color = new Color(0f, 0f, 0f, a),
+                    1f,
+                    0.5f)
+                .SetEase(Ease.Linear)
+                .ToUniTask(cancellationToken: ct);
         }
     }
 }
