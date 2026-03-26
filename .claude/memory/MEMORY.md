@@ -6,3 +6,5 @@
 - [feedback_workflow.md](./feedback_workflow.md) — 実装前に要件定義書・設計書・ADR を必ず作成するワークフロー
 - [feedback_delegate_details.md](./feedback_delegate_details.md) — 主要方針のみ確認し、詳細はお任せで決定するスタイル
 - [bugfix_20260321_editor_scene_builder.md](./bugfix_20260321_editor_scene_builder.md) — EditorSceneManager でシーン自動生成する際の落とし穴4つ（NewSceneMode・const文字列・CanvasGroup・MoveGameObjectToScene）
+- [feedback_diagnose_before_fix.md](./feedback_diagnose_before_fix.md) — 修正前に全エラーを診断・分類し承認を得てから修正する（連鎖バグ防止）
+- [feedback_incremental_approach.md](./feedback_incremental_approach.md) — 複雑な実装は小さな単位に分割し各ステップで検証してから次へ進む
