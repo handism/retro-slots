@@ -105,6 +105,5 @@ EOF
 
 ## 注意事項
 
-- **コミットは自動で行わない** — ユーザーが確認・承認してからユーザー自身がコミットする
 - **手動検証が必要なタスク**（Unity Play Mode・デバイス動作）は完了とマークしない
 - ScriptableObject を再作成しない・asmdef の依存を確認する（`feedback_diagnose_before_fix.md` 参照）
