@@ -376,37 +376,37 @@ public class SaveData
     public long   totalSpins    = 0;
     public long   maxWin        = 0;
     public string saveVersion   = "1.0";
+    public string checksum      = "";   // SHA256 チェックサム（JSON フィールドとして埋め込み）
 }
 
-public class SaveDataManager : MonoBehaviour
+public class SaveDataManager
 {
-    private static readonly string SavePath =
-        Path.Combine(Application.persistentDataPath, "savedata.json");
-    // アトミック書き込み用の一時ファイルパス
-    private static readonly string TempPath =
-        Path.Combine(Application.persistentDataPath, "savedata.json.tmp");
-    // 整合性ハッシュファイルパス（JSON文字列の SHA256 hex を格納）
-    private static readonly string HashPath =
-        Path.Combine(Application.persistentDataPath, "savedata.json.hash");
+    private readonly string     _savePath;
+    private readonly SlotConfig _config;
 
-    // 読み込み: ファイル不存在→デフォルト、ハッシュ不一致→破損扱い→.bak リネーム後デフォルト
+    // コンストラクタでパスを差し替えることでテスト可能
+    public SaveDataManager(SlotConfig config = null);
+    public SaveDataManager(string savePath, SlotConfig config = null);
+
+    // 読み込み: ファイル不存在→デフォルト、チェックサム不一致→破損扱い→.bak リネーム後デフォルト
+    // 移行戦略: checksum フィールドが空の旧データはバリデーションのみで通す
     public SaveData Load();
 
-    // 保存: アトミック書き込み（temp ファイルに書き込んでからリネーム）
-    //   1. JSON を TempPath に書き込む
-    //   2. SHA256 ハッシュを HashPath に書き込む
-    //   3. File.Move(TempPath → SavePath, overwrite:true)
+    // 保存: アトミック書き込み（一時ファイルを経由してリネーム）
+    //   1. checksum フィールドを計算して SaveData に設定する
+    //   2. JSON を TempPath（savedata.json.tmp）に書き込む
+    //   3. File.Replace / File.Move で SavePath にアトミックに昇格する
     //   書き込み途中でアプリが終了しても SavePath の元ファイルは破損しない
-    public async UniTask SaveAsync(CancellationToken ct);
+    public void Save(SaveData data);
 
     // バリデーション: 以下をすべて検証する
     //   ① saveVersion が既知のバージョンであること
-    //   ② coins が 0 以上 9,999,999 以下であること
-    //   ③ betAmount が選択肢 (10/20/50/100) のいずれかであること
+    //   ② coins が 0 以上 MaxCoins（SlotConfig）以下であること
+    //   ③ betAmount が ValidBetAmounts（SlotConfig）のいずれかであること
     //   ④ bgmVolume / seVolume が 0.0 〜 1.0 の範囲内であること
     //   ⑤ totalSpins / maxWin が 0 以上であること
     // 1つでも失敗した場合は false を返しデフォルト値へフォールバックする
-    private bool   Validate(SaveData data);
+    private static bool Validate(SaveData data, SlotConfig config);
 }
 ```
 
