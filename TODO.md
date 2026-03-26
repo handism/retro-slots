@@ -1,26 +1,26 @@
-# TODO: Implementation vs. Documentation Discrepancies
+# TODO: 実装とドキュメントの差異
 
-This document tracks the differences between the requirements/design documents and the current implementation.
+要件定義書・設計書と現在の実装との差異を追跡するドキュメント。
 
-## 1. Missing Features
+## 1. 未実装機能
 
-- [ ] **Game Explanation (Help) Modal**: The Settings menu should include a "Game Explanation" (ゲーム説明) button and modal as per `requirements.md` section 2.7 and 2.8.
-- [ ] **Auto-Spin Count Selector**: The HUD should allow selecting from 10, 25, 50, or 100 auto-spins as specified in `requirements.md` section 2.7. Currently, it seems to have a fixed or limited selection.
-- [ ] **Spin Button "Stop" State**: The spin button should change to a "STOP" button during a spin to allow for early stopping (early stop logic is implemented in `SpinManager`, but the UI does not reflect the state change).
+- [ ] **ゲーム説明モーダル**: `requirements.md` セクション 2.7・2.8 に基づき、設定メニューに「ゲーム説明」ボタンとモーダルを追加する。
+- [ ] **オートスピン回数セレクター**: `requirements.md` セクション 2.7 の仕様通り、HUD で 10/25/50/100 回から選択できるようにする。現状は選択肢が固定または限定されている。
+- [ ] **スピンボタンの「STOP」状態**: スピン中はスピンボタンを「STOP」ボタンに変化させ、早期停止を可能にする（早期停止ロジックは `SpinManager` に実装済みだが、UI に反映されていない）。
 
-## 2. Specification Deviations
+## 2. 仕様差異
 
-- [ ] **Spin Button Interactability**: `UIManager.SetSpinButtonInteractable(false)` is called during a spin, which prevents the user from clicking it to "Stop" early. It should remain interactable and change its label/visuals.
-- [ ] **Volume Reset Logic**: Verify if the volume should be reset when the "Reset Coins" button is pressed. Currently, only coins are reset.
+- [ ] **スピンボタンのインタラクタブル状態**: スピン中に `UIManager.SetSpinButtonInteractable(false)` が呼ばれており、ユーザーが「STOP」としてクリックできない。インタラクタブルを維持したまま、ラベル・見た目を変更する方式に修正する。
+- [ ] **ボリュームリセットの挙動**: 「コインリセット」ボタン押下時に音量もリセットすべきか確認する。現状はコインのみリセットされる。
 
-## 3. Verification Required
+## 3. 確認事項
 
-- [ ] **Letterbox Support**: Verify that the UI correctly handles 16:9 aspect ratio with letterboxing on various screen sizes as required in `requirements.md` section 3.2.
-- [ ] **Skip Mode Sound Effects**: Ensure that `SEType.ReelStop` plays correctly and doesn't sound distorted/overlapping when all reels stop simultaneously in skip mode.
-- [ ] **Max Coins Display**: Verify that the coin display handles the maximum value (9,999,999) gracefully without UI overlap or clipping.
+- [ ] **レターボックス対応**: `requirements.md` セクション 3.2 の要件通り、各種画面サイズで 16:9 アスペクト比のレターボックス表示が正しく機能するか確認する。
+- [ ] **スキップモードの SE 重複**: スキップモードで全リールが同時停止する際に `SEType.ReelStop` が正常に再生され、音が歪んだり重複したりしないか確認する。
+- [ ] **最大コイン表示**: コイン表示が最大値（9,999,999）を UI の重なりやクリッピングなしに正しく表示できるか確認する。
 
-## 4. Potential Improvements
+## 4. 改善候補
 
-- [ ] **Sequential Line Highlight Timing**: The 500ms delay between lines in `UIManager` might feel slow if there are many winning lines. Consider making this adjustable.
-- [ ] **Bonus Round Reward Weights**: Verify that the weights in `PayoutTableData` for bonus rewards result in the intended RTP distribution.
-- [ ] **Save Data Tampering**: While checksums are implemented, consider adding more obfuscation if security becomes a higher priority (though currently out of scope for a local game).
+- [ ] **当選ライン強調のタイミング**: `UIManager` のライン間 500ms 遅延は、当選ラインが多い場合に遅く感じる可能性がある。調整可能にすることを検討する。
+- [ ] **ボーナスラウンド報酬の重み**: `PayoutTableData` のボーナス報酬ウェイトが意図した RTP 分布になっているか確認する。
+- [ ] **セーブデータの改ざん対策**: チェックサムは実装済みだが、セキュリティの優先度が上がった場合はさらなる難読化を検討する（現状はローカルゲームのためスコープ外）。
