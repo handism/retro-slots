@@ -284,7 +284,7 @@ namespace SlotGame.View
 
         private float GetSymbolYPosition(int bufferIndex)
         {
-            float centeredIndex = (BufferSize - 1) * 0.5f;
+            float centeredIndex = (float)(BufferSize - 1) * 0.5f;
             return (centeredIndex - bufferIndex) * symbolHeight;
         }
     }
