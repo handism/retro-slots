@@ -385,7 +385,12 @@ namespace SlotGame.Core
                     await uiManager.HighlightWinLinesAsync(result, ct, paylineData);
                 }
 
+<<<<<<< HEAD
                 await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: ct);
+=======
+                uiManager.HighlightWinLines(result, paylineData);
+                await UniTask.Delay(1500, cancellationToken: ct);
+>>>>>>> 8d832ff (CWE-190の対応)
                 uiManager.ClearLineHighlights();
             }
             else
@@ -475,11 +480,17 @@ namespace SlotGame.Core
                     uiManager.ShowFreeSpinHUD(_gameState.FreeSpinsLeft, cumulativeFreeSpinWin);
                     if (result.TotalWinAmount > 0)
                     {
+<<<<<<< HEAD
                         await UniTask.WhenAll(
                             uiManager.ShowWinAmount(win, CalcWinLevel(win)),
                             uiManager.HighlightWinLinesAsync(result, ct, paylineData)
                         );
                         await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: ct);
+=======
+                        uiManager.HighlightWinLines(result, paylineData);
+                        await uiManager.ShowWinAmount(win, CalcWinLevel(win));
+                        await UniTask.Delay(1500, cancellationToken: ct);
+>>>>>>> 8d832ff (CWE-190の対応)
                         uiManager.ClearLineHighlights();
                     }
                 },
@@ -502,7 +513,7 @@ namespace SlotGame.Core
             _gameState.SetCoins(_config.InitialCoins);
             uiManager.UpdateCoins(_gameState.Coins);
             SaveGame();
-            await UniTask.Delay(TimeSpan.FromSeconds(1f));
+            await UniTask.Delay(1000);
             TransitionTo(GamePhase.Idle);
         }
 
