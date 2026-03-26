@@ -1,36 +1,26 @@
-# Fantasy Slot 課題一覧（TODO.md）
+# TODO: Implementation vs. Documentation Discrepancies
 
-ドキュメント（要件定義書・設計書）と現在の実装の乖離を元に、今後修正が必要な項目をまとめました。
+This document tracks the differences between the requirements/design documents and the current implementation.
 
-## 1. データ・ロジック（HIGH）
+## 1. Missing Features
 
-- [ ] **配当値の修正**
-  - `ScriptableObjectCreator.cs` 内の `CreateSymbolAssets` で定義されている配当倍率が `requirements.md` と一致していない。
-    - 例: Dragon 3揃え 現在 10 → 要件 50
-    - 全シンボルの倍率を要件通りに修正する必要がある。
-- [ ] **セーブデータの整合性検証（HashPath対応）**
-  - `design.md` では `savedata.json.hash` ファイルにハッシュを保存する仕様だが、現在は `SaveData` クラス内の `checksum` フィールドに保持している。
-  - セキュリティと仕様準拠のため、外部ファイル方式への移行を検討。
-## 2. アーキテクチャ・パフォーマンス（MEDIUM）
+- [ ] **Game Explanation (Help) Modal**: The Settings menu should include a "Game Explanation" (ゲーム説明) button and modal as per `requirements.md` section 2.7 and 2.8.
+- [ ] **Auto-Spin Count Selector**: The HUD should allow selecting from 10, 25, 50, or 100 auto-spins as specified in `requirements.md` section 2.7. Currently, it seems to have a fixed or limited selection.
+- [ ] **Spin Button "Stop" State**: The spin button should change to a "STOP" button during a spin to allow for early stopping (early stop logic is implemented in `SpinManager`, but the UI does not reflect the state change).
 
-- [ ] **ReelView のオブジェクトプール化**
-  - `design.md` では `UnityEngine.Pool.ObjectPool` の使用が指定されているが、現在は固定 5 シンボルの配列（循環バッファ）で実装されている。
-  - 将来的な拡張性（リール行数の動的変更など）のため、公式プール機能への差し替えを検討。
-- [ ] **UniTask のキャンセレーション伝播**
-  - `SpinManager` や `BonusManager` の一部の非同期メソッドで、`CancellationToken` が末端の API（DOTween 等）まで完全に伝播しているか再点検が必要。
+## 2. Specification Deviations
 
-## 3. UI・演出（MEDIUM）
+- [ ] **Spin Button Interactability**: `UIManager.SetSpinButtonInteractable(false)` is called during a spin, which prevents the user from clicking it to "Stop" early. It should remain interactable and change its label/visuals.
+- [ ] **Volume Reset Logic**: Verify if the volume should be reset when the "Reset Coins" button is pressed. Currently, only coins are reset.
 
-- [ ] **ベット選択スライダーの実装**
-  - `requirements.md` および `MainHUDView` の設計に含まれている「ベット額変更用スライダー」が未実装。現在はボタン選択のみ。
-- [ ] **ゲーム説明画面の追加**
-  - `requirements.md` の「設定メニュー」に含まれるべきゲームルール・配当表（簡易版）の説明テキストが `SettingsView` に存在しない。
-- [ ] **サウンドイベントの補完**
-  - `AudioManager.cs` に定義はあるが、コードから呼び出されていない SE がある（ビッグウィン、ボーナスラウンド開始時の専用演出用など）。
+## 3. Verification Required
 
-## 4. その他（LOW）
+- [ ] **Letterbox Support**: Verify that the UI correctly handles 16:9 aspect ratio with letterboxing on various screen sizes as required in `requirements.md` section 3.2.
+- [ ] **Skip Mode Sound Effects**: Ensure that `SEType.ReelStop` plays correctly and doesn't sound distorted/overlapping when all reels stop simultaneously in skip mode.
+- [ ] **Max Coins Display**: Verify that the coin display handles the maximum value (9,999,999) gracefully without UI overlap or clipping.
 
-- [ ] **TitleManager のテスト作成**
-  - 新規追加した `TitleManager` に対する単体テストまたは結合テストが不足している。
-- [ ] **RtpCalculator の精度向上**
-  - 現在のシミュレーション回数（10万回）を増やし、より厳密な RTP 算出を行う。
+## 4. Potential Improvements
+
+- [ ] **Sequential Line Highlight Timing**: The 500ms delay between lines in `UIManager` might feel slow if there are many winning lines. Consider making this adjustable.
+- [ ] **Bonus Round Reward Weights**: Verify that the weights in `PayoutTableData` for bonus rewards result in the intended RTP distribution.
+- [ ] **Save Data Tampering**: While checksums are implemented, consider adding more obfuscation if security becomes a higher priority (though currently out of scope for a local game).
