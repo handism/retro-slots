@@ -284,12 +284,16 @@ namespace SlotGame.Editor
             var (paytablePanelGO, paytableView) = CreatePaytablePanel(mainCanvasGO);
             paytablePanelGO.SetActive(false);
 
+            // StatsPanel
+            var (statsPanelGO, statsView) = CreateStatsPanel(mainCanvasGO);
+            statsPanelGO.SetActive(false);
+
             // HUD Canvas（Screen Space - Overlay）
             var hudCanvasGO = CreateCanvas("HUD Canvas", RenderMode.ScreenSpaceOverlay);
             hudCanvasGO.GetComponent<Canvas>().sortingOrder = 10;
             SetupCanvasScaler(hudCanvasGO, 0.5f);
 
-            var (mainHUDGO, mainHUDView, spinButton, autoSpinButton, settingsButton, paytableButton, betButtons) = CreateMainHUD(hudCanvasGO);
+            var (mainHUDGO, mainHUDView, spinButton, autoSpinButton, settingsButton, paytableButton, statsButton, betButtons) = CreateMainHUD(hudCanvasGO);
             var (freeSpinGO, freeSpinView) = CreateFreeSpinHUD(hudCanvasGO);
             freeSpinGO.SetActive(false);
 
@@ -334,6 +338,7 @@ namespace SlotGame.Editor
             WireField(uiManager, "winPopup",    winPopupView);
             WireField(uiManager, "settingsView", settingsView);
             WireField(uiManager, "paytableView", paytableView);
+            WireField(uiManager, "statsView",    statsView);
 
             // BonusManager
             WireField(bonusManager, "spinManager", spinManager);
@@ -370,6 +375,7 @@ namespace SlotGame.Editor
             UnityEventTools.AddIntPersistentListener(autoSpinButton.onClick, gameManager.OnAutoSpinButtonPressed, 10);
             UnityEventTools.AddPersistentListener(settingsButton.onClick, gameManager.OnSettingsButtonPressed);
             UnityEventTools.AddPersistentListener(paytableButton.onClick, gameManager.OnPaytableButtonPressed);
+            UnityEventTools.AddPersistentListener(statsButton.onClick, gameManager.OnStatsButtonPressed);
             for (int i = 0; i < betButtons.Length; i++)
             {
                 int bet = new[] { 10, 20, 50, 100 }[i];
@@ -679,9 +685,75 @@ namespace SlotGame.Editor
             return (go, view);
         }
 
+        // ─── StatsPanel ────────────────────────────────────────────────
+
+        private static (GameObject, StatsView) CreateStatsPanel(GameObject parent)
+        {
+            var go = new GameObject("StatsPanel", typeof(Image));
+            SetParent(go, parent);
+            StretchFull(go);
+            StyleImage(go.GetComponent<Image>(), new Color(0.01f, 0.03f, 0.06f, 0.82f));
+
+            var view = go.AddComponent<StatsView>();
+
+            var dialog = CreatePanel(go, "Dialog", new Vector2(780f, 560f), new Color(0.05f, 0.08f, 0.13f, 0.98f));
+            StyleImage(dialog.GetComponent<Image>(), new Color(0.05f, 0.08f, 0.13f, 0.98f), new Color(0.25f, 0.78f, 0.96f, 0.2f), 2f);
+            AddEdgeShadow(dialog, new Color(0f, 0f, 0f, 0.35f), new Vector2(0f, -12f));
+
+            var title = CreateTMPText(dialog, "Title", "セッション統計", 42);
+            StyleHeadline(title.GetComponent<TMP_Text>(), 10f);
+            StretchTo(title, new Vector2(0f, 0.88f), new Vector2(1f, 1f), new Vector2(0f, -16f), new Vector2(0f, -24f));
+
+            // 統計行を上から順に配置
+            var rows = new (string label, string fieldName)[]
+            {
+                ("TOTAL SPINS",      "totalSpinsText"),
+                ("WINS",             "winsText"),
+                ("WIN RATE",         "winRateText"),
+                ("LARGEST WIN",      "largestWinText"),
+                ("FREE SPIN TRIG.",  "freeSpinTriggersText"),
+                ("NET PROFIT",       "netProfitText"),
+            };
+
+            float rowStartY = -110f;
+            float rowHeight = 58f;
+            float rowSpacing = 6f;
+            var so = new SerializedObject(view);
+
+            for (int i = 0; i < rows.Length; i++)
+            {
+                float y = rowStartY - (rowHeight + rowSpacing) * i;
+                var row = new GameObject($"Row_{rows[i].label}", typeof(Image));
+                SetParent(row, dialog);
+                StyleImage(row.GetComponent<Image>(), new Color(1f, 1f, 1f, 0.03f), new Color(0.24f, 0.76f, 0.95f, 0.1f), 1f);
+                AnchorTopLeft(row, new Vector2(36f, y), new Vector2(708f, rowHeight));
+
+                var labelGO = CreateTMPText(row, "Label", rows[i].label, 22);
+                AnchorTopLeft(labelGO, new Vector2(16f, -(rowHeight - 30f) / 2f), new Vector2(340f, 30f));
+                var labelText = labelGO.GetComponent<TMP_Text>();
+                labelText.alignment = TextAlignmentOptions.Left;
+                StyleSectionLabel(labelText);
+
+                var valueGO = CreateTMPText(row, "Value", "-", 28);
+                AnchorTopRight(valueGO, new Vector2(-16f, -(rowHeight - 34f) / 2f), new Vector2(300f, 34f));
+                var valueText = valueGO.GetComponent<TMP_Text>();
+                valueText.alignment = TextAlignmentOptions.Right;
+                StyleValueText(valueText, 2f);
+
+                so.FindProperty(rows[i].fieldName).objectReferenceValue = valueText;
+            }
+
+            var closeBtn = CreateButton(dialog, "CloseButton", "閉じる", new Vector2(180f, 62f), new Color(0.14f, 0.24f, 0.38f));
+            AnchorBottomRight(closeBtn, new Vector2(-80f, 52f), new Vector2(180f, 62f));
+            so.FindProperty("closeButton").objectReferenceValue = closeBtn.GetComponent<Button>();
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            return (go, view);
+        }
+
         // ─── MainHUD ───────────────────────────────────────────────────
 
-        private static (GameObject, MainHUDView, Button, Button, Button, Button, Button[]) CreateMainHUD(GameObject parent)
+        private static (GameObject, MainHUDView, Button, Button, Button, Button, Button, Button[]) CreateMainHUD(GameObject parent)
         {
             var go = new GameObject("MainHUD");
             SetParent(go, parent);
@@ -703,8 +775,10 @@ namespace SlotGame.Editor
 
             var paytableBtn = CreateButton(topBar, "PaytableButton", "配当表", new Vector2(190f, 58f), new Color(0.14f, 0.24f, 0.38f));
             var settingsBtn = CreateButton(topBar, "SettingsButton", "設定", new Vector2(190f, 58f), new Color(0.1f, 0.18f, 0.3f));
-            AnchorTopRight(paytableBtn, new Vector2(-28f, -16f), new Vector2(190f, 58f));
+            var statsBtn    = CreateButton(topBar, "StatsButton", "統計", new Vector2(190f, 58f), new Color(0.08f, 0.16f, 0.26f));
+            AnchorTopRight(paytableBtn, new Vector2(-28f,  -16f), new Vector2(190f, 58f));
             AnchorTopRight(settingsBtn, new Vector2(-234f, -16f), new Vector2(190f, 58f));
+            AnchorTopRight(statsBtn,   new Vector2(-440f, -16f), new Vector2(190f, 58f));
 
             var bottomBar = new GameObject("BottomBar", typeof(Image));
             SetParent(bottomBar, go);
@@ -769,6 +843,7 @@ namespace SlotGame.Editor
                 autoSpinBtn.GetComponent<Button>(),
                 settingsBtn.GetComponent<Button>(),
                 paytableBtn.GetComponent<Button>(),
+                statsBtn.GetComponent<Button>(),
                 betButtons);
         }
 
@@ -889,6 +964,82 @@ namespace SlotGame.Editor
 
             EditorSceneManager.SaveScene(scene, $"{ScenesPath}/BonusRound.unity");
             Debug.Log("[SceneBuilder] BonusRound.unity built.");
+        }
+
+        // ─── 既存シーンへの Stats パッチ ───────────────────────────────
+
+        /// <summary>
+        /// 既存の Main.unity を壊さずに StatsPanel と Stats ボタンだけを追加する。
+        /// Build All Scenes を再実行できない場合に使用する。
+        /// </summary>
+        [MenuItem("SlotGame/Add Stats Panel to Main Scene")]
+        public static void AddStatsPanelToMainScene()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                Debug.LogError("[SceneBuilder] Play Mode 中は実行できません。停止してから実行してください。");
+                return;
+            }
+
+            var scene = EditorSceneManager.OpenScene($"{ScenesPath}/Main.unity", OpenSceneMode.Single);
+
+            // 既に StatsPanel が存在する場合はスキップ
+            if (GameObject.Find("StatsPanel") != null)
+            {
+                Debug.LogWarning("[SceneBuilder] StatsPanel はすでに存在します。処理をスキップします。");
+                return;
+            }
+
+            var uiManager   = Object.FindAnyObjectByType<UIManager>();
+            var gameManager = Object.FindAnyObjectByType<GameManager>();
+            if (uiManager == null || gameManager == null)
+            {
+                Debug.LogError("[SceneBuilder] UIManager または GameManager がシーンに見つかりません。");
+                return;
+            }
+
+            // Main Canvas を探して StatsPanel を追加
+            var mainCanvas = GameObject.Find("Main Canvas");
+            if (mainCanvas == null)
+            {
+                Debug.LogError("[SceneBuilder] 'Main Canvas' が見つかりません。");
+                return;
+            }
+
+            var (statsPanelGO, statsView) = CreateStatsPanel(mainCanvas);
+            statsPanelGO.SetActive(false);
+            WireField(uiManager, "statsView", statsView);
+
+            // TopBar を探して Stats ボタンを追加
+            var topBar = GameObject.Find("TopBar");
+            if (topBar != null)
+            {
+                // 既に StatsButton が存在しない場合のみ追加
+                if (topBar.transform.Find("StatsButton") == null)
+                {
+                    var statsBtn = CreateButton(topBar, "StatsButton", "統計", new Vector2(190f, 58f), new Color(0.08f, 0.16f, 0.26f));
+                    AnchorTopRight(statsBtn, new Vector2(-440f, -16f), new Vector2(190f, 58f));
+                    UnityEventTools.AddPersistentListener(statsBtn.GetComponent<Button>().onClick, gameManager.OnStatsButtonPressed);
+                    Debug.Log("[SceneBuilder] StatsButton を TopBar に追加しました。");
+                }
+                else
+                {
+                    Debug.LogWarning("[SceneBuilder] StatsButton はすでに存在します。ボタン追加をスキップします。");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[SceneBuilder] 'TopBar' が見つかりません。Stats ボタンは手動で追加してください。");
+            }
+
+            EditorSceneManager.SaveScene(scene);
+            Debug.Log("[SceneBuilder] Main.unity に StatsPanel を追加して保存しました。");
+        }
+
+        [MenuItem("SlotGame/Add Stats Panel to Main Scene", true)]
+        private static bool ValidateAddStatsPanelToMainScene()
+        {
+            return !EditorApplication.isPlayingOrWillChangePlaymode;
         }
 
         // ─── Build Settings ────────────────────────────────────────────
