@@ -696,7 +696,7 @@ namespace SlotGame.Editor
 
             var view = go.AddComponent<StatsView>();
 
-            var dialog = CreatePanel(go, "Dialog", new Vector2(780f, 560f), new Color(0.05f, 0.08f, 0.13f, 0.98f));
+            var dialog = CreatePanel(go, "Dialog", new Vector2(780f, 640f), new Color(0.05f, 0.08f, 0.13f, 0.98f));
             StyleImage(dialog.GetComponent<Image>(), new Color(0.05f, 0.08f, 0.13f, 0.98f), new Color(0.25f, 0.78f, 0.96f, 0.2f), 2f);
             AddEdgeShadow(dialog, new Color(0f, 0f, 0f, 0.35f), new Vector2(0f, -12f));
 
