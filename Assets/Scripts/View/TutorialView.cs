@@ -33,6 +33,7 @@ namespace SlotGame.View
 
             var bg = gameObject.AddComponent<Image>();
             bg.color = new Color(0, 0, 0, 0.8f);
+            bg.raycastTarget = false;
 
             _canvasGroup = gameObject.AddComponent<CanvasGroup>();
 
@@ -41,7 +42,9 @@ namespace SlotGame.View
             panel.transform.SetParent(transform, false);
             var panelRect = panel.GetComponent<RectTransform>();
             panelRect.sizeDelta = new Vector2(800, 450);
-            panel.GetComponent<Image>().color = new Color(0.12f, 0.12f, 0.18f, 1f);
+            var panelImg = panel.GetComponent<Image>();
+            panelImg.color = new Color(0.12f, 0.12f, 0.18f, 1f);
+            panelImg.raycastTarget = false;
 
             // テキスト作成
             var textObj = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
