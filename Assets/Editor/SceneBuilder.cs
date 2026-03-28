@@ -54,6 +54,8 @@ namespace SlotGame.Editor
             EnsureFolder("Assets", "Scenes");
             EnsureFolder("Assets", "Art");
             EnsureFolder("Assets/Art", "Prefabs");
+            EnsureFolder("Assets", "ScriptableObjects");
+            EnsureGameConfigAsset();
 
             CreateSymbolViewPrefab();
             BuildBootScene();
@@ -1072,6 +1074,21 @@ namespace SlotGame.Editor
         }
 
         // ─── ユーティリティ ────────────────────────────────────────────
+
+        private static void EnsureGameConfigAsset()
+        {
+            string path = $"{SOBasePath}/GameConfig.asset";
+            if (AssetDatabase.LoadAssetAtPath<GameConfigData>(path) != null)
+            {
+                Debug.Log("[SceneBuilder] GameConfig.asset already exists — skipped.");
+                return;
+            }
+
+            var config = ScriptableObject.CreateInstance<GameConfigData>();
+            AssetDatabase.CreateAsset(config, path);
+            AssetDatabase.SaveAssets();
+            Debug.Log("[SceneBuilder] GameConfig.asset created.");
+        }
 
         private static void EnsureFolder(string parent, string name)
         {
