@@ -288,7 +288,12 @@ namespace SlotGame.Core
                 count = _autoSpinCount > 0 ? _autoSpinCount : _config.DefaultAutoSpinCount;
             }
 
+            // ここで確実に保存
             _autoSpinCount = count;
+            
+            // 開始前に即座にUIを更新して「回数が変わっていない」という誤解を防ぐ
+            uiManager.SetAutoButtonText($"ストップ ({_autoSpinCount})");
+            
             RunAutoSpinAsync(count, this.GetCancellationTokenOnDestroy()).Forget();
         }
 
