@@ -84,7 +84,7 @@ namespace SlotGame.Audio
                 SEType.SmallWin       => seSmallWin,
                 SEType.BigWin         => seBigWin,
                 SEType.MegaWin        => seMegaWin,
-                SEType.EpicWin        => seEpicWin,
+                SEType.EpicWin        => seEpicWin != null ? seEpicWin : seMegaWin,
                 SEType.ScatterAppear  => seScatterAppear,
                 SEType.FreeSpinStart  => seFreeSpinStart,
                 SEType.BonusStart     => seBonusStart,
@@ -162,7 +162,7 @@ namespace SlotGame.Audio
             if (seSmallWin == null) missing.Add(nameof(seSmallWin));
             if (seBigWin == null) missing.Add(nameof(seBigWin));
             if (seMegaWin == null) missing.Add(nameof(seMegaWin));
-            if (seEpicWin == null) missing.Add(nameof(seEpicWin));
+            if (seEpicWin == null) missing.Add($"{nameof(seEpicWin)} (optional, falls back to seMegaWin)");
             if (seScatterAppear == null) missing.Add(nameof(seScatterAppear));
             if (seFreeSpinStart == null) missing.Add(nameof(seFreeSpinStart));
             if (seBonusStart == null) missing.Add(nameof(seBonusStart));

@@ -25,7 +25,7 @@ namespace SlotGame.View
 
         public void Setup()
         {
-            var rect = gameObject.AddComponent<RectTransform>();
+            var rect = gameObject.GetComponent<RectTransform>() ?? gameObject.AddComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
