@@ -281,6 +281,13 @@ namespace SlotGame.Core
             }
 
             if (_currentPhase != GamePhase.Idle) return;
+
+            // count が -1 の場合は現在の設定値、またはデフォルト値を使用
+            if (count <= 0)
+            {
+                count = _autoSpinCount > 0 ? _autoSpinCount : _config.DefaultAutoSpinCount;
+            }
+
             _autoSpinCount = count;
             RunAutoSpinAsync(count, this.GetCancellationTokenOnDestroy()).Forget();
         }

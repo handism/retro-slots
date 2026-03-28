@@ -1,10 +1,10 @@
 #nullable enable
-#nullable enable
 using DG.Tweening;
 using SlotGame.Audio;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
 namespace SlotGame.View
@@ -39,6 +39,12 @@ namespace SlotGame.View
         private bool _isTurbo;
         private bool _isAutoRunning;
         private int  _lastStateChangeFrame;
+
+        // ロングプレス（長押し）検知用
+        private float _pointerDownTime;
+        private bool  _isPointerDown;
+        private bool  _longPressTriggered;
+        private const float LongPressThreshold = 0.5f;
 
         private void Awake()
         {
@@ -95,27 +101,7 @@ namespace SlotGame.View
             
             if (autoSpinButton != null)
             {
-                autoSpinButton.onClick.AddListener(() =>
-                {
-                    autoSpinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
-                    PlayButtonClickSe();
-                    
-                    // 同じフレームでオートが開始された場合は、ストップリクエストを送らない
-                    // (PersistentListener と AddListener が共存している場合の誤爆防止)
-                    if (_isAutoRunning && Time.frameCount > _lastStateChangeFrame)
-                    {
-                        OnAutoSpinStopRequested?.Invoke();
-                    }
-                    else if (_popupOpen)
-                    {
-                        CloseAutoSpinPopup();
-                    }
-                    else if (!_isAutoRunning)
-                    {
-                        OpenAutoSpinPopup();
-                    }
-                });
-
+                SetupAutoSpinButtonEvents();
                 BuildAutoSpinPopup();
             }
 
@@ -129,6 +115,75 @@ namespace SlotGame.View
                     UpdateTurboVisual();
                     OnTurboToggled?.Invoke(_isTurbo);
                 });
+            }
+        }
+
+        private void Update()
+        {
+            if (_isPointerDown && !_longPressTriggered && !_isAutoRunning)
+            {
+                if (Time.unscaledTime - _pointerDownTime > LongPressThreshold)
+                {
+                    _longPressTriggered = true;
+                    OpenAutoSpinPopup();
+                    autoSpinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
+                    PlayButtonClickSe();
+                }
+            }
+        }
+
+        private void SetupAutoSpinButtonEvents()
+        {
+            var trigger = autoSpinButton.gameObject.AddComponent<EventTrigger>();
+
+            // PointerDown
+            var pointerDown = new EventTrigger.Entry { eventID = EventTriggerType.PointerDown };
+            pointerDown.callback.AddListener((data) =>
+            {
+                _isPointerDown = true;
+                _pointerDownTime = Time.unscaledTime;
+                _longPressTriggered = false;
+            });
+            trigger.triggers.Add(pointerDown);
+
+            // PointerUp
+            var pointerUp = new EventTrigger.Entry { eventID = EventTriggerType.PointerUp };
+            pointerUp.callback.AddListener((data) =>
+            {
+                if (_isPointerDown && !_longPressTriggered)
+                {
+                    OnAutoSpinButtonClick();
+                }
+                _isPointerDown = false;
+            });
+            trigger.triggers.Add(pointerUp);
+
+            // PointerExit (枠外に外れたらキャンセル)
+            var pointerExit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+            pointerExit.callback.AddListener((data) =>
+            {
+                _isPointerDown = false;
+            });
+            trigger.triggers.Add(pointerExit);
+        }
+
+        private void OnAutoSpinButtonClick()
+        {
+            autoSpinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
+            PlayButtonClickSe();
+
+            if (_isAutoRunning && Time.frameCount > _lastStateChangeFrame)
+            {
+                OnAutoSpinStopRequested?.Invoke();
+            }
+            else if (_popupOpen)
+            {
+                CloseAutoSpinPopup();
+            }
+            else if (!_isAutoRunning)
+            {
+                // 長押しされなかった場合はデフォルト（10回など）で開始
+                OnAutoSpinRequested?.Invoke(-1); // -1 は GameManager 側でデフォルト値として扱う
             }
         }
 
@@ -169,6 +224,10 @@ namespace SlotGame.View
                 int count = autoSpinCounts[i];
                 var btnGo = Instantiate(autoSpinButton.gameObject, popupGo.transform);
                 btnGo.name = $"AutoSpin_{count}";
+                
+                // 元のボタンの EventTrigger は不要なので削除
+                var oldTrigger = btnGo.GetComponent<EventTrigger>();
+                if (oldTrigger != null) Destroy(oldTrigger);
 
                 var btnRect = btnGo.GetComponent<RectTransform>();
                 btnRect.anchorMin = new Vector2(0f, 0f);
