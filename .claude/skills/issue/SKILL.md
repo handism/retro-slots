@@ -71,7 +71,7 @@ git checkout -b feature/issue-$ARGUMENTS-<keyword>
 git push -u origin HEAD
 
 # PR 作成
-gh pr create \
+GODEBUG=x509usefallbackroots=1 gh pr create \
   --title "<Issue タイトルを簡潔に>" \
   --body "$(cat <<'EOF'
 ## 概要
