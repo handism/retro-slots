@@ -19,6 +19,10 @@ namespace SlotGame.Data
         public Sprite       sprite;
         public SymbolType   type;
         public int[]        payouts;      // [0]=3揃え倍率, [1]=4揃え, [2]=5揃え（Normal のみ有効）
+        /// <summary>
+        /// 当選時の専用アニメーション（Animator 用）。
+        /// 設定されている場合は SymbolView で再生され、未設定の場合は共通のパルス演出が適用されます。
+        /// </summary>
         public AnimationClip winAnim;
     }
 }

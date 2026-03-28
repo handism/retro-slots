@@ -60,6 +60,24 @@ namespace SlotGame.View
             PlayIdleAnimation();
         }
 
+        /// <summary>
+        /// 当選演出（Animator または パルス）を開始する。
+        /// 演出の完了を待機する。
+        /// </summary>
+        public async UniTask PlayWinPresentation(CancellationToken ct)
+        {
+            if (_animator != null && _winAnim != null)
+            {
+                // 専用アニメーションがある場合はそちらを優先
+                await PlayWinAnimationClip(_winAnim, ct);
+            }
+            else
+            {
+                // ない場合はパルス演出（無限ループ）
+                PlayPulseAnimation();
+            }
+        }
+
         /// <summary>パルスアニメーション（拡縮繰り返し）を開始する。</summary>
         public void PlayPulseAnimation()
         {
@@ -91,15 +109,7 @@ namespace SlotGame.View
         }
 
         /// <summary>当選アニメーションを再生して完了を待機する。</summary>
-        public async UniTask PlayWinAnim(CancellationToken ct)
-        {
-            if (_animator == null || _winAnim == null) return;
-            _animator.Play(_winAnim.name);
-            await UniTask.Delay((int)(_winAnim.length * 1000), cancellationToken: ct);
-        }
-
-        /// <summary>当選アニメーションを再生して完了を待機する（引数指定版）。</summary>
-        public async UniTask PlayWinAnim(AnimationClip clip, CancellationToken ct)
+        private async UniTask PlayWinAnimationClip(AnimationClip clip, CancellationToken ct)
         {
             if (_animator == null || clip == null) return;
             _animator.Play(clip.name);
