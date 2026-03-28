@@ -148,7 +148,7 @@ namespace SlotGame.View
         {
             // row: 0=上段, 1=中段, 2=下段 → _symbolViews インデックスは 1〜3
             if (_symbolViews == null || row + 1 >= _symbolViews.Length) return;
-            await _symbolViews[row + 1].PlayWinAnim(ct);
+            await _symbolViews[row + 1].PlayWinPresentation(ct);
         }
 
         /// <summary>指定行の SymbolView を取得する。</summary>

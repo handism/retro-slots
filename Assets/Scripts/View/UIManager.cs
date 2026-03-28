@@ -232,7 +232,7 @@ namespace SlotGame.View
                 points[i] = _reelViews[i].GetSymbolWorldPosition(lineDef.rows[i]);
             }
 
-            // 非当選シンボルを暗くし、当選シンボルをパルスさせる
+            // 非当選シンボルを暗くし、当選シンボルを演出
             for (int r = 0; r < _reelViews.Length; r++)
             {
                 var highlightedRows = new HashSet<int>();
@@ -240,8 +240,6 @@ namespace SlotGame.View
                 {
                     highlightedRows.Add(lineDef.rows[r]);
                     _reelViews[r].PlayWinAnimation(lineDef.rows[r], ct).Forget();
-                    var symbol = _reelViews[r].GetSymbolView(lineDef.rows[r]);
-                    symbol?.PlayPulseAnimation();
                 }
                 _reelViews[r].HighlightRows(highlightedRows);
             }
@@ -299,8 +297,6 @@ namespace SlotGame.View
                     foreach (int row in rows)
                     {
                         _reelViews[i].PlayWinAnimation(row, destroyCt).Forget();
-                        var symbol = _reelViews[i].GetSymbolView(row);
-                        symbol?.PlayPulseAnimation();
                     }
                 }
             }
