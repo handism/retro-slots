@@ -72,7 +72,8 @@ namespace SlotGame.Core
                     config.MaxCoins,
                     config.ValidBetAmounts,
                     save.coins,
-                    save.betAmount
+                    save.betAmount,
+                    save.hasCompletedTutorial
                 );
                 _gameState.RestoreStats(save.totalSpins, save.maxWin);
 
@@ -109,7 +110,8 @@ namespace SlotGame.Core
                 config.MaxCoins,
                 config.ValidBetAmounts,
                 save.coins,
-                save.betAmount
+                save.betAmount,
+                save.hasCompletedTutorial
             );
             random ??= new SystemRandomGenerator();
 
@@ -176,6 +178,11 @@ namespace SlotGame.Core
             uiManager.TurboToggled           += OnTurboToggled;
             spinManager.ReelStopped += HandleReelStopped;
             TransitionTo(GamePhase.Idle);
+
+            if (!_gameState.HasCompletedTutorial)
+            {
+                RunTutorialSequenceAsync(this.GetCancellationTokenOnDestroy()).Forget();
+            }
         }
 
         private SlotConfig ResolveSlotConfig()
@@ -351,6 +358,30 @@ namespace SlotGame.Core
             _isPaytableOpen = !_isPaytableOpen;
             if (_isPaytableOpen) uiManager.ShowPaytable();
             else uiManager.HidePaytable();
+        }
+
+        private async UniTaskVoid RunTutorialSequenceAsync(CancellationToken ct)
+        {
+            uiManager.SetSpinButtonInteractable(false);
+            uiManager.SetAutoSpinCountInteractable(false);
+
+            try
+            {
+                await uiManager.ShowTutorialAsync(ct);
+            }
+            catch (OperationCanceledException)
+            {
+                // Ignored
+            }
+
+            _gameState.CompleteTutorial();
+            SaveGame();
+
+            if (_currentPhase == GamePhase.Idle)
+            {
+                uiManager.SetSpinButtonInteractable(true);
+                if (!_isAutoSpinning) uiManager.SetAutoSpinCountInteractable(true);
+            }
         }
 
         // ─── スピンフロー ────────────────────────────────────────────────
@@ -658,6 +689,7 @@ namespace SlotGame.Core
                 seVolume   = _seVolume,
                 totalSpins = _gameState.TotalSpins,
                 maxWin     = _gameState.MaxWin,
+                hasCompletedTutorial = _gameState.HasCompletedTutorial
             });
         }
 

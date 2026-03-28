@@ -50,6 +50,7 @@ namespace SlotGame.View
         private Camera? _mainCamera;
         private CanvasGroup? _hudCanvasGroup;
         private DotPatternBackground? _dotPatternBg;
+        private TutorialView? _tutorialView;
 
         private static readonly Color NormalTint     = new(0.05f, 0.08f, 0.14f, 0f);
         private static readonly Color FreeSpinTint   = new(0.08f, 0.36f, 0.52f, 0.3f);
@@ -508,6 +509,32 @@ namespace SlotGame.View
         {
             _lastDescriptionText = text;
             if (gameDescriptionView != null) gameDescriptionView.SetDescription(text);
+        }
+
+        public async UniTask ShowTutorialAsync(CancellationToken ct)
+        {
+            if (_tutorialView == null)
+            {
+                _rootCanvas ??= mainHUD != null ? mainHUD.GetComponentInParent<Canvas>() : FindFirstObjectByType<Canvas>();
+                if (_rootCanvas == null) return;
+
+                var go = new GameObject("TutorialView", typeof(RectTransform));
+                go.transform.SetParent(_rootCanvas.transform, false);
+                go.transform.SetAsLastSibling();
+
+                _tutorialView = go.AddComponent<TutorialView>();
+                _tutorialView.Setup();
+            }
+
+            SetHudInteractable(false);
+            try
+            {
+                await _tutorialView.ShowAsync(ct);
+            }
+            finally
+            {
+                SetHudInteractable(true);
+            }
         }
 
         public void UpdateStats(in SlotGame.Model.SessionStats stats) => statsView?.UpdateDisplay(stats);
