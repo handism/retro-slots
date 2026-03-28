@@ -56,8 +56,8 @@ namespace SlotGame.Core
             var gameState = GameContext.GameState;
             var config = GameContext.SaveDataManager.Config;
 
-            float spinDuration = gameState.IsTurbo ? config.TurboSpinDuration : 2.0f;
-            float stopInterval = gameState.IsTurbo ? config.TurboStopInterval : 0.3f;
+            float spinDuration = gameState.IsTurbo ? config.TurboSpinDuration : config.NormalSpinDuration;
+            float stopInterval = gameState.IsTurbo ? config.TurboStopInterval : config.NormalStopInterval;
 
             // 停止位置をリールごとに乱数決定
             var stopIndices = new int[reels.Length];

@@ -14,5 +14,6 @@ namespace SlotGame.Model
         public string saveVersion = "1.0";
         public string checksum    = "";
         public bool   hasCompletedTutorial = false;
+        public bool   isTurbo = false;
     }
 }
