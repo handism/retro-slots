@@ -12,6 +12,7 @@ namespace SlotGame.Model
         public long Coins { get; private set; }
         public int BetAmount { get; private set; }
         public int FreeSpinsLeft { get; private set; }
+        public bool HasCompletedTutorial { get; private set; }
         public bool IsFreeSpin => FreeSpinsLeft > 0;
         public bool IsTurbo { get; private set; }
         public long TotalSpins { get; private set; }
@@ -29,7 +30,8 @@ namespace SlotGame.Model
             long maxCoins,
             int[] validBetAmounts,
             long currentCoins,
-            int currentBetAmount
+            int currentBetAmount,
+            bool hasCompletedTutorial = false
         )
         {
             InitialCoins = initialCoins;
@@ -37,6 +39,7 @@ namespace SlotGame.Model
             ValidBetAmounts = validBetAmounts;
             Coins = Math.Clamp(currentCoins, 0, MaxCoins);
             BetAmount = currentBetAmount;
+            HasCompletedTutorial = hasCompletedTutorial;
             _sessionStartCoins = Coins;
         }
 
@@ -137,6 +140,12 @@ namespace SlotGame.Model
         {
             TotalSpins = totalSpins;
             MaxWin = maxWin;
+        }
+
+        /// <summary>チュートリアルを完了状態にする。</summary>
+        public void CompleteTutorial()
+        {
+            HasCompletedTutorial = true;
         }
     }
 }

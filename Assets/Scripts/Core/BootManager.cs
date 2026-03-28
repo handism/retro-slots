@@ -36,7 +36,8 @@ namespace SlotGame.Core
                 config?.MaxCoins ?? 9_999_999,
                 config?.ValidBetAmounts ?? new[] { 10, 20, 50, 100 },
                 save.coins,
-                save.betAmount
+                save.betAmount,
+                save.hasCompletedTutorial
             );
             gameState.RestoreStats(save.totalSpins, save.maxWin);
 
