@@ -19,6 +19,8 @@ namespace SlotGame.Model
         float DefaultSeVolume,
         string ChecksumSalt,
         float TurboSpinDuration,
-        float TurboStopInterval
+        float TurboStopInterval,
+        float NormalSpinDuration,
+        float NormalStopInterval
     );
 }

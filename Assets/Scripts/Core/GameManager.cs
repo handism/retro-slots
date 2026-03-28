@@ -124,6 +124,7 @@ namespace SlotGame.Core
             _bgmVolume = save.bgmVolume;
             _seVolume  = save.seVolume;
             _autoSpinCount = config.DefaultAutoSpinCount;
+            _gameState.SetTurbo(save.isTurbo);
 
             // セーブデータが完全に新規（一度も保存されていない）場合のみ、Config のデフォルト値を優先する。
             // チェックサムがない、または totalSpins が 0 かつ default 値と一致する場合は新規とみなす。
@@ -151,6 +152,7 @@ namespace SlotGame.Core
             uiManager.UpdateBet(_gameState.BetAmount);
             uiManager.UpdateWin(0);
             uiManager.SetAutoButtonText(GetAutoSpinButtonText());
+            uiManager.SetTurbo(_gameState.IsTurbo);
             uiManager.SetSettingsVolumes(_bgmVolume, _seVolume);
             uiManager.PopulatePaytable(CollectSymbolDefinitions(), payoutData);
             uiManager.SetGameDescriptionText(
@@ -207,8 +209,10 @@ namespace SlotGame.Core
                 0.8f,
                 1.0f,
                 "SALTY_SLOT_2026",
-                0.8f,
-                0.1f);
+                0.5f,
+                0.1f,
+                2.0f,
+                0.3f);
         }
 
         private void OnApplicationPause(bool pauseStatus)
@@ -537,7 +541,8 @@ namespace SlotGame.Core
                     await uiManager.HighlightWinLinesAsync(result, ct, paylineData);
                 }
 
-                await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: ct);
+                float postWinDelay = _gameState.IsTurbo ? 0.1f : 0.5f;
+                await UniTask.Delay(TimeSpan.FromSeconds(postWinDelay), cancellationToken: ct);
                 uiManager.ClearLineHighlights();
             }
             else
@@ -706,7 +711,8 @@ namespace SlotGame.Core
                 seVolume   = _seVolume,
                 totalSpins = _gameState.TotalSpins,
                 maxWin     = _gameState.MaxWin,
-                hasCompletedTutorial = _gameState.HasCompletedTutorial
+                hasCompletedTutorial = _gameState.HasCompletedTutorial,
+                isTurbo    = _gameState.IsTurbo
             });
         }
 
