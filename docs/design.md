@@ -218,19 +218,61 @@ public struct BonusRewardEntry
 // ゲーム全体の状態
 public class GameState
 {
-    public long   Coins         { get; private set; }
-    public int    BetAmount     { get; private set; }
-    public int    FreeSpinsLeft { get; private set; }
-    public bool   IsFreeSpin    => FreeSpinsLeft > 0;
-    public long   TotalSpins    { get; private set; }
-    public long   MaxWin        { get; private set; }
+    // 設定値（コンストラクタで固定）
+    public long   InitialCoins          { get; }
+    public long   MaxCoins              { get; }
+    public int[]  ValidBetAmounts       { get; }
 
+    // ゲーム状態
+    public long   Coins                 { get; private set; }
+    public int    BetAmount             { get; private set; }
+    public int    FreeSpinsLeft         { get; private set; }
+    public bool   IsFreeSpin            => FreeSpinsLeft > 0;
+    public bool   HasCompletedTutorial  { get; private set; }
+    public bool   IsTurbo               { get; private set; }
+
+    // ライフタイム統計（永続化対象）
+    public long   TotalSpins            { get; private set; }
+    public long   TotalWins             { get; private set; }
+    public long   MaxWin                { get; private set; }
+    public int    TotalFreeSpinTriggers { get; private set; }
+
+    // コイン操作
     public void SetCoins(long coins) { ... }
     public void AddCoins(long amount) { ... }
-    public bool DeductBet() { ... }         // 残高不足で false
+    public bool DeductBet() { ... }          // 残高不足で false
+    public bool SetBetAmount(int bet) { ... } // 無効な値で false
+
+    // フリースピン操作
     public void AddFreeSpins(int count) { ... }
     public void ConsumeFreeSpin() { ... }
-    public void RecordSpin(long winAmount) { ... }
+
+    // ターボ・チュートリアル
+    public void SetTurbo(bool enabled) { ... }
+    public void CompleteTutorial() { ... }
+
+    // 統計記録
+    public void RecordSpin(long winAmount) { ... }           // ライフタイム + セッション統計を更新
+    public void RecordFreeSpinTrigger() { ... }
+
+    // 統計取得
+    public SessionStats GetSessionStats() { ... }            // セッション統計スナップショット
+    public SessionStats GetLifetimeStats() { ... }           // ライフタイム統計スナップショット
+
+    // セーブデータ復元
+    public void RestoreStats(
+        long totalSpins, long totalWins, long maxWin, int totalFreeSpinTriggers) { ... }
+}
+
+// セッション統計スナップショット（インメモリのみ・永続化なし）
+public readonly struct SessionStats
+{
+    public long  TotalSpins       { get; }   // スピン総数
+    public long  Wins             { get; }   // 当選スピン数
+    public float WinRate          { get; }   // 当選率（0〜100 %）
+    public long  LargestWin       { get; }   // 最大獲得コイン数
+    public int   FreeSpinTriggers { get; }   // フリースピン発動回数
+    public long  NetProfit        { get; }   // 損益（負数 = 損失）
 }
 
 // 1スピンの結果（イミュータブル）
