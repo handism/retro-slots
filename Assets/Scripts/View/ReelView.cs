@@ -25,6 +25,7 @@ namespace SlotGame.View
 
         private ReelStripData?   _strip;
         private SymbolView[]?    _symbolViews;   // 循環バッファ
+        private RectTransform[]? _symbolRects;   // キャッシュ済み RectTransform（毎フレーム GetComponent を避ける）
         private int              _stripIndex;    // 現在のストリップ先頭インデックス
         private bool             _isScrolling;
         private float            _scrollOffset;
@@ -37,12 +38,14 @@ namespace SlotGame.View
             ResizeViewport();
             _symbolViews = new SymbolView[BufferSize];
 
+            _symbolRects = new RectTransform[BufferSize];
             for (int i = 0; i < BufferSize; i++)
             {
                 var view = Instantiate(symbolViewPrefab, transform);
                 var rt   = view.GetComponent<RectTransform>();
                 rt.anchoredPosition = new Vector2(0, GetSymbolYPosition(i));
                 _symbolViews[i] = view;
+                _symbolRects[i] = rt;
             }
 
             _stripIndex = 0;
@@ -74,13 +77,11 @@ namespace SlotGame.View
 
         private void UpdateSymbolPositions()
         {
-            if (_symbolViews == null) return;
-            // 全シンボルを offset 分だけ下にシフト
+            if (_symbolRects == null) return;
             for (int i = 0; i < BufferSize; i++)
             {
-                var rt = _symbolViews[i].GetComponent<RectTransform>();
                 float baseY = GetSymbolYPosition(i);
-                rt.anchoredPosition = new Vector2(0, baseY + _scrollOffset);
+                _symbolRects[i].anchoredPosition = new Vector2(0, baseY + _scrollOffset);
             }
         }
 
@@ -170,20 +171,7 @@ namespace SlotGame.View
             if (_symbolViews == null) return;
 
             for (int row = 0; row < 3; row++)
-            {
-                bool isHighlighted = false;
-                if (rows != null)
-                {
-                    foreach (int highlightedRow in rows)
-                    {
-                        if (highlightedRow != row) continue;
-                        isHighlighted = true;
-                        break;
-                    }
-                }
-
-                _symbolViews[row + 1].SetHighlighted(isHighlighted);
-            }
+                _symbolViews[row + 1].SetHighlighted(rows?.Contains(row) ?? false);
         }
 
         public void ClearHighlights()
@@ -200,21 +188,24 @@ namespace SlotGame.View
 
         private void AdvanceStrip()
         {
-            if (_symbolViews == null || _strip == null) return;
+            if (_symbolViews == null || _symbolRects == null || _strip == null) return;
 
             // 先頭バッファを末尾に移動させて循環
             _stripIndex = (_stripIndex + 1) % _strip.strip.Count;
-            // 循環バッファをシフト
-            var first = _symbolViews[0];
+            var first     = _symbolViews[0];
+            var firstRect = _symbolRects[0];
             for (int i = 0; i < BufferSize - 1; i++)
+            {
                 _symbolViews[i] = _symbolViews[i + 1];
+                _symbolRects[i] = _symbolRects[i + 1];
+            }
             _symbolViews[BufferSize - 1] = first;
+            _symbolRects[BufferSize - 1] = firstRect;
 
             // 新しい末尾にストリップのシンボルを設定
             int newIdx = (_stripIndex + BufferSize - 1) % _strip.strip.Count;
             _symbolViews[BufferSize - 1].SetSymbol(_strip.strip[newIdx]);
-            var rt = _symbolViews[BufferSize - 1].GetComponent<RectTransform>();
-            rt.anchoredPosition = new Vector2(0, GetSymbolYPosition(BufferSize - 1));
+            _symbolRects[BufferSize - 1].anchoredPosition = new Vector2(0, GetSymbolYPosition(BufferSize - 1));
         }
 
         private void AlignToStopIndex(int stopIndex)
@@ -240,12 +231,11 @@ namespace SlotGame.View
 
         private void SnapAllToGrid()
         {
-            if (_symbolViews == null) return;
+            if (_symbolRects == null) return;
 
             for (int i = 0; i < BufferSize; i++)
             {
-                var rt = _symbolViews[i].GetComponent<RectTransform>();
-                rt.anchoredPosition = new Vector2(0, GetSymbolYPosition(i));
+                _symbolRects[i].anchoredPosition = new Vector2(0, GetSymbolYPosition(i));
             }
             _scrollOffset = 0;
         }

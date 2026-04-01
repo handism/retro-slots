@@ -1,5 +1,6 @@
 #nullable enable
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using SlotGame.Data;
 using SlotGame.Model;
@@ -34,12 +35,11 @@ namespace SlotGame.Utility
 
             var lineWins = EvaluatePaylines(symbolGrid, symbolDefs, paylines, betAmount, reelCount, minMatch);
 
-            var scatterPositions = GetScatterPositions(symbolGrid, symbolDefs, reelCount, rowCount);
-            int scatterCount     = scatterPositions.Count;
-            bool hasScatter      = scatterCount >= 3;
-            long scatterWin      = CalcScatterWin(scatterCount, payouts, betAmount);
-
-            var bonusPositions    = GetBonusPositions(symbolGrid, symbolDefs, reelCount, rowCount);
+            GetSpecialPositions(symbolGrid, symbolDefs, reelCount, rowCount,
+                out var scatterPositions, out var bonusPositions);
+            int scatterCount      = scatterPositions.Count;
+            bool hasScatter       = scatterCount >= 3;
+            long scatterWin       = CalcScatterWin(scatterCount, payouts, betAmount);
             bool hasBonusCondition = CheckBonusConditionFromPositions(bonusPositions, bonusReels);
 
             long totalWin = scatterWin;
@@ -175,17 +175,23 @@ namespace SlotGame.Utility
 
         // ─── Scatter 判定 ─────────────────────────────────────────────────
 
-        private static IReadOnlyList<SymbolPosition> GetScatterPositions(int[,] grid, IReadOnlyDictionary<int, SymbolData> defs, int reelCount, int rowCount)
+        /// <summary>グリッドをシングルパスで走査し、Scatter と Bonus それぞれの位置リストを返す。</summary>
+        private static void GetSpecialPositions(
+            int[,] grid, IReadOnlyDictionary<int, SymbolData> defs, int reelCount, int rowCount,
+            out IReadOnlyList<SymbolPosition> scatterPositions,
+            out IReadOnlyList<SymbolPosition> bonusPositions)
         {
-            var positions = new List<SymbolPosition>();
+            var scatter = new List<SymbolPosition>();
+            var bonus   = new List<SymbolPosition>();
             for (int r = 0; r < reelCount; r++)
                 for (int row = 0; row < rowCount; row++)
                 {
                     var sym = FindSymbol(defs, grid[r, row]);
-                    if (sym?.type == SymbolType.Scatter)
-                        positions.Add(new SymbolPosition(r, row));
+                    if (sym?.type == SymbolType.Scatter) scatter.Add(new SymbolPosition(r, row));
+                    else if (sym?.type == SymbolType.Bonus) bonus.Add(new SymbolPosition(r, row));
                 }
-            return positions;
+            scatterPositions = scatter;
+            bonusPositions   = bonus;
         }
 
         private static long CalcScatterWin(int count, PayoutTableData payouts, int bet)
@@ -220,41 +226,14 @@ namespace SlotGame.Utility
 
         // ─── ボーナス条件判定 ─────────────────────────────────────────────
 
-        private static IReadOnlyList<SymbolPosition> GetBonusPositions(int[,] grid, IReadOnlyDictionary<int, SymbolData> defs, int reelCount, int rowCount)
-        {
-            var positions = new List<SymbolPosition>();
-            for (int r = 0; r < reelCount; r++)
-                for (int row = 0; row < rowCount; row++)
-                {
-                    var sym = FindSymbol(defs, grid[r, row]);
-                    if (sym?.type == SymbolType.Bonus)
-                        positions.Add(new SymbolPosition(r, row));
-                }
-            return positions;
-        }
-
         /// <summary>指定されたリールインデックス（デフォルト: 0/2/4）それぞれに Bonus タイプのシンボルが 1 つ以上あれば true。</summary>
         private static bool CheckBonusConditionFromPositions(
             IReadOnlyList<SymbolPosition> positions,
             int[]? bonusReels = null)
         {
             bonusReels ??= new[] { 0, 2, 4 };
-            var flags = new bool[bonusReels.Length];
-
-            foreach (var pos in positions)
-            {
-                for (int i = 0; i < bonusReels.Length; i++)
-                {
-                    if (pos.Reel == bonusReels[i])
-                    {
-                        flags[i] = true;
-                        break;
-                    }
-                }
-            }
-
-            foreach (bool f in flags) if (!f) return false;
-            return bonusReels.Length > 0;
+            return bonusReels.Length > 0 &&
+                   bonusReels.All(reelIdx => positions.Any(p => p.Reel == reelIdx));
         }
 
         // ─── ヘルパー ─────────────────────────────────────────────────────

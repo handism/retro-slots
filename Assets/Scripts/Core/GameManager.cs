@@ -173,7 +173,7 @@ namespace SlotGame.Core
             uiManager.SeVolumeChanged += HandleSeVolumeChanged;
             uiManager.ResetCoinsRequested += HandleResetCoinsRequested;
             uiManager.SettingsCloseRequested += uiManager.HideSettings;
-            uiManager.PaytableCloseRequested += () => { uiManager.HidePaytable(); _isPaytableOpen = false; };
+            uiManager.PaytableCloseRequested += HandlePaytableCloseRequested;
             uiManager.StatsCloseRequested    += uiManager.HideStats;
             uiManager.GameDescriptionCloseRequested += uiManager.HideGameDescription;
             uiManager.AutoSpinRequested      += OnAutoSpinButtonPressed;
@@ -234,11 +234,12 @@ namespace SlotGame.Core
                 uiManager.SeVolumeChanged -= HandleSeVolumeChanged;
                 uiManager.ResetCoinsRequested -= HandleResetCoinsRequested;
                 uiManager.SettingsCloseRequested -= uiManager.HideSettings;
-                uiManager.PaytableCloseRequested -= uiManager.HidePaytable;
                 uiManager.StatsCloseRequested    -= uiManager.HideStats;
                 uiManager.GameDescriptionCloseRequested -= uiManager.HideGameDescription;
                 uiManager.AutoSpinRequested      -= OnAutoSpinButtonPressed;
                 uiManager.AutoSpinStopRequested  -= OnAutoSpinStopRequested;
+                uiManager.TurboToggled           -= OnTurboToggled;
+                uiManager.PaytableCloseRequested -= HandlePaytableCloseRequested;
             }
 
             if (spinManager != null)
@@ -747,6 +748,12 @@ namespace SlotGame.Core
             uiManager.SetSettingsVolumes(_bgmVolume, _seVolume);
 
             SaveGame();
+        }
+
+        private void HandlePaytableCloseRequested()
+        {
+            uiManager.HidePaytable();
+            _isPaytableOpen = false;
         }
 
         private void HandleReelStopped(int reelIndex)
