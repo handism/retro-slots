@@ -17,7 +17,6 @@ namespace SlotGame.Model
         int DefaultAutoSpinCount,
         float DefaultBgmVolume,
         float DefaultSeVolume,
-        string ChecksumSalt,
         float TurboSpinDuration,
         float TurboStopInterval,
         float NormalSpinDuration,
