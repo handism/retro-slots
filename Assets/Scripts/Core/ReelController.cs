@@ -21,6 +21,7 @@ namespace SlotGame.Core
         private bool _isSpinning;
         private bool _skipRequested;
         private int _targetStopIndex;
+        private CancellationToken _spinCancellationToken; // token provided when spin starts
 
         private void Awake()
         {
@@ -37,11 +38,13 @@ namespace SlotGame.Core
         }
 
         /// <summary>高速スクロールを開始する。</summary>
-        public void StartSpin()
+        public void StartSpin(CancellationToken ct)
         {
             _isSpinning = true;
             _skipRequested = false;
-            _view.StartScrolling();
+            _spinCancellationToken = ct;
+            // _view may be null in some edit-time situations; guard access
+            _view?.StartScrolling();
         }
 
         /// <summary>
@@ -76,8 +79,17 @@ namespace SlotGame.Core
         {
             _targetStopIndex = targetIndex;
             _skipRequested = true;
-            if (_isSpinning)
-                _view.SnapToPosition(_targetStopIndex);
+            if (_isSpinning && !_spinCancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    _view?.SnapToPosition(_targetStopIndex);
+                }
+                catch (MissingReferenceException)
+                {
+                    // View was destroyed during teardown — ignore
+                }
+            }
         }
 
         /// <summary>現在表示中の 3 シンボル ID を返す（[0]=上段, [1]=中段, [2]=下段）。</summary>

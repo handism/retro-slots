@@ -81,8 +81,17 @@ namespace SlotGame.View
             if (_symbolRects == null) return;
             for (int i = 0; i < BufferSize; i++)
             {
+                // UnityEngine.Object overrides == to detect destroyed objects, so use it here
+                if (_symbolRects[i] == null) continue;
                 float baseY = GetSymbolYPosition(i);
-                _symbolRects[i].anchoredPosition = new Vector2(0, baseY + _scrollOffset);
+                try
+                {
+                    _symbolRects[i].anchoredPosition = new Vector2(0, baseY + _scrollOffset);
+                }
+                catch (MissingReferenceException)
+                {
+                    // The RectTransform was destroyed (e.g., Play mode stopped). Skip safely.
+                }
             }
         }
 
@@ -90,6 +99,9 @@ namespace SlotGame.View
         public async UniTask DecelerateAndStop(int targetStopIndex, CancellationToken ct)
         {
             _isScrolling = false;
+
+            // If cancellation requested early, bail out quickly
+            if (ct.IsCancellationRequested) throw new OperationCanceledException(ct);
 
             // 停止位置にスナップ
             AlignToStopIndex(targetStopIndex);
@@ -137,6 +149,7 @@ namespace SlotGame.View
                         0.1f)
                     .SetEase(Ease.OutQuad);
             await AwaitTweenWithCancellation(t1);
+            if (ct.IsCancellationRequested) throw new OperationCanceledException(ct);
 
             // 第2段バウンス（戻す）
             var t2 = DOTween.To(
@@ -150,6 +163,7 @@ namespace SlotGame.View
                         0.15f)
                     .SetEase(Ease.OutBounce);
             await AwaitTweenWithCancellation(t2);
+            if (ct.IsCancellationRequested) throw new OperationCanceledException(ct);
 
             // 全シンボルを整列
             SnapAllToGrid();
@@ -237,7 +251,17 @@ namespace SlotGame.View
             // 新しい末尾にストリップのシンボルを設定
             int newIdx = (_stripIndex + BufferSize - 1) % _strip.strip.Count;
             _symbolViews[BufferSize - 1].SetSymbol(_strip.strip[newIdx]);
-            _symbolRects[BufferSize - 1].anchoredPosition = new Vector2(0, GetSymbolYPosition(BufferSize - 1));
+            if (_symbolRects[BufferSize - 1] != null)
+            {
+                try
+                {
+                    _symbolRects[BufferSize - 1].anchoredPosition = new Vector2(0, GetSymbolYPosition(BufferSize - 1));
+                }
+                catch (MissingReferenceException)
+                {
+                    // destroyed during teardown
+                }
+            }
         }
 
         private void AlignToStopIndex(int stopIndex)
@@ -267,7 +291,15 @@ namespace SlotGame.View
 
             for (int i = 0; i < BufferSize; i++)
             {
-                _symbolRects[i].anchoredPosition = new Vector2(0, GetSymbolYPosition(i));
+                if (_symbolRects[i] == null) continue;
+                try
+                {
+                    _symbolRects[i].anchoredPosition = new Vector2(0, GetSymbolYPosition(i));
+                }
+                catch (MissingReferenceException)
+                {
+                    // destroyed during teardown
+                }
             }
             _scrollOffset = 0;
         }

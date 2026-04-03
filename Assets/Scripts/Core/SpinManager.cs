@@ -65,7 +65,7 @@ namespace SlotGame.Core
                 stopIndices[i] = _random.Next(0, strips[i].strip.Count);
 
             // 全リール同時にスクロール開始
-            foreach (var reel in reels) reel.StartSpin();
+            foreach (var reel in reels) reel.StartSpin(ct);
 
             try
             {
