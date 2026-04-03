@@ -81,10 +81,20 @@ namespace SlotGame.View
         /// <summary>パルスアニメーション（拡縮繰り返し）を開始する。</summary>
         public void PlayPulseAnimation()
         {
+            // If this object has been destroyed (Unity overloads ==), bail out.
+            if (this == null) return;
             StopPulseAnimation();
-            _pulseTween = transform.DOScale(1.2f, 0.5f)
-                .SetEase(Ease.InOutSine)
-                .SetLoops(-1, LoopType.Yoyo);
+            try
+            {
+                _pulseTween = transform.DOScale(1.2f, 0.5f)
+                    .SetEase(Ease.InOutSine)
+                    .SetLoops(-1, LoopType.Yoyo);
+            }
+            catch (MissingReferenceException)
+            {
+                // transform was destroyed during teardown - ignore
+                _pulseTween = null;
+            }
         }
 
         /// <summary>パルスアニメーションを停止する。</summary>
@@ -92,19 +102,30 @@ namespace SlotGame.View
         {
             if (_pulseTween != null && _pulseTween.IsActive())
             {
-                _pulseTween.Kill();
+                try { _pulseTween.Kill(); } catch { }
             }
             _pulseTween = null;
-            transform.localScale = Vector3.one;
+
+            // Avoid accessing transform if the Unity object is already destroyed.
+            if (this == null) return;
+            try
+            {
+                transform.localScale = Vector3.one;
+            }
+            catch (MissingReferenceException)
+            {
+                // destroyed during teardown
+            }
         }
 
         /// <summary>アイドル状態のアニメーションを再生する（当選演出の停止用）。</summary>
         public void PlayIdleAnimation()
         {
+            if (this == null) return;
             StopPulseAnimation();
             if (_animator != null)
             {
-                _animator.Play(IdleStateName, 0, 0f);
+                try { _animator.Play(IdleStateName, 0, 0f); } catch { }
             }
         }
 
