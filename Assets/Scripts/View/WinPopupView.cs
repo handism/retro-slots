@@ -117,16 +117,35 @@ namespace SlotGame.View
                 WinLevel.Mega => displayDuration + 1.0f,
                 _ => displayDuration
             };
-            await UniTask.Delay(TimeSpan.FromSeconds(finalDuration), cancellationToken: ct);
 
-            // 4. フェードアウト
-            _currentSequence?.Kill();
-            transform.DOKill();
-            winAmountText.transform.DOKill();
-            await DOTween.To(() => _canvasGroup.alpha, v => _canvasGroup.alpha = v, 0f, 0.4f).ToUniTask(cancellationToken: ct);
-            
-            _canvasGroup.alpha = 0;
-            _currentSequence = null;
+            try
+            {
+                await UniTask.Delay(TimeSpan.FromSeconds(finalDuration), cancellationToken: ct);
+            }
+            catch (OperationCanceledException)
+            {
+                // キャンセル時でも下の finally で確実にクリーンアップする
+            }
+            finally
+            {
+                // 4. フェードアウト / クリーンアップ
+                _currentSequence?.Kill();
+                transform.DOKill();
+                winAmountText.transform.DOKill();
+
+                // 安全のため、外部のキャンセルに依存せず非表示にする
+                try
+                {
+                    await DOTween.To(() => _canvasGroup.alpha, v => _canvasGroup.alpha = v, 0f, 0.4f).ToUniTask();
+                }
+                catch
+                {
+                    _canvasGroup.alpha = 0;
+                }
+
+                _canvasGroup.alpha = 0;
+                _currentSequence = null;
+            }
         }
 
         private void SetupDisplayByLevel(WinLevel level)
