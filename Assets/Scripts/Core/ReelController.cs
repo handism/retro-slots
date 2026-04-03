@@ -64,7 +64,7 @@ namespace SlotGame.Core
             _isSpinning = false;
         }
 
-        /// <summary>スピン中に呼ぶと全リールを即座にスナップ位置に停止させる。
+        /// <summary>スピン中に呼ぶとこのリールを即座にスナップ位置に停止させる。
         /// 互換性確保のため引数なしの呼び出しは内部で現在のターゲットを使用します。</summary>
         public void RequestSkip()
         {
