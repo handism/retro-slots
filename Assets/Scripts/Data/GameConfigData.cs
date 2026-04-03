@@ -35,10 +35,6 @@ namespace SlotGame.Data
         public float defaultBgmVolume = 0.8f;
         public float defaultSeVolume = 1.0f;
 
-        [Header("Security")]
-        [SerializeField] private string checksumSalt = "SALTY_SLOT_2026";
-        public string ChecksumSalt => checksumSalt;
-
         public SlotConfig ToModelConfig(int freeSpinMultiplier = 2)
         {
             return new SlotConfig(
@@ -54,7 +50,6 @@ namespace SlotGame.Data
                 defaultAutoSpinCount,
                 defaultBgmVolume,
                 defaultSeVolume,
-                checksumSalt,
                 turboSpinDuration,
                 turboStopInterval,
                 normalSpinDuration,
