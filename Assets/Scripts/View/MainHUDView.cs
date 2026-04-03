@@ -273,15 +273,37 @@ namespace SlotGame.View
             _popupOpen = true;
             _autoSpinPopup.SetActive(true);
             _autoSpinPopup.transform.localScale = new Vector3(1f, 0f, 1f);
-            _autoSpinPopup.transform.DOScaleY(1f, 0.15f).SetEase(Ease.OutBack).SetUpdate(true);
+            try
+            {
+                // Ensure any existing tweens on this transform are killed before creating a new one.
+                DOTween.Kill(_autoSpinPopup.transform, false);
+                _autoSpinPopup.transform.DOScaleY(1f, 0.15f).SetEase(Ease.OutBack).SetUpdate(true);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"OpenAutoSpinPopup tween failed: {ex.Message}");
+                _autoSpinPopup.transform.localScale = Vector3.one;
+            }
         }
 
         private void CloseAutoSpinPopup()
         {
             if (_autoSpinPopup == null) return;
             _popupOpen = false;
-            _autoSpinPopup.transform.DOScaleY(0f, 0.1f).SetEase(Ease.InQuad).SetUpdate(true)
-                .OnComplete(() => _autoSpinPopup.SetActive(false));
+            try
+            {
+                DOTween.Kill(_autoSpinPopup.transform, false);
+                _autoSpinPopup.transform.DOScaleY(0f, 0.1f).SetEase(Ease.InQuad).SetUpdate(true)
+                    .OnComplete(() => _autoSpinPopup.SetActive(false));
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"CloseAutoSpinPopup tween failed: {ex.Message}");
+                // Fallback: immediately hide and reset scale to avoid leaving UI in inconsistent state.
+                _autoSpinPopup.SetActive(false);
+                if (_autoSpinPopup.transform != null)
+                    _autoSpinPopup.transform.localScale = new Vector3(1f, 0f, 1f);
+            }
         }
 
         public void SetCoins(long coins)
