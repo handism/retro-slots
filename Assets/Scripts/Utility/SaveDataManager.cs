@@ -63,7 +63,7 @@ namespace SlotGame.Utility
         /// <summary>セーブデータを JSON ファイルに書き込む（一時ファイルを用いたアトミック書き込み）。</summary>
         public void Save(SaveData data)
         {
-            data.checksum = CalculateChecksum(data, _config);
+            data.checksum = CalculateChecksum(data);
             string json = JsonUtility.ToJson(data, prettyPrint: true);
             string tempPath = _savePath + ".tmp";
 
@@ -104,10 +104,11 @@ namespace SlotGame.Utility
             return true;
         }
 
-        private static string CalculateChecksum(SaveData data, SlotConfig? config)
+        private const string ChecksumSalt = "SALTY_SLOT_2026";
+
+        private static string CalculateChecksum(SaveData data)
         {
-            string salt = config != null ? config.ChecksumSalt : "SALTY_SLOT_2026";
-            string raw = $"{data.coins}:{data.betAmount}:{data.bgmVolume:F2}:{data.seVolume:F2}:{data.totalSpins}:{data.totalWins}:{data.maxWin}:{data.totalFreeSpinTriggers}:{data.saveVersion}:{salt}";
+            string raw = $"{data.coins}:{data.betAmount}:{data.bgmVolume:F2}:{data.seVolume:F2}:{data.totalSpins}:{data.totalWins}:{data.maxWin}:{data.totalFreeSpinTriggers}:{data.saveVersion}:{ChecksumSalt}";
             using var sha256 = System.Security.Cryptography.SHA256.Create();
             byte[] bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(raw));
             return Convert.ToBase64String(bytes);
@@ -116,7 +117,7 @@ namespace SlotGame.Utility
         private bool VerifyChecksum(SaveData data)
         {
             string actual = data.checksum;
-            string expected = CalculateChecksum(data, _config);
+            string expected = CalculateChecksum(data);
             return actual == expected;
         }
 
