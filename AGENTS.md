@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance for AI Coding Agents when working with code in this repository.
 
 ## 実装進行ルール（厳守）
 
@@ -118,7 +118,7 @@ UniTask（`async UniTask`）を使用。Coroutine は使わない。
 2. **要件定義書** — `docs/requirements.md` を作成・更新
 3. **設計書** — `docs/design.md` を作成・更新
 4. **ADR** — `docs/adr/ADR-NNN-*.md` を追加（技術選定・方式決定のたびに）
-5. **CLAUDE.md 更新** — アーキテクチャや規約に変化があれば反映
+5. **AGENTS.md 更新** — アーキテクチャや規約に変化があれば反映
 6. **実装**
 
 ドキュメントを飛ばして実装を提案しない。
@@ -157,6 +157,6 @@ UniTask（`async UniTask`）を使用。Coroutine は使わない。
 
 ### ナレッジの保存（Knowledge Persistence）
 
-学習内容・ノウハウ・メモリの保存を求められた場合、**必ずプロジェクトレベルの `.claude/memory/` ディレクトリに保存する**（ユーザーレベルの `~/.claude/` ではない）。ドキュメントは特に指示がない限り日本語で記述する。
+学習内容・ノウハウ・メモリの保存を求められた場合、**必ずプロジェクトレベルのナレッジ共有ディレクトリ（`.agents/memory/` や `.claude/memory/` 等）に保存する**（ユーザー個人レベルのディレクトリではない）。ドキュメントは特に指示がない限り日本語で記述する。
 
 保存タイミング・命名規則・frontmatter フォーマット・インデックス更新の手順は `save-knowledge` スキルを使用する。
