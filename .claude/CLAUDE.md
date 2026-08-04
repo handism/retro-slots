@@ -94,12 +94,6 @@ UniTask（`async UniTask`）を使用。Coroutine は使わない。
 | `Main.unity`       | スロット本体（メインシーン）        |
 | `BonusRound.unity` | ボーナスラウンド（Additive ロード） |
 
-## 外部ライブラリ
-
-- **UniTask**: UPM で管理。`Cysharp/UniTask` のパッケージ参照
-- **DOTween（無料版）**: UI / シンボルアニメーション補完
-- **TextMeshPro**: Unity 組み込み
-
 ## テスト対象と方法
 
 | 対象               | テスト種別                                         |
@@ -165,25 +159,4 @@ UniTask（`async UniTask`）を使用。Coroutine は使わない。
 
 学習内容・ノウハウ・メモリの保存を求められた場合、**必ずプロジェクトレベルの `.claude/memory/` ディレクトリに保存する**（ユーザーレベルの `~/.claude/` ではない）。ドキュメントは特に指示がない限り日本語で記述する。
 
-以下のタイミングで `.claude/memory/` にログを保存する。
-
-| タイミング             | 保存内容                                                   | ファイル例                          |
-| ---------------------- | ---------------------------------------------------------- | ----------------------------------- |
-| 重要な意思決定をした時 | 何を・なぜ決めたか（ADR に書かないレベルの細かい判断含む） | `decision_YYYYMMDD_*.md`            |
-| バグを修正した時       | 原因・再現条件・対処内容                                   | `bugfix_YYYYMMDD_*.md`              |
-| 新たな知見を得た時     | ユーザーのスタイル・好み・注意点など                       | `feedback_*.md` / `user_profile.md` |
-| 仕様が変更・確定した時 | `project_fantasy_slot.md` を更新                           | —                                   |
-
-保存後は必ず `.claude/memory/MEMORY.md` のインデックスも更新する。
-
-**フォーマット（frontmatter 必須）:**
-
-```markdown
----
-name: 短いタイトル
-description: 一行説明（何の情報か）
-type: project | feedback | user | reference
----
-
-内容...
-```
+保存タイミング・命名規則・frontmatter フォーマット・インデックス更新の手順は `save-knowledge` スキルを使用する。
