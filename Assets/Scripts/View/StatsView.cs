@@ -38,6 +38,14 @@ namespace SlotGame.View
             });
         }
 
+        private void OnDestroy()
+        {
+            if (closeButton != null)
+            {
+                closeButton.onClick.RemoveAllListeners();
+            }
+        }
+
         /// <summary>統計値を画面に反映する。</summary>
         public void UpdateDisplay(in SessionStats stats)
         {

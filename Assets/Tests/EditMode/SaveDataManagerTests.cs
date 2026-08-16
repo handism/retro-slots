@@ -47,6 +47,21 @@ namespace SlotGame.Tests.EditMode
         }
 
         [Test]
+        public void SaveAsync_ThenLoad_RoundTrip()
+        {
+            // Unity Test Runner in EditMode can handle async tests if they return IEnumerator or are run with Task.Run,
+            // but for simplicity we can just block on the UniTask for the test.
+            var mgr  = new SaveDataManager(_tempPath, null);
+            var save = new SaveData { coins = 5000, betAmount = 50, bgmVolume = 0.5f };
+            mgr.SaveAsync(save).AsTask().Wait();
+
+            var loaded = mgr.Load();
+            Assert.AreEqual(5000,  loaded.coins);
+            Assert.AreEqual(50,    loaded.betAmount);
+            Assert.AreEqual(0.5f,  loaded.bgmVolume, 0.001f);
+        }
+
+        [Test]
         public void Load_CorruptedJson_ReturnsDefaultAndCreatesBak()
         {
             File.WriteAllText(_tempPath, "{ invalid json !!!");

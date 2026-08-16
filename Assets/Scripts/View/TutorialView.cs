@@ -108,6 +108,12 @@ namespace SlotGame.View
             gameObject.SetActive(false);
         }
 
+        private void OnDestroy()
+        {
+            if (_nextButton != null) _nextButton.onClick.RemoveAllListeners();
+            if (_skipButton != null) _skipButton.onClick.RemoveAllListeners();
+        }
+
         private void SetStampRect(RectTransform rect)
         {
             rect.anchorMin = Vector2.zero;

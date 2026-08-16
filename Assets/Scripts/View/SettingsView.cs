@@ -62,6 +62,15 @@ namespace SlotGame.View
             });
         }
 
+        private void OnDestroy()
+        {
+            if (bgmSlider != null) bgmSlider.onValueChanged.RemoveAllListeners();
+            if (seSlider != null) seSlider.onValueChanged.RemoveAllListeners();
+            if (resetCoinsButton != null) resetCoinsButton.onClick.RemoveAllListeners();
+            if (closeButton != null) closeButton.onClick.RemoveAllListeners();
+            if (_descriptionButton != null) _descriptionButton.onClick.RemoveAllListeners();
+        }
+
         private void CreateDescriptionButton()
         {
             if (resetCoinsButton == null) return;
