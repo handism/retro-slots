@@ -116,6 +116,20 @@ namespace SlotGame.View
             EnsureResolutionManager();
         }
 
+        private void OnDestroy()
+        {
+            BgmVolumeChanged = null;
+            SeVolumeChanged = null;
+            ResetCoinsRequested = null;
+            SettingsCloseRequested = null;
+            StatsCloseRequested = null;
+            GameDescriptionCloseRequested = null;
+            AutoSpinRequested = null;
+            AutoSpinStopRequested = null;
+            TurboToggled = null;
+            PaytableCloseRequested = null;
+        }
+
         private void EnsureResolutionManager()
         {
             _mainCamera ??= Camera.main;

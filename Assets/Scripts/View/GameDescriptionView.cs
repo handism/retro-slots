@@ -35,6 +35,14 @@ namespace SlotGame.View
             }
         }
 
+        private void OnDestroy()
+        {
+            if (closeButton != null)
+            {
+                closeButton.onClick.RemoveAllListeners();
+            }
+        }
+
         /// <summary>
         /// インスペクター未アサイン時にランタイムで UI を構築する。
         /// UIManager.ShowGameDescription() から AddComponent 直後に呼ぶ。

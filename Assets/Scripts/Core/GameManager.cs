@@ -213,12 +213,12 @@ namespace SlotGame.Core
 
         private void OnApplicationPause(bool pauseStatus)
         {
-            if (pauseStatus) SaveGame();
+            if (pauseStatus) SaveGameAsync().Forget();
         }
 
         private void OnApplicationFocus(bool hasFocus)
         {
-            if (!hasFocus) SaveGame();
+            if (!hasFocus) SaveGameAsync().Forget();
         }
 
         private void OnDestroy()
@@ -312,7 +312,7 @@ namespace SlotGame.Core
             if (_gameState.SetBetAmount(newBet))
             {
                 uiManager.UpdateBet(_gameState.BetAmount);
-                SaveGame();
+                SaveGameAsync().Forget();
             }
         }
 
@@ -339,7 +339,7 @@ namespace SlotGame.Core
             audioManager.ToggleMute();
             // Mute状態のときはスライダーを0に見せかけるか、AudioManager側で制御。
             // ここではセーブデータの更新のみ行う
-            SaveGame();
+            SaveGameAsync().Forget();
         }
 
         public void IncreaseBet()
@@ -409,7 +409,7 @@ namespace SlotGame.Core
             }
 
             _gameState.CompleteTutorial();
-            SaveGame();
+            SaveGameAsync().Forget();
 
             if (_currentPhase == GamePhase.Idle)
             {
@@ -457,7 +457,7 @@ namespace SlotGame.Core
                     if (ct.IsCancellationRequested) break;
 
                     // 1スピン実行
-                    bool forceStop = await SpinOnceAsync(ct);
+                    bool forceStop = await SpinOnceAsync(destroyToken);
                     
                     // コイン不足時のみループを抜ける（ボーナス等は終わったら継続）
                     if (forceStop && _gameState.Coins < _gameState.BetAmount) break;
@@ -552,7 +552,7 @@ namespace SlotGame.Core
                 _gameState.RecordSpin(0);
             }
 
-            SaveGame();
+            SaveGameAsync().Forget();
             uiManager.UpdateStats(_gameState.GetLifetimeStats());
 
             // ボーナス・フリースピン判定
@@ -591,7 +591,7 @@ namespace SlotGame.Core
             _gameState.AddCoins(win);
             uiManager.UpdateCoins(_gameState.Coins);
             uiManager.UpdateWin(win);
-            SaveGame();
+            SaveGameAsync().Forget();
             uiManager.UpdateStats(_gameState.GetLifetimeStats());
 
             await audioManager.CrossFadeBGM(BGMType.Normal, 0.5f, ct);
@@ -637,7 +637,7 @@ namespace SlotGame.Core
                 ct);
 
             uiManager.HideFreeSpinHUD();
-            SaveGame();
+            SaveGameAsync().Forget();
             uiManager.UpdateStats(_gameState.GetLifetimeStats());
 
             await audioManager.CrossFadeBGM(BGMType.Normal, 0.5f, ct);
@@ -651,7 +651,7 @@ namespace SlotGame.Core
             // コインをデフォルト値にリセット
             _gameState.SetCoins(_config.InitialCoins);
             uiManager.UpdateCoins(_gameState.Coins);
-            SaveGame();
+            SaveGameAsync().Forget();
             await UniTask.Delay(1000);
             TransitionTo(GamePhase.Idle);
         }
@@ -689,7 +689,7 @@ namespace SlotGame.Core
             };
         }
 
-        private void SaveGame()
+        private async UniTaskVoid SaveGameAsync()
         {
             if (_saveDataManager == null || _gameState == null)
             {
@@ -702,7 +702,7 @@ namespace SlotGame.Core
             }
 
             _hasLoggedSaveSkip = false;
-            _saveDataManager.Save(new SaveData
+            await _saveDataManager.SaveAsync(new SaveData
             {
                 coins      = _gameState.Coins,
                 betAmount  = _gameState.BetAmount,
@@ -721,14 +721,14 @@ namespace SlotGame.Core
         {
             _bgmVolume = volume;
             audioManager.SetBGMVolume(volume);
-            SaveGame();
+            SaveGameAsync().Forget();
         }
 
         private void HandleSeVolumeChanged(float volume)
         {
             _seVolume = volume;
             audioManager.SetSEVolume(volume);
-            SaveGame();
+            SaveGameAsync().Forget();
         }
 
         private void HandleResetCoinsRequested()
@@ -743,7 +743,7 @@ namespace SlotGame.Core
             audioManager.SetSEVolume(_seVolume);
             uiManager.SetSettingsVolumes(_bgmVolume, _seVolume);
 
-            SaveGame();
+            SaveGameAsync().Forget();
         }
 
         private void HandlePaytableCloseRequested()

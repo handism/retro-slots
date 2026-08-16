@@ -44,6 +44,20 @@ namespace SlotGame.View
             if (resultPanel != null) resultPanel.SetActive(false);
         }
 
+        private void OnDestroy()
+        {
+            if (chestButtons != null)
+            {
+                foreach (var btn in chestButtons)
+                {
+                    if (btn != null)
+                    {
+                        btn.onClick.RemoveAllListeners();
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// 報酬値を設定して宝箱選択を開始し、選ばれた 3 個の報酬倍率配列を返す。
         /// </summary>

@@ -43,6 +43,14 @@ namespace SlotGame.View
             });
         }
 
+        private void OnDestroy()
+        {
+            if (closeButton != null)
+            {
+                closeButton.onClick.RemoveAllListeners();
+            }
+        }
+
         public void Populate(SymbolData[] symbols, PayoutTableData payoutData)
         {
             EnsureRowPrefab();

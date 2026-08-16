@@ -307,6 +307,29 @@ namespace SlotGame.View
             }
         }
 
+        private void OnDestroy()
+        {
+            if (betButtons != null)
+            {
+                foreach (var btn in betButtons)
+                {
+                    if (btn != null) btn.onClick.RemoveAllListeners();
+                }
+            }
+
+            if (spinButton != null) spinButton.onClick.RemoveAllListeners();
+            if (autoSpinButton != null) autoSpinButton.onClick.RemoveAllListeners();
+            if (turboButton != null) turboButton.onClick.RemoveAllListeners();
+
+            if (_autoSpinCountButtons != null)
+            {
+                foreach (var btn in _autoSpinCountButtons)
+                {
+                    if (btn != null) btn.onClick.RemoveAllListeners();
+                }
+            }
+        }
+
         public void SetCoins(long coins)
         {
             DOTween.To(() => _displayedCoins, v =>
