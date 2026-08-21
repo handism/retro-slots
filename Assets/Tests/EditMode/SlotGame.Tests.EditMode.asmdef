@@ -1,27 +1,28 @@
 {
-    "name": "SlotGame.Tests.EditMode",
-    "rootNamespace": "SlotGame.Tests.EditMode",
-    "references": [
-        "SlotGame.Core",
-        "SlotGame.Model",
-        "SlotGame.Data",
-        "SlotGame.Utility",
-        "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
-    ],
-    "includePlatforms": [
-        "Editor"
-    ],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": true,
-    "precompiledReferences": [
-        "nunit.framework.dll"
-    ],
-    "autoReferenced": false,
-    "defineConstraints": [
-        "UNITY_INCLUDE_TESTS"
-    ],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "SlotGame.Tests.EditMode",
+  "rootNamespace": "SlotGame.Tests.EditMode",
+  "references": [
+    "SlotGame.Core",
+    "SlotGame.Model",
+    "SlotGame.Data",
+    "SlotGame.Utility",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner",
+    "SlotGame.View"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
 }
