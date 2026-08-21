@@ -12,12 +12,14 @@ namespace SlotGame.Tests.EditMode
         [SetUp]
         public void SetUp()
         {
+            UnityEngine.PlayerPrefs.DeleteAll();
             _tempPath = Path.Combine(Path.GetTempPath(), $"savedata_test_{System.Guid.NewGuid()}.json");
         }
 
         [TearDown]
         public void TearDown()
         {
+            UnityEngine.PlayerPrefs.DeleteAll();
             if (File.Exists(_tempPath))      File.Delete(_tempPath);
             if (File.Exists(_tempPath + ".bak")) File.Delete(_tempPath + ".bak");
         }
@@ -92,6 +94,31 @@ namespace SlotGame.Tests.EditMode
             var data = mgr.Load();
 
             Assert.AreEqual(1000, data.coins);
+        }
+
+        [Test]
+        public void Load_LegacyChecksum_MigratesSuccessfully()
+        {
+            // Simulate legacy save data that used the hardcoded salt "SALTY_SLOT_2026"
+            var legacyData = new SaveData { coins = 5000, betAmount = 50, bgmVolume = 0.5f, totalSpins = 100 };
+
+            // Re-implement legacy calculation to explicitly write legacy format without triggering the new logic
+            string raw = $"{legacyData.coins}:{legacyData.betAmount}:{legacyData.bgmVolume:F2}:{legacyData.seVolume:F2}:{legacyData.totalSpins}:{legacyData.totalWins}:{legacyData.maxWin}:{legacyData.totalFreeSpinTriggers}:{legacyData.saveVersion}:SALTY_SLOT_2026";
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            byte[] bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(raw));
+            legacyData.checksum = System.Convert.ToBase64String(bytes);
+
+            string json = UnityEngine.JsonUtility.ToJson(legacyData);
+            File.WriteAllText(_tempPath, json);
+
+            var mgr = new SaveDataManager(_tempPath, null);
+            var loaded = mgr.Load();
+
+            // Load should succeed via the fallback branch in VerifyChecksum
+            Assert.AreEqual(5000, loaded.coins);
+            Assert.AreEqual(50, loaded.betAmount);
+            Assert.AreEqual(0.5f, loaded.bgmVolume, 0.001f);
+            Assert.AreEqual(100, loaded.totalSpins);
         }
 
         [Test]

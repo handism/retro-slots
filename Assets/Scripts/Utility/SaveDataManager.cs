@@ -63,7 +63,7 @@ namespace SlotGame.Utility
         /// <summary>セーブデータを JSON ファイルに書き込む（一時ファイルを用いたアトミック書き込み）。</summary>
         public void Save(SaveData data)
         {
-            data.checksum = CalculateChecksum(data);
+            data.checksum = CalculateChecksum(data, GetOrGenerateSalt());
             string json = JsonUtility.ToJson(data, prettyPrint: true);
             string tempPath = _savePath + ".tmp";
 
@@ -89,7 +89,7 @@ namespace SlotGame.Utility
         /// <summary>セーブデータを JSON ファイルに非同期で書き込む（一時ファイルを用いたアトミック書き込み）。</summary>
         public async Cysharp.Threading.Tasks.UniTask SaveAsync(SaveData data)
         {
-            data.checksum = CalculateChecksum(data);
+            data.checksum = CalculateChecksum(data, GetOrGenerateSalt());
             string json = JsonUtility.ToJson(data, prettyPrint: true);
             string tempPath = _savePath + ".tmp";
 
@@ -130,11 +130,25 @@ namespace SlotGame.Utility
             return true;
         }
 
-        private const string ChecksumSalt = "SALTY_SLOT_2026";
+        private const string LegacyChecksumSalt = "SALTY_SLOT_2026";
+        private const string ChecksumSaltPrefKey = "SlotGame_ChecksumSalt";
 
-        private static string CalculateChecksum(SaveData data)
+        private static string GetOrGenerateSalt()
         {
-            string raw = $"{data.coins}:{data.betAmount}:{data.bgmVolume:F2}:{data.seVolume:F2}:{data.totalSpins}:{data.totalWins}:{data.maxWin}:{data.totalFreeSpinTriggers}:{data.saveVersion}:{ChecksumSalt}";
+            if (PlayerPrefs.HasKey(ChecksumSaltPrefKey))
+            {
+                return PlayerPrefs.GetString(ChecksumSaltPrefKey);
+            }
+
+            string newSalt = System.Guid.NewGuid().ToString();
+            PlayerPrefs.SetString(ChecksumSaltPrefKey, newSalt);
+            PlayerPrefs.Save();
+            return newSalt;
+        }
+
+        private static string CalculateChecksum(SaveData data, string salt)
+        {
+            string raw = $"{data.coins}:{data.betAmount}:{data.bgmVolume:F2}:{data.seVolume:F2}:{data.totalSpins}:{data.totalWins}:{data.maxWin}:{data.totalFreeSpinTriggers}:{data.saveVersion}:{salt}";
             using var sha256 = System.Security.Cryptography.SHA256.Create();
             byte[] bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(raw));
             return Convert.ToBase64String(bytes);
@@ -143,8 +157,21 @@ namespace SlotGame.Utility
         private bool VerifyChecksum(SaveData data)
         {
             string actual = data.checksum;
-            string expected = CalculateChecksum(data);
-            return actual == expected;
+            string expectedWithDynamicSalt = CalculateChecksum(data, GetOrGenerateSalt());
+
+            if (actual == expectedWithDynamicSalt)
+            {
+                return true;
+            }
+
+            // Fallback for older saves
+            string expectedWithLegacySalt = CalculateChecksum(data, LegacyChecksumSalt);
+            if (actual == expectedWithLegacySalt)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private SaveData RecoverFromCorruption()
