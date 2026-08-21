@@ -145,12 +145,6 @@ namespace SlotGame.Core
 
             var result = PaylineEvaluator.Evaluate(grid, _cachedSymbolDefs, paylines, payouts, betAmount, reelCount, rowCount, minMatch, bonusReels);
 
-            // 当たりがあれば詳細をログ出力
-            if (result.TotalWinAmount > 0 || result.HasScatter || result.HasBonusCondition)
-            {
-                PaylineEvaluator.LogSpinResult(result, _cachedSymbolDefs, payouts, betAmount);
-            }
-
             return result;
         }
 

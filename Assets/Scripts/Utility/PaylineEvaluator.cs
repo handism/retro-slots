@@ -57,61 +57,6 @@ namespace SlotGame.Utility
             );
         }
 
-        /// <summary>
-        /// 当たりの内訳をコンソールに出力する（デバッグ用）。
-        /// </summary>
-        public static void LogSpinResult(SpinResult result, IReadOnlyDictionary<int, SymbolData> defs, PayoutTableData payouts, int betAmount)
-        {
-            var sb = new StringBuilder();
-            sb.AppendLine("[Spin Result Breakdown]");
-            
-            // グリッド表示
-            sb.AppendLine("--- Symbol Grid ---");
-            int reelCount = result.StoppedSymbolIds.GetLength(0);
-            int rowCount  = result.StoppedSymbolIds.GetLength(1);
-
-            for (int row = 0; row < rowCount; row++)
-            {
-                sb.Append($"Row {row}: ");
-                for (int r = 0; r < reelCount; r++)
-                {
-                    int id = result.StoppedSymbolIds[r, row];
-                    var sym = FindSymbol(defs, id);
-                    sb.Append($"[{sym?.symbolName ?? id.ToString()}] ");
-                }
-                sb.AppendLine();
-            }
-
-            // 配当ライン
-            if (result.LineWins.Count > 0)
-            {
-                sb.AppendLine("--- Line Wins ---");
-                foreach (var win in result.LineWins)
-                {
-                    var sym = FindSymbol(defs, win.SymbolId);
-                    sb.AppendLine($"- Line {win.LineIndex:D2}: {sym?.symbolName ?? win.SymbolId.ToString()} x{win.MatchCount} => {win.WinAmount} coins");
-                }
-            }
-
-            // スキャター / ボーナス
-            if (result.HasScatter || result.HasBonusCondition)
-            {
-                sb.AppendLine("--- Special Hits ---");
-                if (result.HasScatter)
-                {
-                    long scatterWin = CalcScatterWin(result.ScatterCount, payouts, betAmount);
-                    sb.AppendLine($"- Scatter Hit: {result.ScatterCount} symbols => {scatterWin} coins");
-                }
-                if (result.HasBonusCondition)
-                    sb.AppendLine("- Bonus Triggered!");
-            }
-
-            sb.AppendLine($"Total Win Amount: {result.TotalWinAmount}");
-            sb.AppendLine("-----------------------");
-
-            UnityEngine.Debug.Log(sb.ToString());
-        }
-
         // ─── ペイライン判定 ───────────────────────────────────────────────
 
         private static IReadOnlyList<LineWin> EvaluatePaylines(
