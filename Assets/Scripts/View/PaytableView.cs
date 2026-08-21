@@ -56,6 +56,13 @@ namespace SlotGame.View
             EnsureRowPrefab();
             if (rowPrefab == null || contentRoot == null) return;
 
+            // Ensure the prefab has our cached view component
+            if (!rowPrefab.TryGetComponent<PaytableRowView>(out var prefabView))
+            {
+                prefabView = rowPrefab.AddComponent<PaytableRowView>();
+            }
+            prefabView.Initialize();
+
             // RowTemplate: childControlWidth=true にして preferredWidth で列幅を制御
             var rowHlg = rowPrefab.GetComponent<HorizontalLayoutGroup>();
             if (rowHlg != null) rowHlg.childControlWidth = true;
@@ -120,12 +127,9 @@ namespace SlotGame.View
                     rowRect.anchoredPosition3D = Vector3.zero;
                 }
 
-                var texts = row.GetComponentsInChildren<TMP_Text>(true)
-                    .Where(t => t.transform.parent == row.transform)
-                    .OrderBy(t => t.transform.GetSiblingIndex())
-                    .ToArray();
-                var iconTransform = row.transform.Find("SymbolCell/Icon");
-                var img = iconTransform != null ? iconTransform.GetComponent<Image>() : null;
+                var rowView = row.GetComponent<PaytableRowView>();
+                var img = rowView.IconImage;
+                var texts = rowView.PayoutTexts;
 
                 if (img != null)
                 {
@@ -137,9 +141,12 @@ namespace SlotGame.View
                     iconRect.sizeDelta = new Vector2(IconSize, IconSize);
                 }
 
-                if (texts.Length > 0) texts[0].text = sym.payouts.Length > 0 ? sym.payouts[0].ToString("N0") : "-";
-                if (texts.Length > 1) texts[1].text = sym.payouts.Length > 1 ? sym.payouts[1].ToString("N0") : "-";
-                if (texts.Length > 2) texts[2].text = sym.payouts.Length > 2 ? sym.payouts[2].ToString("N0") : "-";
+                if (texts != null)
+                {
+                    if (texts.Length > 0) texts[0].text = sym.payouts.Length > 0 ? sym.payouts[0].ToString("N0") : "-";
+                    if (texts.Length > 1) texts[1].text = sym.payouts.Length > 1 ? sym.payouts[1].ToString("N0") : "-";
+                    if (texts.Length > 2) texts[2].text = sym.payouts.Length > 2 ? sym.payouts[2].ToString("N0") : "-";
+                }
             }
 
             LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)contentRoot);
