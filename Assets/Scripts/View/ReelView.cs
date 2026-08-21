@@ -17,20 +17,38 @@ namespace SlotGame.View
     /// </summary>
     public class ReelView : MonoBehaviour
     {
-        [SerializeField] private SymbolView symbolViewPrefab = null!;
-        [SerializeField] private float      symbolHeight = 180f;
-        [SerializeField] private float      scrollSpeed  = 2000f;   // px/sec
+        [SerializeField]
+        private SymbolView symbolViewPrefab = null!;
+
+        [SerializeField]
+        private float symbolHeight = 180f;
+
+        [SerializeField]
+        private float scrollSpeed = 2000f; // px/sec
 
         // バッファ内のシンボル数（上下バッファ 1 + 表示 3 + バッファ合計 = 5）
         private const int BufferSize = 5;
 
-        private ReelStripData?   _strip;
-        private SymbolView[]?    _symbolViews;   // 循環バッファ
-        private RectTransform[]? _symbolRects;   // キャッシュ済み RectTransform（毎フレーム GetComponent を避ける）
-        private int              _stripIndex;    // 現在のストリップ先頭インデックス
-        private bool             _isScrolling;
-        private float            _scrollOffset;
-        private RectTransform?   _rectTransform;
+        private ReelStripData? _strip;
+        private SymbolView[]? _symbolViews; // 循環バッファ
+        private RectTransform[]? _symbolRects; // キャッシュ済み RectTransform（毎フレーム GetComponent を避ける）
+        private int _stripIndex; // 現在のストリップ先頭インデックス
+        private bool _isScrolling;
+        private float _scrollOffset;
+        private RectTransform? _rectTransform;
+
+        private DG.Tweening.Core.DOGetter<float>? _scrollOffsetGetter;
+        private DG.Tweening.Core.DOSetter<float>? _scrollOffsetSetter;
+
+        private void Awake()
+        {
+            _scrollOffsetGetter = () => _scrollOffset;
+            _scrollOffsetSetter = value =>
+            {
+                _scrollOffset = value;
+                UpdateSymbolPositions();
+            };
+        }
 
         public void Initialize(ReelStripData strip)
         {
@@ -43,7 +61,7 @@ namespace SlotGame.View
             for (int i = 0; i < BufferSize; i++)
             {
                 var view = Instantiate(symbolViewPrefab, transform);
-                var rt   = view.GetComponent<RectTransform>();
+                var rt = view.GetComponent<RectTransform>();
                 rt.anchoredPosition = new Vector2(0, GetSymbolYPosition(i));
                 _symbolViews[i] = view;
                 _symbolRects[i] = rt;
@@ -56,13 +74,14 @@ namespace SlotGame.View
         /// <summary>スクロールを開始する。</summary>
         public void StartScrolling()
         {
-            _isScrolling  = true;
+            _isScrolling = true;
             _scrollOffset = 0;
         }
 
         private void Update()
         {
-            if (!_isScrolling || _symbolViews == null) return;
+            if (!_isScrolling || _symbolViews == null)
+                return;
 
             _scrollOffset += scrollSpeed * Time.deltaTime;
 
@@ -78,11 +97,13 @@ namespace SlotGame.View
 
         private void UpdateSymbolPositions()
         {
-            if (_symbolRects == null) return;
+            if (_symbolRects == null)
+                return;
             for (int i = 0; i < BufferSize; i++)
             {
                 // UnityEngine.Object overrides == to detect destroyed objects, so use it here
-                if (_symbolRects[i] == null) continue;
+                if (_symbolRects[i] == null)
+                    continue;
                 float baseY = GetSymbolYPosition(i);
                 try
                 {
@@ -101,7 +122,8 @@ namespace SlotGame.View
             _isScrolling = false;
 
             // If cancellation requested early, bail out quickly
-            if (ct.IsCancellationRequested) throw new OperationCanceledException(ct);
+            if (ct.IsCancellationRequested)
+                throw new OperationCanceledException(ct);
 
             // 停止位置にスナップ
             AlignToStopIndex(targetStopIndex);
@@ -123,7 +145,11 @@ namespace SlotGame.View
                         // Register a single guarded kill to ensure only one Kill() happens.
                         reg = ct.Register(() =>
                         {
-                            try { tween?.Kill(false); } catch { }
+                            try
+                            {
+                                tween?.Kill(false);
+                            }
+                            catch { }
                         });
                     }
 
@@ -132,38 +158,34 @@ namespace SlotGame.View
                 finally
                 {
                     reg.Dispose();
-                    try { tween?.Kill(false); } catch { }
+                    try
+                    {
+                        tween?.Kill(false);
+                    }
+                    catch { }
                     tween = null;
                 }
             }
 
+            // Ensure delegates are initialized in case Initialize/Decelerate is called without Awake (e.g., tests/editor)
+            _scrollOffsetGetter ??= () => _scrollOffset;
+            _scrollOffsetSetter ??= value =>
+            {
+                _scrollOffset = value;
+                UpdateSymbolPositions();
+            };
+
             // 第1段バウンス
-            var t1 = DOTween.To(
-                        () => _scrollOffset,
-                        value =>
-                        {
-                            _scrollOffset = value;
-                            UpdateSymbolPositions();
-                        },
-                        -bounceAmount,
-                        0.1f)
-                    .SetEase(Ease.OutQuad);
+            var t1 = DOTween.To(_scrollOffsetGetter, _scrollOffsetSetter, -bounceAmount, 0.1f).SetEase(Ease.OutQuad);
             await AwaitTweenWithCancellation(t1);
-            if (ct.IsCancellationRequested) throw new OperationCanceledException(ct);
+            if (ct.IsCancellationRequested)
+                throw new OperationCanceledException(ct);
 
             // 第2段バウンス（戻す）
-            var t2 = DOTween.To(
-                        () => _scrollOffset,
-                        value =>
-                        {
-                            _scrollOffset = value;
-                            UpdateSymbolPositions();
-                        },
-                        0f,
-                        0.15f)
-                    .SetEase(Ease.OutBounce);
+            var t2 = DOTween.To(_scrollOffsetGetter, _scrollOffsetSetter, 0f, 0.15f).SetEase(Ease.OutBounce);
             await AwaitTweenWithCancellation(t2);
-            if (ct.IsCancellationRequested) throw new OperationCanceledException(ct);
+            if (ct.IsCancellationRequested)
+                throw new OperationCanceledException(ct);
 
             // 全シンボルを整列
             SnapAllToGrid();
@@ -180,41 +202,41 @@ namespace SlotGame.View
         /// <summary>現在表示中の 3 シンボル ID を返す（[0]=上段, [1]=中段, [2]=下段）。</summary>
         public int[] GetVisibleSymbolIds()
         {
-            if (_symbolViews == null) return Array.Empty<int>();
+            if (_symbolViews == null)
+                return Array.Empty<int>();
             // _symbolViews[1]=上段, [2]=中段, [3]=下段
-            return new[]
-            {
-                _symbolViews[1].SymbolId,
-                _symbolViews[2].SymbolId,
-                _symbolViews[3].SymbolId,
-            };
+            return new[] { _symbolViews[1].SymbolId, _symbolViews[2].SymbolId, _symbolViews[3].SymbolId };
         }
 
         /// <summary>指定行のシンボルで当選アニメーションを再生して完了を待機する。</summary>
         public async UniTask PlayWinAnimation(int row, CancellationToken ct)
         {
             // row: 0=上段, 1=中段, 2=下段 → _symbolViews インデックスは 1〜3
-            if (_symbolViews == null || row + 1 >= _symbolViews.Length) return;
+            if (_symbolViews == null || row + 1 >= _symbolViews.Length)
+                return;
             await _symbolViews[row + 1].PlayWinPresentation(ct);
         }
 
         /// <summary>指定行の SymbolView を取得する。</summary>
         public SymbolView? GetSymbolView(int row)
         {
-            if (_symbolViews == null || row + 1 >= _symbolViews.Length) return null;
+            if (_symbolViews == null || row + 1 >= _symbolViews.Length)
+                return null;
             return _symbolViews[row + 1];
         }
 
         /// <summary>指定行のシンボルの世界座標を取得する（0=上, 1=中, 2=下）。</summary>
         public Vector3 GetSymbolWorldPosition(int row)
         {
-            if (_symbolViews == null || row + 1 >= _symbolViews.Length) return transform.position;
+            if (_symbolViews == null || row + 1 >= _symbolViews.Length)
+                return transform.position;
             return _symbolViews[row + 1].transform.position;
         }
 
         public void HighlightRows(IReadOnlyCollection<int>? rows)
         {
-            if (_symbolViews == null) return;
+            if (_symbolViews == null)
+                return;
 
             for (int row = 0; row < 3; row++)
                 _symbolViews[row + 1].SetHighlighted(rows != null && rows.Any(r => r == row));
@@ -222,7 +244,8 @@ namespace SlotGame.View
 
         public void ClearHighlights()
         {
-            if (_symbolViews == null) return;
+            if (_symbolViews == null)
+                return;
 
             for (int i = 1; i <= 3; i++)
             {
@@ -234,11 +257,12 @@ namespace SlotGame.View
 
         private void AdvanceStrip()
         {
-            if (_symbolViews == null || _symbolRects == null || _strip == null) return;
+            if (_symbolViews == null || _symbolRects == null || _strip == null)
+                return;
 
             // 先頭バッファを末尾に移動させて循環
             _stripIndex = (_stripIndex + 1) % _strip.strip.Count;
-            var first     = _symbolViews[0];
+            var first = _symbolViews[0];
             var firstRect = _symbolRects[0];
             for (int i = 0; i < BufferSize - 1; i++)
             {
@@ -266,7 +290,8 @@ namespace SlotGame.View
 
         private void AlignToStopIndex(int stopIndex)
         {
-            if (_symbolViews == null || _strip == null) return;
+            if (_symbolViews == null || _strip == null)
+                return;
 
             // 停止インデックスを中段（row=1 = _symbolViews[2]）に来るように調整
             int mid = stopIndex;
@@ -287,11 +312,13 @@ namespace SlotGame.View
 
         private void SnapAllToGrid()
         {
-            if (_symbolRects == null) return;
+            if (_symbolRects == null)
+                return;
 
             for (int i = 0; i < BufferSize; i++)
             {
-                if (_symbolRects[i] == null) continue;
+                if (_symbolRects[i] == null)
+                    continue;
                 try
                 {
                     _symbolRects[i].anchoredPosition = new Vector2(0, GetSymbolYPosition(i));
@@ -306,7 +333,8 @@ namespace SlotGame.View
 
         private void RefreshAllSymbols()
         {
-            if (_symbolViews == null || _strip == null) return;
+            if (_symbolViews == null || _strip == null)
+                return;
 
             for (int i = 0; i < BufferSize; i++)
             {
@@ -322,12 +350,15 @@ namespace SlotGame.View
 
         private void ResizeViewport()
         {
-            if (_rectTransform == null) return;
+            if (_rectTransform == null)
+                return;
 
             float width = symbolHeight;
-            if (symbolViewPrefab != null &&
-                symbolViewPrefab.TryGetComponent<RectTransform>(out var symbolRect) &&
-                symbolRect.rect.width > 0f)
+            if (
+                symbolViewPrefab != null
+                && symbolViewPrefab.TryGetComponent<RectTransform>(out var symbolRect)
+                && symbolRect.rect.width > 0f
+            )
             {
                 width = symbolRect.rect.width;
             }
