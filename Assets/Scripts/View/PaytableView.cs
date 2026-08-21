@@ -142,10 +142,7 @@ namespace SlotGame.View
                 if (texts.Length > 2) texts[2].text = sym.payouts.Length > 2 ? sym.payouts[2].ToString("N0") : "-";
             }
 
-            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)contentRoot);
-            if (contentRoot.parent is RectTransform parentRect)
-                LayoutRebuilder.ForceRebuildLayoutImmediate(parentRect);
-            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.MarkLayoutForRebuild((RectTransform)contentRoot);
         }
 
         private void EnsureRowPrefab()
