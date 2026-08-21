@@ -233,11 +233,26 @@ namespace SlotGame.View
                 var btnGo = Instantiate(autoSpinButton.gameObject, popupGo.transform);
                 btnGo.name = $"AutoSpin_{count}";
                 
-                // 元のボタンの EventTrigger は不要（かつ誤作動の元）なので即座に削除
-                var oldTrigger = btnGo.GetComponent<EventTrigger>();
+                var btnRef = btnGo.GetComponent<AutoSpinButtonRef>();
+                EventTrigger oldTrigger;
+                RectTransform btnRect;
+                TMP_Text txt;
+                Button btn;
+
+                if (btnRef != null) {
+                    oldTrigger = btnRef.EventTrigger;
+                    btnRect = btnRef.RectTransform;
+                    txt = btnRef.Text;
+                    btn = btnRef.Button;
+                } else {
+                    oldTrigger = btnGo.GetComponent<EventTrigger>();
+                    btnRect = btnGo.GetComponent<RectTransform>();
+                    txt = btnGo.GetComponentInChildren<TMP_Text>();
+                    btn = btnGo.GetComponent<Button>();
+                }
+
                 if (oldTrigger != null) DestroyImmediate(oldTrigger);
 
-                var btnRect = btnGo.GetComponent<RectTransform>();
                 btnRect.anchorMin = new Vector2(0f, 0f);
                 btnRect.anchorMax = new Vector2(1f, 0f);
                 btnRect.pivot     = new Vector2(0.5f, 0f);
@@ -245,10 +260,8 @@ namespace SlotGame.View
                 btnRect.anchoredPosition = new Vector2(0f, i * (btnH + gap));
                 btnRect.sizeDelta = new Vector2(0f, btnH);
 
-                var txt = btnGo.GetComponentInChildren<TMP_Text>();
                 if (txt != null) { txt.text = count.ToString(); txt.fontSize = 16f; }
 
-                var btn = btnGo.GetComponent<Button>();
                 // 重要: インスペクター上で設定された永続イベント（Persistent Call）も含めて
                 // 全てクリアするために、新しいイベントインスタンスで上書きする。
                 btn.onClick = new Button.ButtonClickedEvent(); 
