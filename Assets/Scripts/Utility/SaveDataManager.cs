@@ -60,32 +60,6 @@ namespace SlotGame.Utility
             }
         }
 
-        /// <summary>セーブデータを JSON ファイルに書き込む（一時ファイルを用いたアトミック書き込み）。</summary>
-        public void Save(SaveData data)
-        {
-            data.checksum = CalculateChecksum(data);
-            string json = JsonUtility.ToJson(data, prettyPrint: true);
-            string tempPath = _savePath + ".tmp";
-
-            try
-            {
-                File.WriteAllText(tempPath, json);
-                if (File.Exists(_savePath))
-                {
-                    File.Replace(tempPath, _savePath, null);
-                }
-                else
-                {
-                    File.Move(tempPath, _savePath);
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"[SaveDataManager] Save failed: {e.Message}");
-                if (File.Exists(tempPath)) File.Delete(tempPath);
-            }
-        }
-
         /// <summary>セーブデータを JSON ファイルに非同期で書き込む（一時ファイルを用いたアトミック書き込み）。</summary>
         public async Cysharp.Threading.Tasks.UniTask SaveAsync(SaveData data)
         {
