@@ -38,7 +38,7 @@ namespace SlotGame.Tests.EditMode
         {
             var mgr  = new SaveDataManager(_tempPath, null);
             var save = new SaveData { coins = 5000, betAmount = 50, bgmVolume = 0.5f };
-            mgr.Save(save);
+            mgr.SaveAsync(save).AsTask().Wait();
 
             var loaded = mgr.Load();
             Assert.AreEqual(5000,  loaded.coins);
@@ -99,7 +99,7 @@ namespace SlotGame.Tests.EditMode
         {
             var mgr = new SaveDataManager(_tempPath, null);
             var save = new SaveData { coins = 5000 };
-            mgr.Save(save);
+            mgr.SaveAsync(save).AsTask().Wait();
 
             // Manual tampering
             string json = File.ReadAllText(_tempPath);
