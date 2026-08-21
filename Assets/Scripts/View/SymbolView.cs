@@ -84,17 +84,10 @@ namespace SlotGame.View
             // If this object has been destroyed (Unity overloads ==), bail out.
             if (this == null) return;
             StopPulseAnimation();
-            try
-            {
-                _pulseTween = transform.DOScale(1.2f, 0.5f)
-                    .SetEase(Ease.InOutSine)
-                    .SetLoops(-1, LoopType.Yoyo);
-            }
-            catch (MissingReferenceException)
-            {
-                // transform was destroyed during teardown - ignore
-                _pulseTween = null;
-            }
+
+            _pulseTween = transform.DOScale(1.2f, 0.5f)
+                .SetEase(Ease.InOutSine)
+                .SetLoops(-1, LoopType.Yoyo);
         }
 
         /// <summary>パルスアニメーションを停止する。</summary>
@@ -108,14 +101,8 @@ namespace SlotGame.View
 
             // Avoid accessing transform if the Unity object is already destroyed.
             if (this == null) return;
-            try
-            {
-                transform.localScale = Vector3.one;
-            }
-            catch (MissingReferenceException)
-            {
-                // destroyed during teardown
-            }
+
+            transform.localScale = Vector3.one;
         }
 
         /// <summary>アイドル状態のアニメーションを再生する（当選演出の停止用）。</summary>
