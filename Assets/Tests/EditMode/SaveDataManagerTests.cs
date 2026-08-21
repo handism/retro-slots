@@ -26,7 +26,7 @@ namespace SlotGame.Tests.EditMode
         public void Load_FileNotExists_ReturnsDefault()
         {
             var mgr  = new SaveDataManager(_tempPath, null);
-            var data = mgr.Load();
+            var data = mgr.LoadAsync().AsTask().GetAwaiter().GetResult();
 
             Assert.AreEqual(1000,  data.coins);
             Assert.AreEqual(10,    data.betAmount);
@@ -40,7 +40,7 @@ namespace SlotGame.Tests.EditMode
             var save = new SaveData { coins = 5000, betAmount = 50, bgmVolume = 0.5f };
             mgr.Save(save);
 
-            var loaded = mgr.Load();
+            var loaded = mgr.LoadAsync().AsTask().GetAwaiter().GetResult();
             Assert.AreEqual(5000,  loaded.coins);
             Assert.AreEqual(50,    loaded.betAmount);
             Assert.AreEqual(0.5f,  loaded.bgmVolume, 0.001f);
@@ -55,7 +55,7 @@ namespace SlotGame.Tests.EditMode
             var save = new SaveData { coins = 5000, betAmount = 50, bgmVolume = 0.5f };
             mgr.SaveAsync(save).AsTask().Wait();
 
-            var loaded = mgr.Load();
+            var loaded = mgr.LoadAsync().AsTask().GetAwaiter().GetResult();
             Assert.AreEqual(5000,  loaded.coins);
             Assert.AreEqual(50,    loaded.betAmount);
             Assert.AreEqual(0.5f,  loaded.bgmVolume, 0.001f);
@@ -66,7 +66,7 @@ namespace SlotGame.Tests.EditMode
         {
             File.WriteAllText(_tempPath, "{ invalid json !!!");
             var mgr  = new SaveDataManager(_tempPath, null);
-            var data = mgr.Load();
+            var data = mgr.LoadAsync().AsTask().GetAwaiter().GetResult();
 
             Assert.AreEqual(1000, data.coins);
             Assert.IsTrue(File.Exists(_tempPath + ".bak"));
@@ -78,7 +78,7 @@ namespace SlotGame.Tests.EditMode
             var bad = new SaveData { saveVersion = "9.9" };
             File.WriteAllText(_tempPath, UnityEngine.JsonUtility.ToJson(bad));
             var mgr  = new SaveDataManager(_tempPath, null);
-            var data = mgr.Load();
+            var data = mgr.LoadAsync().AsTask().GetAwaiter().GetResult();
 
             Assert.AreEqual(1000, data.coins);
         }
@@ -89,7 +89,7 @@ namespace SlotGame.Tests.EditMode
             var bad = new SaveData { coins = -100 };
             File.WriteAllText(_tempPath, UnityEngine.JsonUtility.ToJson(bad));
             var mgr  = new SaveDataManager(_tempPath, null);
-            var data = mgr.Load();
+            var data = mgr.LoadAsync().AsTask().GetAwaiter().GetResult();
 
             Assert.AreEqual(1000, data.coins);
         }
@@ -106,7 +106,7 @@ namespace SlotGame.Tests.EditMode
             json = json.Replace("5000", "999999");
             File.WriteAllText(_tempPath, json);
 
-            var loaded = mgr.Load();
+            var loaded = mgr.LoadAsync().AsTask().GetAwaiter().GetResult();
             Assert.AreEqual(1000, loaded.coins); // Back to default due to checksum failure
         }
 
@@ -120,7 +120,7 @@ namespace SlotGame.Tests.EditMode
             // Manually save valid json but with invalid betAmount (skipping mgr.Save which would add checksum)
             File.WriteAllText(_tempPath, UnityEngine.JsonUtility.ToJson(bad));
 
-            var data = mgr.Load();
+            var data = mgr.LoadAsync().AsTask().GetAwaiter().GetResult();
             Assert.AreEqual(1000, data.coins);
             Assert.AreEqual(10,   data.betAmount);
         }

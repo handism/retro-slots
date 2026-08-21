@@ -27,18 +27,18 @@ namespace SlotGame.Utility
         }
 
         /// <summary>
-        /// セーブデータを読み込む。
+        /// セーブデータを非同期で読み込む。
         /// ファイルが存在しない場合や破損している場合はデフォルト値を返す。
         /// 破損ファイルは .bak にリネームして保全する。
         /// </summary>
-        public SaveData Load()
+        public async Cysharp.Threading.Tasks.UniTask<SaveData> LoadAsync()
         {
             if (!File.Exists(_savePath))
                 return new SaveData();
 
             try
             {
-                string json = File.ReadAllText(_savePath);
+                string json = await File.ReadAllTextAsync(_savePath);
                 var data    = JsonUtility.FromJson<SaveData>(json);
                 if (data == null || !Validate(data, _config))
                     return RecoverFromCorruption();

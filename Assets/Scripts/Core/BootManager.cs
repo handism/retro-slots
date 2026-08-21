@@ -30,7 +30,7 @@ namespace SlotGame.Core
             // 2. データのロードと Model の生成
             var config = gameConfig != null ? gameConfig.ToModelConfig() : null;
             var saveDataManager = new SaveDataManager(config);
-            var save = saveDataManager.Load();
+            var save = await saveDataManager.LoadAsync();
             var gameState = new GameState(
                 config?.InitialCoins ?? 1000,
                 config?.MaxCoins ?? 9_999_999,

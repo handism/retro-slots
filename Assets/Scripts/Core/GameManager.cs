@@ -61,22 +61,27 @@ namespace SlotGame.Core
             else
             {
                 // デバッグ用（Boot シーンを通さず起動した場合）
-                var config = ResolveSlotConfig();
-                _saveDataManager = new SaveDataManager(config);
-                var save = _saveDataManager.Load();
-                _gameState = new GameState(
-                    config.InitialCoins,
-                    config.MaxCoins,
-                    config.ValidBetAmounts,
-                    save.coins,
-                    save.betAmount,
-                    save.hasCompletedTutorial
-                );
-                _gameState.RestoreStats(save.totalSpins, save.totalWins, save.maxWin, save.totalFreeSpinTriggers);
-
-                var random = new SystemRandomGenerator();
-                Initialize(_gameState, _saveDataManager, random, save);
+                InitializeDebugFallback().Forget();
             }
+        }
+
+        private async UniTaskVoid InitializeDebugFallback()
+        {
+            var config = ResolveSlotConfig();
+            _saveDataManager = new SaveDataManager(config);
+            var save = await _saveDataManager.LoadAsync();
+            _gameState = new GameState(
+                config.InitialCoins,
+                config.MaxCoins,
+                config.ValidBetAmounts,
+                save.coins,
+                save.betAmount,
+                save.hasCompletedTutorial
+            );
+            _gameState.RestoreStats(save.totalSpins, save.totalWins, save.maxWin, save.totalFreeSpinTriggers);
+
+            var random = new SystemRandomGenerator();
+            Initialize(_gameState, _saveDataManager, random, save);
         }
 
         public void Initialize(
@@ -101,7 +106,7 @@ namespace SlotGame.Core
             _config = config;
 
             _saveDataManager = saveDataManager ?? new SaveDataManager(config);
-            save ??= _saveDataManager.Load();
+            save ??= new SaveData();
             _gameState = gameState ?? new GameState(
                 config.InitialCoins,
                 config.MaxCoins,
