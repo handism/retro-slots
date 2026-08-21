@@ -50,29 +50,30 @@ namespace SlotGame.View
         public void Setup()
         {
             _audioManager ??= FindFirstObjectByType<AudioManager>();
-            _canvasGroup = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
+            if (!TryGetComponent(out _canvasGroup)) _canvasGroup = gameObject.AddComponent<CanvasGroup>();
 
             // フルスクリーン暗幕
-            var rect = gameObject.GetComponent<RectTransform>() ?? gameObject.AddComponent<RectTransform>();
+            if (!gameObject.TryGetComponent<RectTransform>(out var rect)) rect = gameObject.AddComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
-            var bg = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
+            if (!gameObject.TryGetComponent<Image>(out var bg)) bg = gameObject.AddComponent<Image>();
             bg.color = new Color(0f, 0f, 0f, 0.75f);
             bg.raycastTarget = true;
 
             // 中央パネル
-            var panel = new GameObject("Panel", typeof(RectTransform), typeof(Image));
+            var panel = new GameObject("Panel", typeof(RectTransform));
             panel.transform.SetParent(transform, false);
-            var panelRect = panel.GetComponent<RectTransform>();
+            var panelRect = (RectTransform)panel.transform;
             panelRect.sizeDelta = new Vector2(800f, 600f);
-            panel.GetComponent<Image>().color = new Color(0.12f, 0.12f, 0.18f, 1f);
+            var panelImg = panel.AddComponent<Image>();
+            panelImg.color = new Color(0.12f, 0.12f, 0.18f, 1f);
 
             // タイトル
-            var titleObj = new GameObject("Title", typeof(RectTransform), typeof(TextMeshProUGUI));
+            var titleObj = new GameObject("Title", typeof(RectTransform));
             titleObj.transform.SetParent(panel.transform, false);
-            var titleTxt = titleObj.GetComponent<TextMeshProUGUI>();
+            var titleTxt = titleObj.AddComponent<TextMeshProUGUI>();
             titleTxt.rectTransform.anchorMin = new Vector2(0f, 0.88f);
             titleTxt.rectTransform.anchorMax = new Vector2(1f, 1f);
             titleTxt.rectTransform.offsetMin = Vector2.zero;
@@ -84,39 +85,43 @@ namespace SlotGame.View
             titleTxt.color = Color.white;
 
             // スクロールビュー（説明文用）
-            var scrollObj = new GameObject("ScrollView", typeof(RectTransform), typeof(ScrollRect), typeof(Image));
+            var scrollObj = new GameObject("ScrollView", typeof(RectTransform));
             scrollObj.transform.SetParent(panel.transform, false);
-            var scrollRt = scrollObj.GetComponent<RectTransform>();
+            var scrollRt = (RectTransform)scrollObj.transform;
             scrollRt.anchorMin = new Vector2(0.03f, 0.15f);
             scrollRt.anchorMax = new Vector2(0.97f, 0.87f);
             scrollRt.offsetMin = Vector2.zero;
             scrollRt.offsetMax = Vector2.zero;
-            scrollObj.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.05f);
+            var scrollImg = scrollObj.AddComponent<Image>();
+            scrollImg.color = new Color(1f, 1f, 1f, 0.05f);
+            var sr = scrollObj.AddComponent<ScrollRect>();
 
-            var viewport = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(Mask));
+            var viewport = new GameObject("Viewport", typeof(RectTransform));
             viewport.transform.SetParent(scrollObj.transform, false);
-            var vpRect = viewport.GetComponent<RectTransform>();
+            var vpRect = (RectTransform)viewport.transform;
             vpRect.anchorMin = Vector2.zero;
             vpRect.anchorMax = Vector2.one;
             vpRect.offsetMin = Vector2.zero;
             vpRect.offsetMax = Vector2.zero;
-            viewport.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.01f);
-            viewport.GetComponent<Mask>().showMaskGraphic = false;
+            var vpImg = viewport.AddComponent<Image>();
+            vpImg.color = new Color(0f, 0f, 0f, 0.01f);
+            var vpMask = viewport.AddComponent<Mask>();
+            vpMask.showMaskGraphic = false;
 
-            var content = new GameObject("Content", typeof(RectTransform), typeof(ContentSizeFitter));
+            var content = new GameObject("Content", typeof(RectTransform));
             content.transform.SetParent(viewport.transform, false);
-            var contentRect = content.GetComponent<RectTransform>();
+            var contentRect = (RectTransform)content.transform;
             contentRect.anchorMin = new Vector2(0f, 1f);
             contentRect.anchorMax = new Vector2(1f, 1f);
             contentRect.pivot = new Vector2(0.5f, 1f);
             contentRect.offsetMin = Vector2.zero;
             contentRect.offsetMax = Vector2.zero;
-            var csf = content.GetComponent<ContentSizeFitter>();
+            var csf = content.AddComponent<ContentSizeFitter>();
             csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            var textObj = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+            var textObj = new GameObject("Text", typeof(RectTransform));
             textObj.transform.SetParent(content.transform, false);
-            descriptionText = textObj.GetComponent<TextMeshProUGUI>();
+            descriptionText = textObj.AddComponent<TextMeshProUGUI>();
             descriptionText.rectTransform.anchorMin = Vector2.zero;
             descriptionText.rectTransform.anchorMax = Vector2.one;
             descriptionText.rectTransform.offsetMin = new Vector2(16f, 8f);
@@ -126,7 +131,6 @@ namespace SlotGame.View
             descriptionText.textWrappingMode = TextWrappingModes.Normal;
             descriptionText.color = Color.white;
 
-            var sr = scrollObj.GetComponent<ScrollRect>();
             sr.content = contentRect;
             sr.viewport = vpRect;
             sr.horizontal = false;
@@ -134,24 +138,25 @@ namespace SlotGame.View
             sr.scrollSensitivity = 30f;
 
             // 閉じるボタン
-            var closeObj = new GameObject("CloseButton", typeof(RectTransform), typeof(Image), typeof(Button));
+            var closeObj = new GameObject("CloseButton", typeof(RectTransform));
             closeObj.transform.SetParent(panel.transform, false);
-            var closeRt = closeObj.GetComponent<RectTransform>();
+            var closeRt = (RectTransform)closeObj.transform;
             closeRt.anchorMin = new Vector2(0.3f, 0.03f);
             closeRt.anchorMax = new Vector2(0.7f, 0.13f);
             closeRt.offsetMin = Vector2.zero;
             closeRt.offsetMax = Vector2.zero;
-            closeObj.GetComponent<Image>().color = new Color(0.35f, 0.35f, 0.35f, 1f);
-            closeButton = closeObj.GetComponent<Button>();
+            var closeImg = closeObj.AddComponent<Image>();
+            closeImg.color = new Color(0.35f, 0.35f, 0.35f, 1f);
+            closeButton = closeObj.AddComponent<Button>();
             closeButton.onClick.AddListener(() =>
             {
                 PlayButtonClickSe();
                 OnCloseRequested?.Invoke();
             });
 
-            var closeTxtObj = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+            var closeTxtObj = new GameObject("Text", typeof(RectTransform));
             closeTxtObj.transform.SetParent(closeObj.transform, false);
-            var closeTxt = closeTxtObj.GetComponent<TextMeshProUGUI>();
+            var closeTxt = closeTxtObj.AddComponent<TextMeshProUGUI>();
             closeTxt.rectTransform.anchorMin = Vector2.zero;
             closeTxt.rectTransform.anchorMax = Vector2.one;
             closeTxt.rectTransform.offsetMin = Vector2.zero;
