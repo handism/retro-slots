@@ -129,6 +129,60 @@ namespace SlotGame.Tests.EditMode
         }
 
         [Test]
+        public void SetBetAmount_FirstValidElement_ReturnsTrue()
+        {
+            var state = CreateState();
+            bool result = state.SetBetAmount(10);
+            Assert.IsTrue(result);
+            Assert.AreEqual(10, state.BetAmount);
+        }
+
+        [Test]
+        public void SetBetAmount_LastValidElement_ReturnsTrue()
+        {
+            var state = CreateState();
+            bool result = state.SetBetAmount(100);
+            Assert.IsTrue(result);
+            Assert.AreEqual(100, state.BetAmount);
+        }
+
+        [Test]
+        public void SetBetAmount_ZeroAmount_ReturnsFalseAndUnchanged()
+        {
+            var state = CreateState(betAmount: 10);
+            bool result = state.SetBetAmount(0);
+            Assert.IsFalse(result);
+            Assert.AreEqual(10, state.BetAmount);
+        }
+
+        [Test]
+        public void SetBetAmount_NegativeAmount_ReturnsFalseAndUnchanged()
+        {
+            var state = CreateState(betAmount: 10);
+            bool result = state.SetBetAmount(-10);
+            Assert.IsFalse(result);
+            Assert.AreEqual(10, state.BetAmount);
+        }
+
+        [Test]
+        public void SetBetAmount_EmptyValidBetAmounts_ReturnsFalseAndUnchanged()
+        {
+            var state = new GameState(1000, 9999999, System.Array.Empty<int>(), 1000, 10);
+            bool result = state.SetBetAmount(10);
+            Assert.IsFalse(result);
+            Assert.AreEqual(10, state.BetAmount);
+        }
+
+        [Test]
+        public void SetBetAmount_NullValidBetAmounts_ReturnsFalseAndUnchanged()
+        {
+            var state = new GameState(1000, 9999999, null, 1000, 10);
+            bool result = state.SetBetAmount(10);
+            Assert.IsFalse(result);
+            Assert.AreEqual(10, state.BetAmount);
+        }
+
+        [Test]
         public void SetTurbo_ChangesIsTurboState()
         {
             var state = CreateState();
