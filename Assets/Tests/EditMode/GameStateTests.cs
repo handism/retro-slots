@@ -154,6 +154,24 @@ namespace SlotGame.Tests.EditMode
         }
 
         [Test]
+        public void RecordSpin_UpdatesSessionStats()
+        {
+            var state = CreateState();
+            state.RecordSpin(0);
+            state.RecordSpin(100);
+            state.RecordSpin(0);
+            state.RecordSpin(200);
+            state.RecordSpin(50);
+
+            var stats = state.GetSessionStats();
+
+            Assert.AreEqual(5, stats.TotalSpins);
+            Assert.AreEqual(3, stats.Wins);
+            Assert.AreEqual(200, stats.LargestWin);
+            Assert.AreEqual(60f, stats.WinRate, 0.01f); // 3 wins / 5 spins = 60%
+        }
+
+        [Test]
         public void RecordFreeSpinTrigger_IncrementsTotalFreeSpinTriggers()
         {
             var state = CreateState();
