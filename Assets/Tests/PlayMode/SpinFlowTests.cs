@@ -215,6 +215,43 @@ namespace SlotGame.Tests.PlayMode
             Assert.Less(duration, 5.0f); // 演出含め 5秒以内なら OK としておく
         });
 
+        [UnityTest]
+        public IEnumerator Test_AutoSpin_Exception_Handled_ReturnsToIdle() => UniTask.ToCoroutine(async () =>
+        {
+            // --- Setup ---
+            var mockRandom = new MockRandom { Values = new[] { 0, 0, 0, 0, 0 } };
+            GameContextInitializer.Instance.Provide(
+                new GameState(1000, 9_999_999, new[] { 10, 20, 50, 100 }, 1000, 10),
+                new SaveDataManager(),
+                mockRandom,
+                new SaveData { coins = 1000, betAmount = 10 });
+
+            await SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
+            var gm = GameObject.FindFirstObjectByType<GameManager>();
+
+            // Access the private RunAutoSpinAsync method using Reflection
+            var method = typeof(GameManager).GetMethod("RunAutoSpinAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            // Create a CancellationTokenSource and immediately cancel it to simulate an interruption
+            // that causes OperationCanceledException
+            var cts = new System.Threading.CancellationTokenSource();
+
+            // --- Execute ---
+            var task = (UniTask)method.Invoke(gm, new object[] { 10, cts.Token });
+
+            cts.Cancel();
+
+            await task;
+
+            // --- Verify ---
+            var phase = GetCurrentPhase(gm);
+            Assert.AreEqual(GamePhase.Idle, phase, "GamePhase should be Idle after OperationCanceledException in RunAutoSpinAsync");
+
+            var isAutoSpinningField = typeof(GameManager).GetField("_isAutoSpinning", BindingFlags.NonPublic | BindingFlags.Instance);
+            var isAutoSpinning = (bool)isAutoSpinningField.GetValue(gm);
+            Assert.IsFalse(isAutoSpinning, "_isAutoSpinning should be false after RunAutoSpinAsync handles the exception");
+        });
+
         private GamePhase GetCurrentPhase(GameManager gm)
         {
             var field = typeof(GameManager).GetField("_currentPhase", BindingFlags.NonPublic | BindingFlags.Instance);
