@@ -95,7 +95,7 @@ namespace SlotGame.View
         {
             if (_pulseTween != null && _pulseTween.IsActive())
             {
-                try { _pulseTween.Kill(); } catch { }
+                try { _pulseTween.Kill(); } catch (System.Exception e) { Debug.LogWarning($"Failed to kill pulse tween: {e.Message}"); }
             }
             _pulseTween = null;
 
@@ -112,7 +112,7 @@ namespace SlotGame.View
             StopPulseAnimation();
             if (_animator != null)
             {
-                try { _animator.Play(IdleStateName, 0, 0f); } catch { }
+                try { _animator.Play(IdleStateName, 0, 0f); } catch (System.Exception e) { Debug.LogWarning($"Failed to play idle animation: {e.Message}"); }
             }
         }
 
