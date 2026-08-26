@@ -124,5 +124,23 @@ namespace SlotGame.Tests.EditMode
             Assert.AreEqual(1000, data.coins);
             Assert.AreEqual(10,   data.betAmount);
         }
+
+        [Test]
+        public void Load_ExceptionDuringRead_ReturnsDefault()
+        {
+            File.WriteAllText(_tempPath, "{}");
+            var mgr = new SaveDataManager(_tempPath, null);
+
+            // Lock the file exclusively to force an IOException when Load() tries to read it
+            using (var stream = new FileStream(_tempPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            {
+                var data = mgr.Load();
+
+                // The catch block should handle the IOException and return the default SaveData
+                Assert.AreEqual(1000, data.coins);
+                Assert.AreEqual(10, data.betAmount);
+                Assert.AreEqual("1.0", data.saveVersion);
+            }
+        }
     }
 }
