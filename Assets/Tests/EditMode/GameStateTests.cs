@@ -158,9 +158,11 @@ namespace SlotGame.Tests.EditMode
         {
             var state = CreateState();
             Assert.AreEqual(0, state.TotalFreeSpinTriggers);
+            Assert.AreEqual(0, state.GetSessionStats().FreeSpinTriggers);
             state.RecordFreeSpinTrigger();
             state.RecordFreeSpinTrigger();
             Assert.AreEqual(2, state.TotalFreeSpinTriggers);
+            Assert.AreEqual(2, state.GetSessionStats().FreeSpinTriggers);
         }
 
         [Test]
