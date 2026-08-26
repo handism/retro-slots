@@ -190,5 +190,107 @@ namespace SlotGame.Tests.EditMode
             Assert.AreEqual(2,     stats.FreeSpinTriggers);
             Assert.AreEqual(500,   stats.NetProfit); // セッション損益
         }
+
+        [Test]
+        public void GetSessionStats_InitialState_ReturnsZeros()
+        {
+            var state = CreateState(coins: 1000);
+            var stats = state.GetSessionStats();
+
+            Assert.AreEqual(0, stats.TotalSpins);
+            Assert.AreEqual(0, stats.Wins);
+            Assert.AreEqual(0f, stats.WinRate, 0.01f);
+            Assert.AreEqual(0, stats.LargestWin);
+            Assert.AreEqual(0, stats.FreeSpinTriggers);
+            Assert.AreEqual(0, stats.NetProfit);
+        }
+
+        [Test]
+        public void GetSessionStats_AfterSpins_CalculatesCorrectly()
+        {
+            var state = CreateState(coins: 1000);
+
+            // 4 spins total: 1 win, 3 losses
+            state.RecordSpin(0);
+            state.RecordSpin(150); // win
+            state.RecordSpin(0);
+            state.RecordSpin(0);
+
+            var stats = state.GetSessionStats();
+
+            Assert.AreEqual(4, stats.TotalSpins);
+            Assert.AreEqual(1, stats.Wins);
+            Assert.AreEqual(25f, stats.WinRate, 0.01f);
+            Assert.AreEqual(150, stats.LargestWin);
+        }
+
+        [Test]
+        public void GetSessionStats_LargestWin_UpdatesCorrectly()
+        {
+            var state = CreateState(coins: 1000);
+
+            state.RecordSpin(100);
+            state.RecordSpin(500); // New largest
+            state.RecordSpin(200);
+
+            var stats = state.GetSessionStats();
+
+            Assert.AreEqual(3, stats.TotalSpins);
+            Assert.AreEqual(3, stats.Wins);
+            Assert.AreEqual(100f, stats.WinRate, 0.01f);
+            Assert.AreEqual(500, stats.LargestWin);
+        }
+
+        [Test]
+        public void GetSessionStats_FreeSpinTriggers_CalculatedCorrectly()
+        {
+            var state = CreateState(coins: 1000);
+
+            state.RecordFreeSpinTrigger();
+            state.RecordFreeSpinTrigger();
+
+            var stats = state.GetSessionStats();
+
+            Assert.AreEqual(2, stats.FreeSpinTriggers);
+        }
+
+        [Test]
+        public void GetSessionStats_NetProfit_CalculatedCorrectly()
+        {
+            var state = CreateState(coins: 1000, betAmount: 100);
+
+            // Lose 100
+            state.DeductBet();
+
+            // Win 500
+            state.AddCoins(500);
+
+            // Lose 100
+            state.DeductBet();
+
+            var stats = state.GetSessionStats();
+
+            // Total coins should be 1000 - 100 + 500 - 100 = 1300
+            // Net profit: 1300 - 1000 = +300
+            Assert.AreEqual(300, stats.NetProfit);
+            Assert.AreEqual(1300, state.Coins);
+        }
+
+        [Test]
+        public void GetSessionStats_NetProfit_CanBeNegative()
+        {
+            var state = CreateState(coins: 1000, betAmount: 200);
+
+            // Lose 200
+            state.DeductBet();
+            state.DeductBet();
+
+            var stats = state.GetSessionStats();
+
+            // Total coins should be 1000 - 400 = 600
+            // Net profit: 600 - 1000 = -400
+            Assert.AreEqual(-400, stats.NetProfit);
+            Assert.AreEqual(600, state.Coins);
+        }
     }
 }
