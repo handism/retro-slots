@@ -300,6 +300,34 @@ namespace SlotGame.Tests.EditMode
         }
 
         [Test]
+        public void GetLifetimeStats_ZeroTotalSpins_ReturnsZeroWinRate()
+        {
+            var state = CreateState(coins: 1000);
+            state.RestoreStats(totalSpins: 0, totalWins: 0, maxWin: 0, totalFreeSpinTriggers: 0);
+
+            var stats = state.GetLifetimeStats();
+
+            Assert.AreEqual(0, stats.TotalSpins);
+            Assert.AreEqual(0f, stats.WinRate);
+        }
+
+        [Test]
+        public void GetLifetimeStats_NormalSpins_ReturnsCorrectWinRateAndStats()
+        {
+            var state = CreateState(coins: 1000);
+            state.RestoreStats(totalSpins: 200, totalWins: 50, maxWin: 1500, totalFreeSpinTriggers: 5);
+
+            var stats = state.GetLifetimeStats();
+
+            Assert.AreEqual(200, stats.TotalSpins);
+            Assert.AreEqual(50, stats.Wins);
+            Assert.AreEqual(25f, stats.WinRate); // 50 / 200 = 0.25 -> 25%
+            Assert.AreEqual(1500, stats.LargestWin);
+            Assert.AreEqual(5, stats.FreeSpinTriggers);
+            Assert.AreEqual(0, stats.NetProfit);
+        }
+
+        [Test]
         public void GetSessionStats_InitialState_ReturnsZeros()
         {
             var state = CreateState(coins: 1000);
