@@ -182,6 +182,99 @@ namespace SlotGame.Tests.PlayMode
         });
 
         [UnityTest]
+        public IEnumerator Test_RunSpinAsync_Cancellation_ResetsUI() => UniTask.ToCoroutine(async () =>
+        {
+            // --- Setup ---
+            var mockRandom = new MockRandom { Values = new[] { 0, 0, 0, 0, 0 } };
+            GameContextInitializer.Instance.Provide(
+                new GameState(1000, 9_999_999, new[] { 10, 20, 50, 100 }, 1000, 10),
+                new SaveDataManager(),
+                mockRandom,
+                new SaveData { coins = 1000, betAmount = 10 });
+
+            await SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
+            var gm = GameObject.FindFirstObjectByType<GameManager>();
+            Assert.IsNotNull(gm, "GameManager not found");
+
+            // --- Execute ---
+            // Create a TokenSource for cancellation
+            using var cts = new System.Threading.CancellationTokenSource();
+
+            // Use reflection to invoke private method RunSpinAsync
+            var method = typeof(GameManager).GetMethod("RunSpinAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(method, "RunSpinAsync method not found");
+
+            var task = (UniTask)method.Invoke(gm, new object[] { cts.Token });
+
+            // Wait for transition to Spinning state
+            await UniTask.WaitUntil(() => GetCurrentPhase(gm) == GamePhase.Spinning);
+
+            // Intentionally trigger cancellation during spin
+            cts.Cancel();
+
+            // Wait for exception to be caught and state to return to Idle
+            await UniTask.WaitUntil(() => GetCurrentPhase(gm) == GamePhase.Idle)
+                         .Timeout(TimeSpan.FromSeconds(5));
+
+            // --- Verify ---
+            // Verify Catch block executed and UI is reset
+            Assert.AreEqual(GamePhase.Idle, GetCurrentPhase(gm), "Game phase should be reset to Idle");
+
+            // Indirectly verify UIManager methods were called correctly
+            // (Interactable returns to true)
+            var uiManagerField = typeof(GameManager).GetField("uiManager", BindingFlags.NonPublic | BindingFlags.Instance);
+            var uiManager = uiManagerField.GetValue(gm) as SlotGame.View.UIManager;
+            Assert.IsNotNull(uiManager);
+
+            // Verify MainHUD SpinButton is interactable using reflection
+            var mainHUDField = typeof(SlotGame.View.UIManager).GetField("mainHUD", BindingFlags.NonPublic | BindingFlags.Instance);
+            var mainHUD = mainHUDField.GetValue(uiManager) as SlotGame.View.MainHUDView;
+            Assert.IsNotNull(mainHUD);
+
+            var spinButtonField = typeof(SlotGame.View.MainHUDView).GetField("spinButton", BindingFlags.NonPublic | BindingFlags.Instance);
+            var spinButton = spinButtonField.GetValue(mainHUD) as UnityEngine.UI.Button;
+            Assert.IsNotNull(spinButton);
+
+            Assert.IsTrue(spinButton.interactable, "Spin button should be interactable after cancellation");
+        });
+
+        [UnityTest]
+        public IEnumerator Test_RunAutoSpinAsync_Cancellation_TransitionsToIdle() => UniTask.ToCoroutine(async () =>
+        {
+            // --- Setup ---
+            var mockRandom = new MockRandom { Values = new[] { 0, 0, 0, 0, 0 } };
+            GameContextInitializer.Instance.Provide(
+                new GameState(1000, 9_999_999, new[] { 10, 20, 50, 100 }, 1000, 10),
+                new SaveDataManager(),
+                mockRandom,
+                new SaveData { coins = 1000, betAmount = 10 });
+
+            await SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
+            var gm = GameObject.FindFirstObjectByType<GameManager>();
+
+            // --- Execute ---
+            using var destroyCts = new System.Threading.CancellationTokenSource();
+
+            // Call RunAutoSpinAsync via reflection
+            var method = typeof(GameManager).GetMethod("RunAutoSpinAsync", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(method, "RunAutoSpinAsync method not found");
+
+            var task = (UniTask)method.Invoke(gm, new object[] { 10, destroyCts.Token });
+
+            await UniTask.WaitUntil(() => GetCurrentPhase(gm) == GamePhase.Spinning);
+
+            // Cancel the destroyToken argument itself to trigger OperationCanceledException
+            destroyCts.Cancel();
+
+            // Wait for return to Idle in Catch or Finally block
+            await UniTask.WaitUntil(() => GetCurrentPhase(gm) == GamePhase.Idle)
+                         .Timeout(TimeSpan.FromSeconds(5));
+
+            // --- Verify ---
+            Assert.AreEqual(GamePhase.Idle, GetCurrentPhase(gm), "Game phase should be reset to Idle after auto spin cancellation");
+        });
+
+        [UnityTest]
         public IEnumerator Test_EarlyStop_SkipsDelay() => UniTask.ToCoroutine(async () =>
         {
             // --- Setup ---
