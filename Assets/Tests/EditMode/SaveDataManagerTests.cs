@@ -2,6 +2,7 @@ using System.IO;
 using NUnit.Framework;
 using SlotGame.Model;
 using SlotGame.Utility;
+using UnityEngine.TestTools;
 
 namespace SlotGame.Tests.EditMode
 {
@@ -22,6 +23,8 @@ namespace SlotGame.Tests.EditMode
                 File.Delete(_tempPath);
             if (File.Exists(_tempPath + ".bak"))
                 File.Delete(_tempPath + ".bak");
+            if (Directory.Exists(_tempPath))
+                Directory.Delete(_tempPath, true);
         }
 
         [Test]
@@ -171,6 +174,22 @@ namespace SlotGame.Tests.EditMode
                 Assert.AreEqual(10, data.betAmount);
                 Assert.AreEqual("1.0", data.saveVersion);
             }
+        }
+
+        [Test]
+        public void SaveAsync_ExceptionThrown_HandlesErrorAndDeletesTempFile()
+        {
+            // Create a directory at _tempPath so File.Move throws IOException
+            Directory.CreateDirectory(_tempPath);
+
+            var mgr = new SaveDataManager(_tempPath, null);
+            var save = new SaveData { coins = 5000 };
+
+            LogAssert.Expect(UnityEngine.LogType.Error, new System.Text.RegularExpressions.Regex(".*SaveAsync failed.*"));
+            mgr.SaveAsync(save).AsTask().Wait();
+
+            // temp path is _tempPath + ".tmp". We need _tempPath to be the savePath.
+            Assert.IsFalse(File.Exists(_tempPath + ".tmp"));
         }
     }
 }
