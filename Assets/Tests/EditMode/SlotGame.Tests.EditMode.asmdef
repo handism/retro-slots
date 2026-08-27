@@ -6,6 +6,7 @@
         "SlotGame.Model",
         "SlotGame.Data",
         "SlotGame.Utility",
+        "UniTask",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

@@ -3,7 +3,8 @@
     "rootNamespace": "SlotGame.Utility",
     "references": [
         "SlotGame.Model",
-        "SlotGame.Data"
+        "SlotGame.Data",
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

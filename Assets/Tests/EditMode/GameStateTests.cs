@@ -360,9 +360,9 @@ namespace SlotGame.Tests.EditMode
             var state = CreateState();
             state.RestoreStats(totalSpins: 100, totalWins: 40, maxWin: 500, totalFreeSpinTriggers: 3);
             Assert.AreEqual(100, state.TotalSpins);
-            Assert.AreEqual(40,  state.TotalWins);
+            Assert.AreEqual(40, state.TotalWins);
             Assert.AreEqual(500, state.MaxWin);
-            Assert.AreEqual(3,   state.TotalFreeSpinTriggers);
+            Assert.AreEqual(3, state.TotalFreeSpinTriggers);
         }
 
         [Test]
@@ -374,12 +374,12 @@ namespace SlotGame.Tests.EditMode
 
             var stats = state.GetLifetimeStats();
 
-            Assert.AreEqual(10,    stats.TotalSpins);
-            Assert.AreEqual(4,     stats.Wins);
-            Assert.AreEqual(40f,   stats.WinRate, 0.01f);
-            Assert.AreEqual(200,   stats.LargestWin);
-            Assert.AreEqual(2,     stats.FreeSpinTriggers);
-            Assert.AreEqual(500,   stats.NetProfit); // セッション損益
+            Assert.AreEqual(10, stats.TotalSpins);
+            Assert.AreEqual(4, stats.Wins);
+            Assert.AreEqual(40f, stats.WinRate, 0.01f);
+            Assert.AreEqual(200, stats.LargestWin);
+            Assert.AreEqual(2, stats.FreeSpinTriggers);
+            Assert.AreEqual(500, stats.NetProfit); // セッション損益
         }
 
         [Test]

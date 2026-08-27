@@ -23,30 +23,30 @@ namespace SlotGame.Core
         private static readonly int[] DefaultBetAmounts = { 10, 20, 50, 100 };
 
         [Header("Managers")]
-        [SerializeField] private SpinManager   spinManager;
-        [SerializeField] private BonusManager  bonusManager;
-        [SerializeField] private UIManager     uiManager;
-        [SerializeField] private AudioManager  audioManager;
+        [SerializeField] private SpinManager spinManager;
+        [SerializeField] private BonusManager bonusManager;
+        [SerializeField] private UIManager uiManager;
+        [SerializeField] private AudioManager audioManager;
 
         [Header("Data Assets")]
-        [SerializeField] private ReelStripData[]  reelStrips;   // 5本
-        [SerializeField] private PaylineData       paylineData;
-        [SerializeField] private PayoutTableData   payoutData;
-        [SerializeField] private GameConfigData    gameConfig;
+        [SerializeField] private ReelStripData[] reelStrips;   // 5本
+        [SerializeField] private PaylineData paylineData;
+        [SerializeField] private PayoutTableData payoutData;
+        [SerializeField] private GameConfigData gameConfig;
 
-        private GameState              _gameState;
-        private SaveDataManager        _saveDataManager;
-        private GamePhase              _currentPhase;
+        private GameState _gameState;
+        private SaveDataManager _saveDataManager;
+        private GamePhase _currentPhase;
         private CancellationTokenSource _autoSpinCts;
-        private bool                   _isAutoSpinning;
-        private float                  _bgmVolume = 0.8f;
-        private float                  _seVolume  = 1f;
-        private bool                   _hasLoggedSaveSkip;
-        private int                    _autoSpinCount = 10;
-        private bool                   _isInitialized;
-        private SlotConfig             _config;
-        private bool                   _isPaytableOpen;
-        private int                    _lastAutoSpinStartFrame;
+        private bool _isAutoSpinning;
+        private float _bgmVolume = 0.8f;
+        private float _seVolume = 1f;
+        private bool _hasLoggedSaveSkip;
+        private int _autoSpinCount = 10;
+        private bool _isInitialized;
+        private SlotConfig _config;
+        private bool _isPaytableOpen;
+        private int _lastAutoSpinStartFrame;
 
         // ─── ライフサイクル ──────────────────────────────────────────────
 
@@ -119,7 +119,7 @@ namespace SlotGame.Core
             uiManager.SetupReels(spinManager.Reels.Select(r => r.GetComponent<ReelView>()));
 
             _bgmVolume = save.bgmVolume;
-            _seVolume  = save.seVolume;
+            _seVolume = save.seVolume;
             _autoSpinCount = config.DefaultAutoSpinCount;
             _gameState.SetTurbo(save.isTurbo);
 
@@ -128,7 +128,7 @@ namespace SlotGame.Core
             if (string.IsNullOrEmpty(save.checksum) && save.totalSpins == 0)
             {
                 _bgmVolume = config.DefaultBgmVolume;
-                _seVolume  = config.DefaultSeVolume;
+                _seVolume = config.DefaultSeVolume;
             }
 
             audioManager.SetBGMVolume(_bgmVolume);
@@ -170,11 +170,11 @@ namespace SlotGame.Core
             uiManager.ResetCoinsRequested += HandleResetCoinsRequested;
             uiManager.SettingsCloseRequested += uiManager.HideSettings;
             uiManager.PaytableCloseRequested += HandlePaytableCloseRequested;
-            uiManager.StatsCloseRequested    += uiManager.HideStats;
+            uiManager.StatsCloseRequested += uiManager.HideStats;
             uiManager.GameDescriptionCloseRequested += uiManager.HideGameDescription;
-            uiManager.AutoSpinRequested      += OnAutoSpinButtonPressed;
-            uiManager.AutoSpinStopRequested  += OnAutoSpinStopRequested;
-            uiManager.TurboToggled           += OnTurboToggled;
+            uiManager.AutoSpinRequested += OnAutoSpinButtonPressed;
+            uiManager.AutoSpinStopRequested += OnAutoSpinStopRequested;
+            uiManager.TurboToggled += OnTurboToggled;
             spinManager.ReelStopped += HandleReelStopped;
             TransitionTo(GamePhase.Idle);
 
@@ -208,7 +208,8 @@ namespace SlotGame.Core
                 0.5f,
                 0.1f,
                 2.0f,
-                0.3f);
+                0.3f,
+                "SECURE_SALT_REPLACE_ME");
         }
 
         private void OnApplicationPause(bool pauseStatus)
@@ -229,11 +230,11 @@ namespace SlotGame.Core
                 uiManager.SeVolumeChanged -= HandleSeVolumeChanged;
                 uiManager.ResetCoinsRequested -= HandleResetCoinsRequested;
                 uiManager.SettingsCloseRequested -= uiManager.HideSettings;
-                uiManager.StatsCloseRequested    -= uiManager.HideStats;
+                uiManager.StatsCloseRequested -= uiManager.HideStats;
                 uiManager.GameDescriptionCloseRequested -= uiManager.HideGameDescription;
-                uiManager.AutoSpinRequested      -= OnAutoSpinButtonPressed;
-                uiManager.AutoSpinStopRequested  -= OnAutoSpinStopRequested;
-                uiManager.TurboToggled           -= OnTurboToggled;
+                uiManager.AutoSpinRequested -= OnAutoSpinButtonPressed;
+                uiManager.AutoSpinStopRequested -= OnAutoSpinStopRequested;
+                uiManager.TurboToggled -= OnTurboToggled;
                 uiManager.PaytableCloseRequested -= HandlePaytableCloseRequested;
             }
 
@@ -250,7 +251,7 @@ namespace SlotGame.Core
         public void OnSpinButtonPressed()
         {
             if (uiManager.IsModalOpen) return;
-            
+
             if (_currentPhase == GamePhase.Spinning)
             {
                 spinManager.RequestSkip();
@@ -290,10 +291,10 @@ namespace SlotGame.Core
 
             // ここで確実に保存
             _autoSpinCount = count;
-            
+
             // 開始前に即座にUIを更新して「回数が変わっていない」という誤解を防ぐ
             uiManager.SetAutoButtonText($"ストップ ({_autoSpinCount})");
-            
+
             RunAutoSpinAsync(count, this.GetCancellationTokenOnDestroy()).Forget();
         }
 
@@ -458,10 +459,10 @@ namespace SlotGame.Core
 
                     // 1スピン実行
                     bool forceStop = await SpinOnceAsync(destroyToken);
-                    
+
                     // コイン不足時のみループを抜ける（ボーナス等は終わったら継続）
                     if (forceStop && _gameState.Coins < _gameState.BetAmount) break;
-                    
+
                     if (ct.IsCancellationRequested) break;
 
                     // 次のスピン前に少し待機（演出を見せるため）
@@ -477,12 +478,12 @@ namespace SlotGame.Core
             {
                 _isAutoSpinning = false;
                 if (_autoSpinCount <= 1) _autoSpinCount = _config.DefaultAutoSpinCount;
-                
+
                 uiManager.SetAutoButtonText(GetAutoSpinButtonText());
                 uiManager.SetAutoSpinCountInteractable(true);
                 _autoSpinCts?.Dispose();
                 _autoSpinCts = null;
-                
+
                 // 確実に Idle で終わるようにする
                 if (_currentPhase != GamePhase.Idle) TransitionTo(GamePhase.Idle);
             }
@@ -714,16 +715,16 @@ namespace SlotGame.Core
             _hasLoggedSaveSkip = false;
             await _saveDataManager.SaveAsync(new SaveData
             {
-                coins      = _gameState.Coins,
-                betAmount  = _gameState.BetAmount,
-                bgmVolume  = _bgmVolume,
-                seVolume   = _seVolume,
+                coins = _gameState.Coins,
+                betAmount = _gameState.BetAmount,
+                bgmVolume = _bgmVolume,
+                seVolume = _seVolume,
                 totalSpins = _gameState.TotalSpins,
-                totalWins  = _gameState.TotalWins,
-                maxWin     = _gameState.MaxWin,
+                totalWins = _gameState.TotalWins,
+                maxWin = _gameState.MaxWin,
                 totalFreeSpinTriggers = _gameState.TotalFreeSpinTriggers,
                 hasCompletedTutorial = _gameState.HasCompletedTutorial,
-                isTurbo    = _gameState.IsTurbo
+                isTurbo = _gameState.IsTurbo
             });
         }
 

@@ -116,10 +116,8 @@ namespace SlotGame.Tests.PlayMode
             _spinManager.Initialize(random, strips);
             GameContext.GameState.SetTurbo(false);
 
-            var paylines = ScriptableObject.CreateInstance<PaylineData>();
-            paylines.lines = new List<PaylineDef>();
-            var payouts = ScriptableObject.CreateInstance<PayoutTableData>();
-            payouts.payouts = new List<PayoutDef>();
+            var paylines = CreateDummyPaylines();
+            var payouts = CreateDummyPayouts();
 
             var startTime = Time.realtimeSinceStartup;
             AddDummyViewsToReels();
@@ -139,10 +137,8 @@ namespace SlotGame.Tests.PlayMode
             _spinManager.Initialize(random, strips);
             GameContext.GameState.SetTurbo(true);
 
-            var paylines = ScriptableObject.CreateInstance<PaylineData>();
-            paylines.lines = new List<PaylineDef>();
-            var payouts = ScriptableObject.CreateInstance<PayoutTableData>();
-            payouts.payouts = new List<PayoutDef>();
+            var paylines = CreateDummyPaylines();
+            var payouts = CreateDummyPayouts();
 
             var startTime = Time.realtimeSinceStartup;
             AddDummyViewsToReels();
@@ -163,10 +159,8 @@ namespace SlotGame.Tests.PlayMode
             _spinManager.Initialize(random, strips);
             GameContext.GameState.SetTurbo(false);
 
-            var paylines = ScriptableObject.CreateInstance<PaylineData>();
-            paylines.lines = new List<PaylineDef>();
-            var payouts = ScriptableObject.CreateInstance<PayoutTableData>();
-            payouts.payouts = new List<PayoutDef>();
+            var paylines = CreateDummyPaylines();
+            var payouts = CreateDummyPayouts();
 
             AddDummyViewsToReels();
 
@@ -193,10 +187,8 @@ namespace SlotGame.Tests.PlayMode
             var strips = CreateDummyStrips();
             _spinManager.Initialize(random, strips);
 
-            var paylines = ScriptableObject.CreateInstance<PaylineData>();
-            paylines.lines = new List<PaylineDef>();
-            var payouts = ScriptableObject.CreateInstance<PayoutTableData>();
-            payouts.payouts = new List<PayoutDef>();
+            var paylines = CreateDummyPaylines();
+            var payouts = CreateDummyPayouts();
 
             AddDummyViewsToReels();
 
@@ -231,10 +223,8 @@ namespace SlotGame.Tests.PlayMode
             _spinManager.Initialize(random, strips);
             GameContext.GameState.SetTurbo(true); // fast
 
-            var paylines = ScriptableObject.CreateInstance<PaylineData>();
-            paylines.lines = new List<PaylineDef>();
-            var payouts = ScriptableObject.CreateInstance<PayoutTableData>();
-            payouts.payouts = new List<PayoutDef>();
+            var paylines = CreateDummyPaylines();
+            var payouts = CreateDummyPayouts();
 
             AddDummyViewsToReels();
 
@@ -248,6 +238,22 @@ namespace SlotGame.Tests.PlayMode
             Assert.IsTrue(cache.ContainsKey(99), "The cache should contain the symbol ID collected from strips.");
         });
 
+        private PaylineData CreateDummyPaylines()
+        {
+            var paylines = ScriptableObject.CreateInstance<PaylineData>();
+            paylines.lines = Array.Empty<PaylineEntry>();
+            return paylines;
+        }
+
+        private PayoutTableData CreateDummyPayouts()
+        {
+            var payouts = ScriptableObject.CreateInstance<PayoutTableData>();
+            payouts.scatterPayouts = Array.Empty<ScatterPayout>();
+            payouts.freeSpinRewards = Array.Empty<FreeSpinReward>();
+            payouts.bonusRewards = Array.Empty<BonusRewardEntry>();
+            return payouts;
+        }
+
         private ReelStripData[] CreateDummyStrips()
         {
             var strips = new ReelStripData[5];
@@ -255,7 +261,7 @@ namespace SlotGame.Tests.PlayMode
             {
                 strips[i] = ScriptableObject.CreateInstance<ReelStripData>();
                 strips[i].strip = new List<SymbolData>();
-                for (int j=0; j<5; j++)
+                for (int j = 0; j < 5; j++)
                 {
                     var sym = ScriptableObject.CreateInstance<SymbolData>();
                     sym.symbolId = j;
@@ -272,7 +278,8 @@ namespace SlotGame.Tests.PlayMode
                 var view = reel.gameObject.AddComponent<ReelView>();
                 var symbolViewsField = typeof(ReelView).GetField("_symbolViews", BindingFlags.NonPublic | BindingFlags.Instance);
                 var mockViews = new SymbolView[5];
-                for (int j=0; j<5; j++) {
+                for (int j = 0; j < 5; j++)
+                {
                     var svGo = new GameObject("SV");
                     var symView = svGo.AddComponent<SymbolView>();
                     // Needs to return a symbol id when queried
@@ -286,7 +293,8 @@ namespace SlotGame.Tests.PlayMode
 
                 var rectsField = typeof(ReelView).GetField("_symbolRects", BindingFlags.NonPublic | BindingFlags.Instance);
                 var mockRects = new RectTransform[5];
-                for (int j=0; j<5; j++) {
+                for (int j = 0; j < 5; j++)
+                {
                     mockRects[j] = mockViews[j].gameObject.AddComponent<RectTransform>();
                 }
                 rectsField.SetValue(view, mockRects);
@@ -294,7 +302,7 @@ namespace SlotGame.Tests.PlayMode
                 var stripField = typeof(ReelView).GetField("_strip", BindingFlags.NonPublic | BindingFlags.Instance);
                 var dummyStrip = ScriptableObject.CreateInstance<ReelStripData>();
                 dummyStrip.strip = new List<SymbolData>();
-                for(int i=0; i<10; i++) dummyStrip.strip.Add(ScriptableObject.CreateInstance<SymbolData>());
+                for (int i = 0; i < 10; i++) dummyStrip.strip.Add(ScriptableObject.CreateInstance<SymbolData>());
                 stripField.SetValue(view, dummyStrip);
             }
         }
