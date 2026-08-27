@@ -513,6 +513,23 @@ namespace SlotGame.Core
             uiManager.SetSpinButtonInteractable(false);
             TransitionTo(GamePhase.Evaluating);
 
+            await ProcessSpinEvaluationAsync(result, ct);
+
+            SaveGameAsync().Forget();
+            uiManager.UpdateStats(_gameState.GetLifetimeStats());
+
+            await CheckBonusAndFreeSpinsAsync(result, ct);
+
+            uiManager.SetSpinButtonInteractable(true);
+            if (!_isAutoSpinning) uiManager.SetAutoSpinCountInteractable(true);
+
+            // どんな演出が終わっても必ず Idle に戻す
+            TransitionTo(GamePhase.Idle);
+            return false;
+        }
+
+        private async UniTask ProcessSpinEvaluationAsync(SlotGame.Model.SpinResult result, CancellationToken ct)
+        {
             if (result.TotalWinAmount > 0 || result.HasBonusCondition || result.HasScatter)
             {
                 if (result.TotalWinAmount > 0)
@@ -551,10 +568,10 @@ namespace SlotGame.Core
             {
                 _gameState.RecordSpin(0);
             }
+        }
 
-            SaveGameAsync().Forget();
-            uiManager.UpdateStats(_gameState.GetLifetimeStats());
-
+        private async UniTask CheckBonusAndFreeSpinsAsync(SlotGame.Model.SpinResult result, CancellationToken ct)
+        {
             // ボーナス・フリースピン判定
             if (result.HasBonusCondition)
             {
@@ -565,13 +582,6 @@ namespace SlotGame.Core
             {
                 await HandleFreeSpins(result.ScatterCount, ct);
             }
-
-            uiManager.SetSpinButtonInteractable(true);
-            if (!_isAutoSpinning) uiManager.SetAutoSpinCountInteractable(true);
-            
-            // どんな演出が終わっても必ず Idle に戻す
-            TransitionTo(GamePhase.Idle); 
-            return false;
         }
 
         private async UniTask HandleBonusRound(CancellationToken ct)

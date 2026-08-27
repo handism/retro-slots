@@ -71,6 +71,9 @@ namespace SlotGame.Model
         /// <summary>ベット額を変更する。有効な選択肢以外は無視する。</summary>
         public bool SetBetAmount(int bet)
         {
+            if (ValidBetAmounts == null)
+                return false;
+
             if (Array.IndexOf(ValidBetAmounts, bet) < 0)
                 return false;
             BetAmount = bet;

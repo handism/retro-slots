@@ -35,6 +35,9 @@ namespace SlotGame.Data
         public float defaultBgmVolume = 0.8f;
         public float defaultSeVolume = 1.0f;
 
+        [Header("Security")]
+        public string checksumSalt = "SECURE_SALT_REPLACE_ME";
+
         public SlotConfig ToModelConfig(int freeSpinMultiplier = 2)
         {
             return new SlotConfig(
@@ -53,7 +56,8 @@ namespace SlotGame.Data
                 turboSpinDuration,
                 turboStopInterval,
                 normalSpinDuration,
-                normalStopInterval
+                normalStopInterval,
+                checksumSalt
             );
         }
     }

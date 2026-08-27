@@ -19,33 +19,41 @@ namespace SlotGame.Tests.EditMode
         [TearDown]
         public void TearDown()
         {
-            if (File.Exists(_tempPath))      File.Delete(_tempPath);
-            if (File.Exists(_tempPath + ".bak")) File.Delete(_tempPath + ".bak");
-            if (Directory.Exists(_tempPath)) Directory.Delete(_tempPath, true);
+            if (File.Exists(_tempPath))
+                File.Delete(_tempPath);
+            if (File.Exists(_tempPath + ".bak"))
+                File.Delete(_tempPath + ".bak");
+            if (Directory.Exists(_tempPath))
+                Directory.Delete(_tempPath, true);
         }
 
         [Test]
         public void Load_FileNotExists_ReturnsDefault()
         {
-            var mgr  = new SaveDataManager(_tempPath, null);
+            var mgr = new SaveDataManager(_tempPath, null);
             var data = mgr.Load();
 
-            Assert.AreEqual(1000,  data.coins);
-            Assert.AreEqual(10,    data.betAmount);
+            Assert.AreEqual(1000, data.coins);
+            Assert.AreEqual(10, data.betAmount);
             Assert.AreEqual("1.0", data.saveVersion);
         }
 
         [Test]
         public void Save_ThenLoad_RoundTrip()
         {
-            var mgr  = new SaveDataManager(_tempPath, null);
-            var save = new SaveData { coins = 5000, betAmount = 50, bgmVolume = 0.5f };
+            var mgr = new SaveDataManager(_tempPath, null);
+            var save = new SaveData
+            {
+                coins = 5000,
+                betAmount = 50,
+                bgmVolume = 0.5f,
+            };
             mgr.SaveAsync(save).AsTask().Wait();
 
             var loaded = mgr.Load();
-            Assert.AreEqual(5000,  loaded.coins);
-            Assert.AreEqual(50,    loaded.betAmount);
-            Assert.AreEqual(0.5f,  loaded.bgmVolume, 0.001f);
+            Assert.AreEqual(5000, loaded.coins);
+            Assert.AreEqual(50, loaded.betAmount);
+            Assert.AreEqual(0.5f, loaded.bgmVolume, 0.001f);
         }
 
         [Test]
@@ -53,21 +61,26 @@ namespace SlotGame.Tests.EditMode
         {
             // Unity Test Runner in EditMode can handle async tests if they return IEnumerator or are run with Task.Run,
             // but for simplicity we can just block on the UniTask for the test.
-            var mgr  = new SaveDataManager(_tempPath, null);
-            var save = new SaveData { coins = 5000, betAmount = 50, bgmVolume = 0.5f };
+            var mgr = new SaveDataManager(_tempPath, null);
+            var save = new SaveData
+            {
+                coins = 5000,
+                betAmount = 50,
+                bgmVolume = 0.5f,
+            };
             mgr.SaveAsync(save).AsTask().Wait();
 
             var loaded = mgr.Load();
-            Assert.AreEqual(5000,  loaded.coins);
-            Assert.AreEqual(50,    loaded.betAmount);
-            Assert.AreEqual(0.5f,  loaded.bgmVolume, 0.001f);
+            Assert.AreEqual(5000, loaded.coins);
+            Assert.AreEqual(50, loaded.betAmount);
+            Assert.AreEqual(0.5f, loaded.bgmVolume, 0.001f);
         }
 
         [Test]
         public void Load_CorruptedJson_ReturnsDefaultAndCreatesBak()
         {
             File.WriteAllText(_tempPath, "{ invalid json !!!");
-            var mgr  = new SaveDataManager(_tempPath, null);
+            var mgr = new SaveDataManager(_tempPath, null);
             var data = mgr.Load();
 
             Assert.AreEqual(1000, data.coins);
@@ -79,7 +92,7 @@ namespace SlotGame.Tests.EditMode
         {
             var bad = new SaveData { saveVersion = "9.9" };
             File.WriteAllText(_tempPath, UnityEngine.JsonUtility.ToJson(bad));
-            var mgr  = new SaveDataManager(_tempPath, null);
+            var mgr = new SaveDataManager(_tempPath, null);
             var data = mgr.Load();
 
             Assert.AreEqual(1000, data.coins);
@@ -90,7 +103,7 @@ namespace SlotGame.Tests.EditMode
         {
             var bad = new SaveData { coins = -100 };
             File.WriteAllText(_tempPath, UnityEngine.JsonUtility.ToJson(bad));
-            var mgr  = new SaveDataManager(_tempPath, null);
+            var mgr = new SaveDataManager(_tempPath, null);
             var data = mgr.Load();
 
             Assert.AreEqual(1000, data.coins);
@@ -115,7 +128,25 @@ namespace SlotGame.Tests.EditMode
         [Test]
         public void Load_InvalidBetAmount_ReturnsDefault()
         {
-            var config = new SlotConfig(1000, 999999, new[] { 10, 20, 50, 100 }, 5, 3, 3, new[] { 0, 2, 4 }, 2, 20, 10, 0.8f, 1.0f, 0.8f, 0.1f, 1.5f, 0.3f);
+            var config = new SlotConfig(
+                1000,
+                999999,
+                new[] { 10, 20, 50, 100 },
+                5,
+                3,
+                3,
+                new[] { 0, 2, 4 },
+                2,
+                20,
+                10,
+                0.8f,
+                1.0f,
+                0.8f,
+                0.1f,
+                1.5f,
+                0.3f,
+                "TEST_SALT"
+            );
             var mgr = new SaveDataManager(_tempPath, config);
 
             var bad = new SaveData { betAmount = 999 };
@@ -124,7 +155,25 @@ namespace SlotGame.Tests.EditMode
 
             var data = mgr.Load();
             Assert.AreEqual(1000, data.coins);
-            Assert.AreEqual(10,   data.betAmount);
+            Assert.AreEqual(10, data.betAmount);
+        }
+
+        [Test]
+        public void Load_ExceptionDuringRead_ReturnsDefault()
+        {
+            File.WriteAllText(_tempPath, "{}");
+            var mgr = new SaveDataManager(_tempPath, null);
+
+            // Lock the file exclusively to force an IOException when Load() tries to read it
+            using (var stream = new FileStream(_tempPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            {
+                var data = mgr.Load();
+
+                // The catch block should handle the IOException and return the default SaveData
+                Assert.AreEqual(1000, data.coins);
+                Assert.AreEqual(10, data.betAmount);
+                Assert.AreEqual("1.0", data.saveVersion);
+            }
         }
 
         [Test]
