@@ -81,6 +81,14 @@ namespace SlotGame.Tests.EditMode
         }
 
         [Test]
+        public void AddCoins_WithLargeAmount_DoesNotOverflow()
+        {
+            var state = CreateState(coins: 500);
+            state.AddCoins(long.MaxValue - 1000);
+            Assert.AreEqual(state.MaxCoins, state.Coins);
+        }
+
+        [Test]
         public void SetCoins_ValidAmount_SetsCoins()
         {
             var state = CreateState();
@@ -103,8 +111,6 @@ namespace SlotGame.Tests.EditMode
             state.SetCoins(-100);
             Assert.AreEqual(0, state.Coins);
         }
-
-        [Test]
         public void FreeSpinsLeft_NeverGoesBelowZero()
         {
             var state = CreateState();

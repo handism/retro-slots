@@ -59,7 +59,15 @@ namespace SlotGame.Model
         {
             if (amount <= 0)
                 return;
-            Coins = Math.Min(Coins + amount, MaxCoins);
+            long maxAddable = MaxCoins - Coins;
+            if (amount >= maxAddable)
+            {
+                Coins = MaxCoins;
+            }
+            else
+            {
+                Coins += amount;
+            }
         }
 
         /// <summary>コインを直接セットする（セーブデータ読み込み時）。</summary>
