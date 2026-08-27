@@ -38,6 +38,24 @@ namespace SlotGame.Tests.EditMode
         }
 
         [Test]
+        public void DeductBet_MultipleTimes_DeductsCorrectly()
+        {
+            var state = CreateState(coins: 100, betAmount: 30);
+
+            Assert.IsTrue(state.DeductBet());
+            Assert.AreEqual(70, state.Coins);
+
+            Assert.IsTrue(state.DeductBet());
+            Assert.AreEqual(40, state.Coins);
+
+            Assert.IsTrue(state.DeductBet());
+            Assert.AreEqual(10, state.Coins);
+
+            Assert.IsFalse(state.DeductBet());
+            Assert.AreEqual(10, state.Coins);
+        }
+
+        [Test]
         public void AddCoins_Normal_IncreasesCoins()
         {
             var state = CreateState(coins: 500);
