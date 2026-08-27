@@ -120,10 +120,22 @@ namespace SlotGame.View
                     rowRect.anchoredPosition3D = Vector3.zero;
                 }
 
-                var texts = row.GetComponentsInChildren<TMP_Text>(true)
-                    .Where(t => t.transform.parent == row.transform)
-                    .OrderBy(t => t.transform.GetSiblingIndex())
-                    .ToArray();
+                TMP_Text text0 = null;
+                TMP_Text text1 = null;
+                TMP_Text text2 = null;
+                int textIdx = 0;
+
+                foreach (Transform child in row.transform)
+                {
+                    if (child.TryGetComponent<TMP_Text>(out var tmp))
+                    {
+                        if (textIdx == 0) text0 = tmp;
+                        else if (textIdx == 1) text1 = tmp;
+                        else if (textIdx == 2) text2 = tmp;
+                        textIdx++;
+                    }
+                }
+
                 var iconTransform = row.transform.Find("SymbolCell/Icon");
                 var img = iconTransform != null ? iconTransform.GetComponent<Image>() : null;
 
@@ -137,9 +149,9 @@ namespace SlotGame.View
                     iconRect.sizeDelta = new Vector2(IconSize, IconSize);
                 }
 
-                if (texts.Length > 0) texts[0].text = sym.payouts.Length > 0 ? sym.payouts[0].ToString("N0") : "-";
-                if (texts.Length > 1) texts[1].text = sym.payouts.Length > 1 ? sym.payouts[1].ToString("N0") : "-";
-                if (texts.Length > 2) texts[2].text = sym.payouts.Length > 2 ? sym.payouts[2].ToString("N0") : "-";
+                if (text0 != null) text0.text = sym.payouts.Length > 0 ? sym.payouts[0].ToString("N0") : "-";
+                if (text1 != null) text1.text = sym.payouts.Length > 1 ? sym.payouts[1].ToString("N0") : "-";
+                if (text2 != null) text2.text = sym.payouts.Length > 2 ? sym.payouts[2].ToString("N0") : "-";
             }
 
             LayoutRebuilder.MarkLayoutForRebuild((RectTransform)contentRoot);

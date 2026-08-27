@@ -74,5 +74,5 @@ __MACOSX/
 RTP_Result.csv
 TestResults*.xml
 test*.log
-TestRunner/bin/
-TestRunner/obj/
+test_env/
+TestRunner/
