@@ -150,6 +150,47 @@ namespace SlotGame.Tests.EditMode
         }
 
         [Test]
+        public void ConsumeFreeSpin_WhenFreeSpinsLeftIsZero_DoesNotDecrease()
+        {
+            var state = CreateState();
+            // Initially 0
+            Assert.AreEqual(0, state.FreeSpinsLeft);
+            state.ConsumeFreeSpin();
+            Assert.AreEqual(0, state.FreeSpinsLeft);
+        }
+
+        [Test]
+        public void ConsumeFreeSpin_WhenFreeSpinsLeftIsPositive_DecreasesByOne()
+        {
+            var state = CreateState();
+            state.AddFreeSpins(1);
+            Assert.AreEqual(1, state.FreeSpinsLeft);
+            state.ConsumeFreeSpin();
+            Assert.AreEqual(0, state.FreeSpinsLeft);
+        }
+
+        [Test]
+        public void ConsumeFreeSpin_MultipleTimes_DecreasesCorrectly()
+        {
+            var state = CreateState();
+            state.AddFreeSpins(3);
+            Assert.AreEqual(3, state.FreeSpinsLeft);
+
+            state.ConsumeFreeSpin();
+            Assert.AreEqual(2, state.FreeSpinsLeft);
+
+            state.ConsumeFreeSpin();
+            Assert.AreEqual(1, state.FreeSpinsLeft);
+
+            state.ConsumeFreeSpin();
+            Assert.AreEqual(0, state.FreeSpinsLeft);
+
+            // Further consumption should stay at 0
+            state.ConsumeFreeSpin();
+            Assert.AreEqual(0, state.FreeSpinsLeft);
+        }
+
+        [Test]
         public void IsFreeSpin_WhenFreeSpinsLeft_ReturnsTrue()
         {
             var state = CreateState();
