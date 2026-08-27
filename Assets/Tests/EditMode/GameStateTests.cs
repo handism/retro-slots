@@ -63,6 +63,30 @@ namespace SlotGame.Tests.EditMode
         }
 
         [Test]
+        public void SetCoins_ValidAmount_SetsCoins()
+        {
+            var state = CreateState();
+            state.SetCoins(5000);
+            Assert.AreEqual(5000, state.Coins);
+        }
+
+        [Test]
+        public void SetCoins_ExceedsMax_ClampsToMax()
+        {
+            var state = CreateState();
+            state.SetCoins(state.MaxCoins + 100);
+            Assert.AreEqual(state.MaxCoins, state.Coins);
+        }
+
+        [Test]
+        public void SetCoins_NegativeAmount_ClampsToZero()
+        {
+            var state = CreateState();
+            state.SetCoins(-100);
+            Assert.AreEqual(0, state.Coins);
+        }
+
+        [Test]
         public void FreeSpinsLeft_NeverGoesBelowZero()
         {
             var state = CreateState();
