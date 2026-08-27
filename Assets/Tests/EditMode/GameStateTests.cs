@@ -71,6 +71,34 @@ namespace SlotGame.Tests.EditMode
         }
 
         [Test]
+        public void AddFreeSpins_PositiveCount_IncreasesFreeSpinsLeft()
+        {
+            var state = CreateState();
+            state.AddFreeSpins(5);
+            Assert.AreEqual(5, state.FreeSpinsLeft);
+            state.AddFreeSpins(10);
+            Assert.AreEqual(15, state.FreeSpinsLeft);
+        }
+
+        [Test]
+        public void AddFreeSpins_ZeroCount_DoesNotChangeFreeSpinsLeft()
+        {
+            var state = CreateState();
+            state.AddFreeSpins(10);
+            state.AddFreeSpins(0);
+            Assert.AreEqual(10, state.FreeSpinsLeft);
+        }
+
+        [Test]
+        public void AddFreeSpins_NegativeCount_DoesNotChangeFreeSpinsLeft()
+        {
+            var state = CreateState();
+            state.AddFreeSpins(10);
+            state.AddFreeSpins(-5);
+            Assert.AreEqual(10, state.FreeSpinsLeft);
+        }
+
+        [Test]
         public void AddFreeSpins_ThenConsume_DecreasesCorrectly()
         {
             var state = CreateState();
