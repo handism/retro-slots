@@ -20,6 +20,7 @@ namespace SlotGame.Model
         float TurboSpinDuration,
         float TurboStopInterval,
         float NormalSpinDuration,
-        float NormalStopInterval
+        float NormalStopInterval,
+        string ChecksumSalt
     );
 }
