@@ -76,3 +76,4 @@ TestResults*.xml
 test*.log
 test_env/
 TestRunner/
+MockTestProject/
