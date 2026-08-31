@@ -123,21 +123,32 @@ namespace SlotGame.View
                 TMP_Text text0 = null;
                 TMP_Text text1 = null;
                 TMP_Text text2 = null;
-                int textIdx = 0;
+                Image img = null;
 
-                foreach (Transform child in row.transform)
+                if (row.TryGetComponent<PaytableRowView>(out var rowView))
                 {
-                    if (child.TryGetComponent<TMP_Text>(out var tmp))
-                    {
-                        if (textIdx == 0) text0 = tmp;
-                        else if (textIdx == 1) text1 = tmp;
-                        else if (textIdx == 2) text2 = tmp;
-                        textIdx++;
-                    }
+                    img = rowView.Icon;
+                    text0 = rowView.Text0;
+                    text1 = rowView.Text1;
+                    text2 = rowView.Text2;
                 }
+                else
+                {
+                    int textIdx = 0;
+                    foreach (Transform child in row.transform)
+                    {
+                        if (child.TryGetComponent<TMP_Text>(out var tmp))
+                        {
+                            if (textIdx == 0) text0 = tmp;
+                            else if (textIdx == 1) text1 = tmp;
+                            else if (textIdx == 2) text2 = tmp;
+                            textIdx++;
+                        }
+                    }
 
-                var iconTransform = row.transform.Find("SymbolCell/Icon");
-                var img = iconTransform != null ? iconTransform.GetComponent<Image>() : null;
+                    var iconTransform = row.transform.Find("SymbolCell/Icon");
+                    img = iconTransform != null ? iconTransform.GetComponent<Image>() : null;
+                }
 
                 if (img != null)
                 {
@@ -166,7 +177,7 @@ namespace SlotGame.View
 
         private GameObject CreateFallbackRowPrefab()
         {
-            var row = new GameObject("RuntimeRowPrefab", typeof(RectTransform), typeof(Image), typeof(HorizontalLayoutGroup), typeof(LayoutElement));
+            var row = new GameObject("RuntimeRowPrefab", typeof(RectTransform), typeof(Image), typeof(HorizontalLayoutGroup), typeof(LayoutElement), typeof(PaytableRowView));
             row.SetActive(false);
             row.hideFlags = HideFlags.HideAndDontSave;
 
@@ -183,15 +194,16 @@ namespace SlotGame.View
 
             row.GetComponent<LayoutElement>().preferredHeight = RowHeight;
 
-            CreateSymbolCell(row.transform);
-            CreateValueText(row.transform, "Payout3");
-            CreateValueText(row.transform, "Payout4");
-            CreateValueText(row.transform, "Payout5");
+            var rowView = row.GetComponent<PaytableRowView>();
+            rowView.Icon = CreateSymbolCell(row.transform);
+            rowView.Text0 = CreateValueText(row.transform, "Payout3");
+            rowView.Text1 = CreateValueText(row.transform, "Payout4");
+            rowView.Text2 = CreateValueText(row.transform, "Payout5");
 
             return row;
         }
 
-        private static void CreateSymbolCell(Transform parent)
+        private static Image CreateSymbolCell(Transform parent)
         {
             var cell = new GameObject("SymbolCell", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
             cell.transform.SetParent(parent, false);
@@ -206,9 +218,11 @@ namespace SlotGame.View
             iconRect.pivot = new Vector2(0.5f, 0.5f);
             iconRect.anchoredPosition = Vector2.zero;
             iconRect.sizeDelta = new Vector2(IconSize, IconSize);
+
+            return icon.GetComponent<Image>();
         }
 
-        private static void CreateValueText(Transform parent, string name)
+        private static TMP_Text CreateValueText(Transform parent, string name)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(LayoutElement));
             go.transform.SetParent(parent, false);
@@ -223,6 +237,8 @@ namespace SlotGame.View
 
             var rect = go.GetComponent<RectTransform>();
             rect.sizeDelta = new Vector2(ColumnWidth, 44f);
+
+            return text;
         }
 
         public async UniTask ShowAsync(System.Threading.CancellationToken ct = default)
