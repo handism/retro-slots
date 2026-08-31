@@ -209,22 +209,64 @@ namespace SlotGame.Tests.PlayMode
             // Wait for transition to Spinning state
             await UniTask.WaitUntil(() => GetCurrentPhase(gm) == GamePhase.Spinning);
 
-            // Intentionally trigger cancellation during spin
-            cts.Cancel();
-
-            // Wait for exception to be caught and state to return to Idle
-            await UniTask.WaitUntil(() => GetCurrentPhase(gm) == GamePhase.Idle)
-                         .Timeout(TimeSpan.FromSeconds(5));
-
-            // --- Verify ---
-            // Verify Catch block executed and UI is reset
-            Assert.AreEqual(GamePhase.Idle, GetCurrentPhase(gm), "Game phase should be reset to Idle");
-
-            // Indirectly verify UIManager methods were called correctly
-            // (Interactable returns to true)
+            // Inject mock states into UIManager to verify they are cleared on cancel
             var uiManagerField = typeof(GameManager).GetField("uiManager", BindingFlags.NonPublic | BindingFlags.Instance);
             var uiManager = uiManagerField.GetValue(gm) as SlotGame.View.UIManager;
-            Assert.IsNotNull(uiManager);
+
+            // 1. Show FreeSpinHUD
+            uiManager.ShowFreeSpinHUD(10, 100);
+
+            // 2. Set ModeVisual to FreeSpin (different from Normal)
+            uiManager.ApplyModeVisual(SlotGame.View.ModeVisualType.FreeSpin);
+
+            // 3. Add a mock payline to simulate active lines
+            var activePaylinesField = typeof(SlotGame.View.UIManager).GetField("_activePaylines", BindingFlags.NonPublic | BindingFlags.Instance);
+            var activePaylines = activePaylinesField.GetValue(uiManager) as System.Collections.Generic.List<SlotGame.View.PaylineView>;
+            var mockPaylineGo = new GameObject("MockPayline");
+            activePaylines.Add(mockPaylineGo.AddComponent<SlotGame.View.PaylineView>());
+
+            try
+            {
+                // Intentionally trigger cancellation during spin
+                cts.Cancel();
+
+                // Wait for exception to be caught and state to return to Idle
+                await UniTask.WaitUntil(() => GetCurrentPhase(gm) == GamePhase.Idle)
+                             .Timeout(TimeSpan.FromSeconds(5));
+
+                // --- Verify ---
+                // Verify Catch block executed and UI is reset
+                Assert.AreEqual(GamePhase.Idle, GetCurrentPhase(gm), "Game phase should be reset to Idle");
+
+                // Indirectly verify UIManager methods were called correctly
+                // (Interactable returns to true)
+                Assert.IsNotNull(uiManager);
+
+                // Verify FreeSpinHUD is hidden
+                var freeSpinHUDField = typeof(SlotGame.View.UIManager).GetField("freeSpinHUD", BindingFlags.NonPublic | BindingFlags.Instance);
+                var freeSpinHUD = freeSpinHUDField.GetValue(uiManager) as SlotGame.View.FreeSpinHUDView;
+                Assert.IsNotNull(freeSpinHUD);
+                Assert.IsFalse(freeSpinHUD.gameObject.activeSelf, "FreeSpinHUD should be hidden");
+
+                // Verify Line Highlights are cleared
+                Assert.AreEqual(0, activePaylines.Count, "Line highlights should be cleared");
+
+                // Verify ModeVisual is Normal (check NormalTint color)
+                var modeTintOverlayField = typeof(SlotGame.View.UIManager).GetField("_modeTintOverlay", BindingFlags.NonPublic | BindingFlags.Instance);
+                var modeTintOverlay = modeTintOverlayField.GetValue(uiManager) as UnityEngine.UI.Image;
+                Assert.IsNotNull(modeTintOverlay, "Mode Tint Overlay image should not be null");
+                var normalTintProp = typeof(SlotGame.View.UIManager).GetProperty("NormalTint", BindingFlags.NonPublic | BindingFlags.Instance);
+                var normalTint = (UnityEngine.Color)normalTintProp.GetValue(uiManager);
+                Assert.AreEqual(normalTint, modeTintOverlay.color, "Mode visual should be reset to Normal");
+            }
+            finally
+            {
+                // Clean up mock payline to prevent memory leaks across tests
+                if (mockPaylineGo != null)
+                {
+                    GameObject.Destroy(mockPaylineGo);
+                }
+            }
 
             // Verify MainHUD SpinButton is interactable using reflection
             var mainHUDField = typeof(SlotGame.View.UIManager).GetField("mainHUD", BindingFlags.NonPublic | BindingFlags.Instance);
