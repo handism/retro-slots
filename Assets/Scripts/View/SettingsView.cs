@@ -8,31 +8,39 @@ using UnityEngine.UI;
 namespace SlotGame.View
 {
     /// <summary>設定画面（BGM/SE ボリューム・コインリセット）の View。</summary>
-    public class SettingsView : MonoBehaviour
+    public class SettingsView : ModalViewBase
     {
-        [SerializeField] private Slider   bgmSlider;
-        [SerializeField] private Slider   seSlider;
-        [SerializeField] private TMP_Text bgmValueText;
-        [SerializeField] private TMP_Text seValueText;
-        [SerializeField] private Button   resetCoinsButton;
-        [SerializeField] private Button   closeButton;
+        [SerializeField]
+        private Slider bgmSlider;
+
+        [SerializeField]
+        private Slider seSlider;
+
+        [SerializeField]
+        private TMP_Text bgmValueText;
+
+        [SerializeField]
+        private TMP_Text seValueText;
+
+        [SerializeField]
+        private Button resetCoinsButton;
+
+        [SerializeField]
+        private Button closeButton;
 
         private Button _descriptionButton;
-        private CanvasGroup _canvasGroup;
         private AudioManager _audioManager;
 
         public event System.Action<float> OnBGMVolumeChanged;
         public event System.Action<float> OnSEVolumeChanged;
-        public event System.Action        OnResetCoinsRequested;
-        public event System.Action        OnDescriptionRequested;
-        public event System.Action        OnCloseRequested;
+        public event System.Action OnResetCoinsRequested;
+        public event System.Action OnDescriptionRequested;
+        public event System.Action OnCloseRequested;
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             _audioManager = FindFirstObjectByType<AudioManager>();
-            _canvasGroup = GetComponent<CanvasGroup>();
-            if (_canvasGroup == null) _canvasGroup = gameObject.AddComponent<CanvasGroup>();
-            _canvasGroup.alpha = 0;
 
             bgmSlider.onValueChanged.AddListener(v =>
             {
@@ -64,22 +72,29 @@ namespace SlotGame.View
 
         private void OnDestroy()
         {
-            if (bgmSlider != null) bgmSlider.onValueChanged.RemoveAllListeners();
-            if (seSlider != null) seSlider.onValueChanged.RemoveAllListeners();
-            if (resetCoinsButton != null) resetCoinsButton.onClick.RemoveAllListeners();
-            if (closeButton != null) closeButton.onClick.RemoveAllListeners();
-            if (_descriptionButton != null) _descriptionButton.onClick.RemoveAllListeners();
+            if (bgmSlider != null)
+                bgmSlider.onValueChanged.RemoveAllListeners();
+            if (seSlider != null)
+                seSlider.onValueChanged.RemoveAllListeners();
+            if (resetCoinsButton != null)
+                resetCoinsButton.onClick.RemoveAllListeners();
+            if (closeButton != null)
+                closeButton.onClick.RemoveAllListeners();
+            if (_descriptionButton != null)
+                _descriptionButton.onClick.RemoveAllListeners();
         }
 
         private void CreateDescriptionButton()
         {
-            if (resetCoinsButton == null) return;
+            if (resetCoinsButton == null)
+                return;
 
             var btnGo = Instantiate(resetCoinsButton.gameObject, resetCoinsButton.transform.parent);
             btnGo.name = "DescriptionButton";
-            
+
             var txt = btnGo.GetComponentInChildren<TMP_Text>();
-            if (txt != null) txt.text = "ゲーム説明";
+            if (txt != null)
+                txt.text = "ゲーム説明";
 
             _descriptionButton = btnGo.GetComponent<Button>();
             _descriptionButton.onClick.RemoveAllListeners();
@@ -98,28 +113,7 @@ namespace SlotGame.View
             bgmSlider.SetValueWithoutNotify(bgm);
             seSlider.SetValueWithoutNotify(se);
             bgmValueText.text = $"{(int)(bgm * 100)}%";
-            seValueText.text  = $"{(int)(se  * 100)}%";
-        }
-
-        public async UniTask ShowAsync(System.Threading.CancellationToken ct = default)
-        {
-            gameObject.SetActive(true);
-            transform.localScale = Vector3.one * 0.9f;
-            _canvasGroup.alpha = 0f;
-
-            await UniTask.WhenAll(
-                DOTween.To(() => _canvasGroup.alpha, x => _canvasGroup.alpha = x, 1f, 0.2f).SetEase(Ease.OutQuad).ToUniTask(cancellationToken: ct),
-                transform.DOScale(1f, 0.2f).SetEase(Ease.OutBack).ToUniTask(cancellationToken: ct)
-            );
-        }
-
-        public async UniTask HideAsync(System.Threading.CancellationToken ct = default)
-        {
-            await UniTask.WhenAll(
-                DOTween.To(() => _canvasGroup.alpha, x => _canvasGroup.alpha = x, 0f, 0.15f).SetEase(Ease.InQuad).ToUniTask(cancellationToken: ct),
-                transform.DOScale(0.9f, 0.15f).SetEase(Ease.InBack).ToUniTask(cancellationToken: ct)
-            );
-            gameObject.SetActive(false);
+            seValueText.text = $"{(int)(se * 100)}%";
         }
 
         private void PlayButtonClickSe()
