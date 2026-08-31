@@ -178,6 +178,25 @@ namespace SlotGame.Tests.EditMode
         }
 
         [Test]
+        public void Load_ExceptionDuringRead_CreatesBakFile()
+        {
+            // Empty string is invalid JSON and causes JsonUtility.FromJson to throw ArgumentException,
+            // triggering the catch block without locking the file (like the test above does).
+            File.WriteAllText(_tempPath, "");
+            var mgr = new SaveDataManager(_tempPath, null);
+
+            var data = mgr.Load();
+
+            // The catch block should have called RecoverFromCorruption() and returned default SaveData
+            Assert.AreEqual(1000, data.coins);
+            Assert.AreEqual(10, data.betAmount);
+            Assert.AreEqual("1.0", data.saveVersion);
+
+            // It should also successfully create a .bak file
+            Assert.IsTrue(File.Exists(_tempPath + ".bak"));
+        }
+
+        [Test]
         public void SaveAsync_ExceptionThrown_HandlesErrorAndDeletesTempFile()
         {
             // Create a directory at _tempPath so File.Move throws IOException
