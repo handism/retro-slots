@@ -92,66 +92,68 @@ namespace SlotGame.View
                 break;
             }
 
-            // 既存の行を削除
-            var staleRows = new List<GameObject>();
+            // 既存の行を再利用リストに追加
+            var pooledRows = new List<GameObject>();
             foreach (Transform child in contentRoot)
             {
                 if (child == null) continue;
                 if (rowPrefab != null && child.gameObject == rowPrefab) continue;
-                staleRows.Add(child.gameObject);
+                pooledRows.Add(child.gameObject);
             }
 
-            foreach (var staleRow in staleRows)
-                Destroy(staleRow);
-
+            int rowIndex = 0;
             foreach (var sym in symbols)
             {
                 // Only show normal symbol payouts in the paytable UI
                 if (sym.type != SymbolType.Normal) continue;
                 
-                var row = Instantiate(rowPrefab, contentRoot);
+                GameObject row;
+                if (rowIndex < pooledRows.Count)
+                {
+                    row = pooledRows[rowIndex];
+                }
+                else
+                {
+                    row = Instantiate(rowPrefab, contentRoot);
+                    pooledRows.Add(row);
+                }
+
                 row.SetActive(true);
                 row.name = $"Row_{sym.symbolName}";
 
-                var rowRect = row.GetComponent<RectTransform>();
-                if (rowRect != null)
+                if (!row.TryGetComponent<PaytableRowRef>(out var rowRef))
                 {
-                    rowRect.localScale = Vector3.one;
-                    rowRect.anchoredPosition3D = Vector3.zero;
+                    rowRef = row.AddComponent<PaytableRowRef>();
+                    rowRef.Initialize();
                 }
 
-                TMP_Text text0 = null;
-                TMP_Text text1 = null;
-                TMP_Text text2 = null;
-                int textIdx = 0;
-
-                foreach (Transform child in row.transform)
+                if (rowRef.rowRect != null)
                 {
-                    if (child.TryGetComponent<TMP_Text>(out var tmp))
-                    {
-                        if (textIdx == 0) text0 = tmp;
-                        else if (textIdx == 1) text1 = tmp;
-                        else if (textIdx == 2) text2 = tmp;
-                        textIdx++;
-                    }
+                    rowRef.rowRect.localScale = Vector3.one;
+                    rowRef.rowRect.anchoredPosition3D = Vector3.zero;
                 }
 
-                var iconTransform = row.transform.Find("SymbolCell/Icon");
-                var img = iconTransform != null ? iconTransform.GetComponent<Image>() : null;
-
-                if (img != null)
+                if (rowRef.iconImage != null)
                 {
-                    img.sprite = sym.sprite;
-                    img.preserveAspect = true;
-                    img.SetNativeSize();
+                    rowRef.iconImage.sprite = sym.sprite;
+                    rowRef.iconImage.preserveAspect = true;
+                    rowRef.iconImage.SetNativeSize();
 
-                    var iconRect = img.rectTransform;
+                    var iconRect = rowRef.iconImage.rectTransform;
                     iconRect.sizeDelta = new Vector2(IconSize, IconSize);
                 }
 
-                if (text0 != null) text0.text = sym.payouts.Length > 0 ? sym.payouts[0].ToString("N0") : "-";
-                if (text1 != null) text1.text = sym.payouts.Length > 1 ? sym.payouts[1].ToString("N0") : "-";
-                if (text2 != null) text2.text = sym.payouts.Length > 2 ? sym.payouts[2].ToString("N0") : "-";
+                if (rowRef.text0 != null) rowRef.text0.text = sym.payouts.Length > 0 ? sym.payouts[0].ToString("N0") : "-";
+                if (rowRef.text1 != null) rowRef.text1.text = sym.payouts.Length > 1 ? sym.payouts[1].ToString("N0") : "-";
+                if (rowRef.text2 != null) rowRef.text2.text = sym.payouts.Length > 2 ? sym.payouts[2].ToString("N0") : "-";
+
+                rowIndex++;
+            }
+
+            // 余った行を非表示にする
+            for (int i = rowIndex; i < pooledRows.Count; i++)
+            {
+                pooledRows[i].SetActive(false);
             }
 
             LayoutRebuilder.MarkLayoutForRebuild((RectTransform)contentRoot);
@@ -250,6 +252,35 @@ namespace SlotGame.View
         {
             _audioManager ??= FindFirstObjectByType<AudioManager>();
             _audioManager?.PlaySE(SEType.ButtonClick);
+        }
+    }
+
+    public class PaytableRowRef : MonoBehaviour
+    {
+        public RectTransform rowRect;
+        public Image iconImage;
+        public TMP_Text text0;
+        public TMP_Text text1;
+        public TMP_Text text2;
+
+        public void Initialize()
+        {
+            rowRect = GetComponent<RectTransform>();
+
+            int textIdx = 0;
+            foreach (Transform child in transform)
+            {
+                if (child.TryGetComponent<TMP_Text>(out var tmp))
+                {
+                    if (textIdx == 0) text0 = tmp;
+                    else if (textIdx == 1) text1 = tmp;
+                    else if (textIdx == 2) text2 = tmp;
+                    textIdx++;
+                }
+            }
+
+            var iconTransform = transform.Find("SymbolCell/Icon");
+            iconImage = iconTransform != null ? iconTransform.GetComponent<Image>() : null;
         }
     }
 }
