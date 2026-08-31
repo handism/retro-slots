@@ -12,7 +12,8 @@ namespace SlotGame.Core
     /// <summary>全リールの回転・停止を調整し SpinResult を返す Presenter。</summary>
     public class SpinManager : MonoBehaviour
     {
-        [SerializeField] private ReelController[] reels;   // 5 個
+        [SerializeField]
+        private ReelController[] reels; // 5 個
         public IReadOnlyList<ReelController> Reels => reels;
         public event Action<int> ReelStopped;
 
@@ -31,7 +32,8 @@ namespace SlotGame.Core
                 System.Array.Sort(reels, (a, b) => a.transform.position.x.CompareTo(b.transform.position.x));
             }
 
-            if (strips == null) return;
+            if (strips == null)
+                return;
 
             for (int i = 0; i < reels.Length && i < strips.Length; i++)
                 reels[i].Initialize(strips[i]);
@@ -50,7 +52,8 @@ namespace SlotGame.Core
             int reelCount = 5,
             int rowCount = 3,
             int minMatch = 3,
-            int[] bonusReels = null)
+            int[] bonusReels = null
+        )
         {
             _skipRequested = false;
             var gameState = GameContext.GameState;
@@ -65,7 +68,8 @@ namespace SlotGame.Core
                 stopIndices[i] = _random.Next(0, strips[i].strip.Count);
 
             // 全リール同時にスクロール開始
-            foreach (var reel in reels) reel.StartSpin(ct);
+            foreach (var reel in reels)
+                reel.StartSpin(ct);
 
             try
             {
@@ -92,11 +96,10 @@ namespace SlotGame.Core
                     {
                         if (i > 0)
                         {
-                            // 順次停止中もスキップをチェック
-                            if (_skipRequested) break;
-                            await UniTask.Delay(TimeSpan.FromSeconds(stopInterval), cancellationToken: ct);
+                            await WaitBetweenReelStopsAsync(stopInterval, ct);
                         }
-                        if (_skipRequested) break;
+                        if (_skipRequested)
+                            break;
                         await reels[i].StopSpin(stopIndices[i], ct);
                         ReelStopped?.Invoke(i);
                     }
@@ -143,13 +146,38 @@ namespace SlotGame.Core
             if (_cachedSymbolDefs == null)
                 _cachedSymbolDefs = CollectSymbolDefs(strips);
 
-            var result = PaylineEvaluator.Evaluate(grid, _cachedSymbolDefs, paylines, payouts, betAmount, reelCount, rowCount, minMatch, bonusReels);
+            var result = PaylineEvaluator.Evaluate(
+                grid,
+                _cachedSymbolDefs,
+                paylines,
+                payouts,
+                betAmount,
+                reelCount,
+                rowCount,
+                minMatch,
+                bonusReels
+            );
 
             return result;
         }
 
         /// <summary>スピン中に呼ぶとリールが即座に停止位置へスナップする。</summary>
         public void RequestSkip() => _skipRequested = true;
+
+        private async UniTask WaitBetweenReelStopsAsync(float interval, CancellationToken ct)
+        {
+            if (_skipRequested)
+                return;
+
+            float elapsed = 0f;
+            while (elapsed < interval)
+            {
+                if (_skipRequested)
+                    break;
+                elapsed += Time.deltaTime;
+                await UniTask.Yield(PlayerLoopTiming.Update, ct);
+            }
+        }
 
         private static IReadOnlyDictionary<int, SymbolData> CollectSymbolDefs(ReelStripData[] strips)
         {
