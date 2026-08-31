@@ -82,6 +82,22 @@ namespace SlotGame.Core
             }
         }
 
+        protected virtual UniTask LoadBonusSceneAsync(CancellationToken ct)
+        {
+            var op = SceneManager.LoadSceneAsync("BonusRound", LoadSceneMode.Additive);
+            return op.ToUniTask(cancellationToken: ct);
+        }
+
+        protected virtual UniTask UnloadBonusSceneAsync(CancellationToken ct)
+        {
+            return SceneManager.UnloadSceneAsync("BonusRound").ToUniTask(cancellationToken: ct);
+        }
+
+        protected virtual BonusRoundView GetBonusRoundView()
+        {
+            return FindFirstObjectByType<BonusRoundView>();
+        }
+
         /// <summary>
         /// ボーナスラウンド（宝箱選択ミニゲーム）を実行して獲得コインを返す。
         /// </summary>
@@ -91,15 +107,14 @@ namespace SlotGame.Core
             CancellationToken ct)
         {
             // BonusRound シーンを Additive ロード
-            var op = SceneManager.LoadSceneAsync("BonusRound", LoadSceneMode.Additive);
-            await op.ToUniTask(cancellationToken: ct);
+            await LoadBonusSceneAsync(ct);
 
             // BonusRoundView を探して宝箱選択完了を待機
-            var view = FindFirstObjectByType<BonusRoundView>();
+            var view = GetBonusRoundView();
             if (view == null)
             {
                 Debug.LogError("BonusRoundView not found in BonusRound scene.");
-                await SceneManager.UnloadSceneAsync("BonusRound").ToUniTask(cancellationToken: ct);
+                await UnloadBonusSceneAsync(ct);
                 return 0;
             }
 
@@ -119,7 +134,7 @@ namespace SlotGame.Core
 
             await view.ShowResultAsync(totalMultiplier, ct);
 
-            await SceneManager.UnloadSceneAsync("BonusRound").ToUniTask(cancellationToken: ct);
+            await UnloadBonusSceneAsync(ct);
             return totalWin;
         }
 
