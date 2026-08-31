@@ -33,6 +33,18 @@ namespace SlotGame.View
         private long _displayedWin;
         private AudioManager? _audioManager;
         private List<Button> _autoSpinCountButtons = new();
+
+        // キャッシュ用フィールド (Performance Optimization)
+        private Image? _spinButtonImage;
+        private UIGradient? _spinButtonGradient;
+
+        private Image? _turboButtonImage;
+        private UIGradient? _turboButtonGradient;
+        private TMP_Text? _turboButtonText;
+
+        private Image?[]? _betImages;
+        private UIGradient?[]? _betGradients;
+        private TMP_Text?[]? _betLabels;
         private GameObject? _autoSpinPopup;
         private bool _popupOpen;
 
@@ -64,12 +76,12 @@ namespace SlotGame.View
                 autoButtonText = autoSpinButton.GetComponentInChildren<TMP_Text>();
 
             // スピンボタンにレトロ赤メタル系グラデーションを適用
-            var spinImg = spinButton != null ? spinButton.GetComponent<Image>() : null;
-            if (spinImg != null)
+            _spinButtonImage = spinButton != null ? spinButton.GetComponent<Image>() : null;
+            if (_spinButtonImage != null)
             {
-                spinImg.color = Color.white;
-                var grad = spinImg.GetComponent<UIGradient>() ?? spinImg.gameObject.AddComponent<UIGradient>();
-                grad.SetColors(
+                _spinButtonImage.color = Color.white;
+                _spinButtonGradient = _spinButtonImage.GetComponent<UIGradient>() ?? _spinButtonImage.gameObject.AddComponent<UIGradient>();
+                _spinButtonGradient.SetColors(
                     colorTheme != null ? colorTheme.spinButtonTop    : new Color(0.80f, 0.15f, 0.10f, 1f),
                     colorTheme != null ? colorTheme.spinButtonBottom : new Color(0.45f, 0.04f, 0.02f, 1f)
                 );
@@ -87,11 +99,24 @@ namespace SlotGame.View
                 );
             }
 
-            for (int i = 0; i < betButtons.Length; i++)
+            int betCount = betButtons != null ? betButtons.Length : 0;
+            _betImages = new Image?[betCount];
+            _betGradients = new UIGradient?[betCount];
+            _betLabels = new TMP_Text?[betCount];
+
+            for (int i = 0; i < betCount; i++)
             {
                 int bet = betValues[i];
-                var btn = betButtons[i];
-                btn.onClick.AddListener(() => {
+                var btn = betButtons![i];
+
+                _betImages[i] = btn != null ? btn.GetComponent<Image>() : null;
+                if (_betImages[i] != null && btn != null)
+                {
+                    _betGradients[i] = _betImages[i]!.GetComponent<UIGradient>() ?? btn.gameObject.AddComponent<UIGradient>();
+                }
+                _betLabels[i] = btn != null ? btn.GetComponentInChildren<TMP_Text>() : null;
+
+                btn?.onClick.AddListener(() => {
                     btn.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
                     PlayButtonClickSe();
                     OnBetButtonClicked(bet);
@@ -113,6 +138,13 @@ namespace SlotGame.View
 
             if (turboButton != null)
             {
+                _turboButtonText = turboButton.GetComponentInChildren<TMP_Text>();
+                _turboButtonImage = turboButton.GetComponent<Image>();
+                if (_turboButtonImage != null)
+                {
+                    _turboButtonGradient = _turboButtonImage.GetComponent<UIGradient>() ?? _turboButtonImage.gameObject.AddComponent<UIGradient>();
+                }
+
                 turboButton.onClick.AddListener(() =>
                 {
                     _isTurbo = !_isTurbo;
@@ -341,17 +373,19 @@ namespace SlotGame.View
 
         public void SetBet(int bet)
         {
+            if (_betImages == null || _betGradients == null || _betLabels == null) return;
+
             for (int i = 0; i < betButtons.Length; i++)
             {
                 bool isSelected = betValues[i] == bet;
                 var button = betButtons[i];
-                var image = button != null ? button.GetComponent<Image>() : null;
-                var label = button != null ? button.GetComponentInChildren<TMP_Text>() : null;
+                var image = _betImages[i];
+                var label = _betLabels[i];
+                var grad = _betGradients[i];
 
-                if (image != null && button != null)
+                if (image != null && button != null && grad != null)
                 {
                     image.color = Color.white;
-                    var grad = image.GetComponent<UIGradient>() ?? image.gameObject.AddComponent<UIGradient>();
                     if (isSelected)
                     {
                         grad.SetColors(
@@ -399,8 +433,7 @@ namespace SlotGame.View
             if (spinButtonText == null || spinButton == null) return;
             spinButtonText.text = isStopMode ? "STOP" : "SPIN";
             
-            var grad = spinButton.GetComponent<UIGradient>();
-            if (grad != null)
+            if (_spinButtonGradient != null)
             {
                 if (isStopMode)
                 {
@@ -449,24 +482,21 @@ namespace SlotGame.View
         private void UpdateTurboVisual()
         {
             if (turboButton == null) return;
-            var txt = turboButton.GetComponentInChildren<TMP_Text>();
-            if (txt != null)
+            if (_turboButtonText != null)
             {
-                txt.text = _isTurbo ? "TURBO: ON" : "TURBO: OFF";
-                txt.color = _isTurbo ? Color.yellow : Color.white;
+                _turboButtonText.text = _isTurbo ? "TURBO: ON" : "TURBO: OFF";
+                _turboButtonText.color = _isTurbo ? Color.yellow : Color.white;
             }
 
-            var image = turboButton.GetComponent<Image>();
-            if (image != null)
+            if (_turboButtonGradient != null)
             {
-                var grad = image.GetComponent<UIGradient>() ?? image.gameObject.AddComponent<UIGradient>();
                 if (_isTurbo)
                 {
-                    grad.SetColors(new Color(1f, 0.8f, 0.2f), new Color(0.6f, 0.4f, 0f));
+                    _turboButtonGradient.SetColors(new Color(1f, 0.8f, 0.2f), new Color(0.6f, 0.4f, 0f));
                 }
                 else
                 {
-                    grad.SetColors(new Color(0.4f, 0.4f, 0.4f), new Color(0.2f, 0.2f, 0.2f));
+                    _turboButtonGradient.SetColors(new Color(0.4f, 0.4f, 0.4f), new Color(0.2f, 0.2f, 0.2f));
                 }
             }
         }
