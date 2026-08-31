@@ -16,22 +16,33 @@ namespace SlotGame.View
     /// </summary>
     public class BonusRoundView : MonoBehaviour
     {
-        private const int ChestCount    = 9;
-        private const int SelectCount   = 3;
+        private const int ChestCount = 9;
+        private const int SelectCount = 3;
 
-        [SerializeField] private Button[]   chestButtons;       // 9 個の宝箱ボタン
-        [SerializeField] private TMP_Text[] rewardTexts;        // 各宝箱の報酬表示
-        [SerializeField] private TMP_Text   totalWinText;
-        [SerializeField] private TMP_Text   instructionText;    // 操作説明テキスト
-        [SerializeField] private GameObject resultPanel;        // 結果表示パネル
-        [SerializeField] private TMP_Text   resultMultiplierText; // 合計倍率テキスト
+        [SerializeField]
+        private Button[] chestButtons; // 9 個の宝箱ボタン
+
+        [SerializeField]
+        private TMP_Text[] rewardTexts; // 各宝箱の報酬表示
+
+        [SerializeField]
+        private TMP_Text totalWinText;
+
+        [SerializeField]
+        private TMP_Text instructionText; // 操作説明テキスト
+
+        [SerializeField]
+        private GameObject resultPanel; // 結果表示パネル
+
+        [SerializeField]
+        private TMP_Text resultMultiplierText; // 合計倍率テキスト
 
         private UniTaskCompletionSource<int[]> _tcs;
-        private UniTaskCompletionSource         _resultDismissTcs;
-        private List<int>                      _selectedRewards;
-        private int                            _selectRemaining;
-        private int[]                          _rewards;         // 事前に BonusManager が設定した報酬値
-        private AudioManager                   _audioManager;
+        private UniTaskCompletionSource _resultDismissTcs;
+        private List<int> _selectedRewards;
+        private int _selectRemaining;
+        private int[] _rewards; // 事前に BonusManager が設定した報酬値
+        private AudioManager _audioManager;
 
         private void Awake()
         {
@@ -41,7 +52,8 @@ namespace SlotGame.View
                 int idx = i;
                 chestButtons[i].onClick.AddListener(() => OnChestSelected(idx));
             }
-            if (resultPanel != null) resultPanel.SetActive(false);
+            if (resultPanel != null)
+                resultPanel.SetActive(false);
         }
 
         private void OnDestroy()
@@ -63,22 +75,23 @@ namespace SlotGame.View
         /// </summary>
         public async UniTask<int[]> WaitForSelection(int[] presetRewards, CancellationToken ct)
         {
-            _rewards         = presetRewards;
+            _rewards = presetRewards;
             _selectedRewards = new List<int>(SelectCount);
             _selectRemaining = SelectCount;
-            _tcs             = new UniTaskCompletionSource<int[]>();
+            _tcs = new UniTaskCompletionSource<int[]>();
 
             // 全宝箱をリセット
             for (int i = 0; i < chestButtons.Length; i++)
             {
                 chestButtons[i].interactable = true;
-                rewardTexts[i].text          = "?";
+                rewardTexts[i].text = "?";
                 rewardTexts[i].gameObject.SetActive(false);
             }
             totalWinText.text = "0";
             if (instructionText != null)
                 instructionText.text = $"宝箱を {SelectCount} 個選んでください！";
-            if (resultPanel != null) resultPanel.SetActive(false);
+            if (resultPanel != null)
+                resultPanel.SetActive(false);
 
             // キャンセル時は tcs を cancel
             ct.Register(() => _tcs.TrySetCanceled());
@@ -87,12 +100,12 @@ namespace SlotGame.View
         }
 
         // Inspector 用オーバーロード（rewards を外部から設定しない場合）
-        public UniTask<int[]> WaitForSelection(CancellationToken ct)
-            => WaitForSelection(_rewards, ct);
+        public UniTask<int[]> WaitForSelection(CancellationToken ct) => WaitForSelection(_rewards, ct);
 
         private void OnChestSelected(int index)
         {
-            if (_selectRemaining <= 0) return;
+            if (_selectRemaining <= 0)
+                return;
             chestButtons[index].interactable = false;
             PlaySe(SEType.ChestSelect);
 
@@ -119,7 +132,8 @@ namespace SlotGame.View
 
             // 累計表示更新
             long total = 0;
-            foreach (int r in _selectedRewards) total += r;
+            foreach (int r in _selectedRewards)
+                total += r;
             totalWinText.text = total.ToString("N0");
 
             if (_selectRemaining <= 0)
@@ -134,7 +148,8 @@ namespace SlotGame.View
                         chestButtons[i].interactable = false;
                     }
 
-                if (instructionText != null) instructionText.text = "";
+                if (instructionText != null)
+                    instructionText.text = "";
 
                 await UniTask.Delay(1500);
                 _tcs.TrySetResult(_selectedRewards.ToArray());
@@ -143,8 +158,10 @@ namespace SlotGame.View
 
         private void PlaySe(SEType type)
         {
-            _audioManager ??= FindFirstObjectByType<AudioManager>();
-            _audioManager?.PlaySE(type);
+            if (_audioManager != null)
+            {
+                _audioManager.PlaySE(type);
+            }
         }
 
         /// <summary>
@@ -152,7 +169,11 @@ namespace SlotGame.View
         /// </summary>
         public async UniTask ShowResultAsync(int totalMultiplier, CancellationToken ct)
         {
-            if (resultPanel == null) { await UniTask.Delay(2000, cancellationToken: ct); return; }
+            if (resultPanel == null)
+            {
+                await UniTask.Delay(2000, cancellationToken: ct);
+                return;
+            }
 
             if (resultMultiplierText != null)
                 resultMultiplierText.text = $"合計倍率　×{totalMultiplier}";
