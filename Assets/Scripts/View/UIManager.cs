@@ -16,7 +16,7 @@ namespace SlotGame.View
     {
         Normal,
         FreeSpin,
-        BonusRound
+        BonusRound,
     }
 
     /// <summary>各 View パネルを統括する UIManager。</summary>
@@ -25,20 +25,43 @@ namespace SlotGame.View
         private const int MaxPaylinePoolSize = 50;
         private const int SequentialLineDelayMs = 500;
 
-        [SerializeField] private MainHUDView     mainHUD = null!;
-        [SerializeField] private FreeSpinHUDView freeSpinHUD = null!;
-        [SerializeField] private WinPopupView    winPopup = null!;
-        [SerializeField] private SettingsView    settingsView = null!;
-        [SerializeField] private PaytableView    paytableView = null!;
-        [SerializeField] private StatsView       statsView    = null!;
-        [SerializeField] private GameDescriptionView gameDescriptionView = null!;
-        [SerializeField] private PaylineView     paylinePrefab = null!;
-        [SerializeField] private Transform       paylineParent = null!;
+        [SerializeField]
+        private MainHUDView mainHUD = null!;
+
+        [SerializeField]
+        private FreeSpinHUDView freeSpinHUD = null!;
+
+        [SerializeField]
+        private WinPopupView winPopup = null!;
+
+        [SerializeField]
+        private SettingsView settingsView = null!;
+
+        [SerializeField]
+        private PaytableView paytableView = null!;
+
+        [SerializeField]
+        private StatsView statsView = null!;
+
+        [SerializeField]
+        private GameDescriptionView gameDescriptionView = null!;
+
+        [SerializeField]
+        private PaylineView paylinePrefab = null!;
+
+        [SerializeField]
+        private Transform paylineParent = null!;
+
         [Header("Debug/Fallback")]
-        [SerializeField] private PaylineData     paylineData = null!;
+        [SerializeField]
+        private PaylineData paylineData = null!;
+
         [Header("Theme")]
-        [SerializeField] private RetroColorTheme? colorTheme;
-        [SerializeField] private Image?          backgroundPanel;
+        [SerializeField]
+        private RetroColorTheme? colorTheme;
+
+        [SerializeField]
+        private Image? backgroundPanel;
 
         private List<PaylineView> _activePaylines = new();
         private Queue<PaylineView> _paylinePool = new();
@@ -54,13 +77,17 @@ namespace SlotGame.View
         private CanvasGroup? _hudCanvasGroup;
         private TutorialView? _tutorialView;
 
-        private Color NormalTint     => colorTheme != null ? colorTheme.normalTint     : new(0.10f, 0.05f, 0.01f, 0f);
-        private Color FreeSpinTint   => colorTheme != null ? colorTheme.freeSpinTint   : new(0.60f, 0.40f, 0.00f, 0.25f);
-        private Color BonusRoundTint => colorTheme != null ? colorTheme.bonusRoundTint : new(0.00f, 0.30f, 0.05f, 0.25f);
+        private Color NormalTint => colorTheme != null ? colorTheme.normalTint : new(0.10f, 0.05f, 0.01f, 0f);
+        private Color FreeSpinTint => colorTheme != null ? colorTheme.freeSpinTint : new(0.60f, 0.40f, 0.00f, 0.25f);
+        private Color BonusRoundTint =>
+            colorTheme != null ? colorTheme.bonusRoundTint : new(0.00f, 0.30f, 0.05f, 0.25f);
 
-        private Color NormalCameraColor     => colorTheme != null ? colorTheme.normalCameraColor     : new(0.10f, 0.05f, 0.01f, 1f);
-        private Color FreeSpinCameraColor   => colorTheme != null ? colorTheme.freeSpinCameraColor   : new(0.08f, 0.12f, 0.02f, 1f);
-        private Color BonusRoundCameraColor => colorTheme != null ? colorTheme.bonusRoundCameraColor : new(0.02f, 0.08f, 0.03f, 1f);
+        private Color NormalCameraColor =>
+            colorTheme != null ? colorTheme.normalCameraColor : new(0.10f, 0.05f, 0.01f, 1f);
+        private Color FreeSpinCameraColor =>
+            colorTheme != null ? colorTheme.freeSpinCameraColor : new(0.08f, 0.12f, 0.02f, 1f);
+        private Color BonusRoundCameraColor =>
+            colorTheme != null ? colorTheme.bonusRoundCameraColor : new(0.02f, 0.08f, 0.03f, 1f);
 
         public bool IsModalOpen { get; private set; }
 
@@ -72,7 +99,7 @@ namespace SlotGame.View
         public event System.Action? StatsCloseRequested;
         public event System.Action? GameDescriptionCloseRequested;
         public event System.Action<int>? AutoSpinRequested;
-        public event System.Action?      AutoSpinStopRequested;
+        public event System.Action? AutoSpinStopRequested;
         public event System.Action<bool>? TurboToggled;
 
         private void Awake()
@@ -139,23 +166,37 @@ namespace SlotGame.View
             }
         }
 
-        public void UpdateCoins(long coins)    => mainHUD.SetCoins(coins);
-        public void UpdateBet(int bet)         => mainHUD.SetBet(bet);
-        public void UpdateWin(long amount)     => mainHUD.SetWin(amount);
+        public void UpdateCoins(long coins) => mainHUD.SetCoins(coins);
+
+        public void UpdateBet(int bet) => mainHUD.SetBet(bet);
+
+        public void UpdateWin(long amount) => mainHUD.SetWin(amount);
+
         public void SetSpinButtonInteractable(bool interactable) => mainHUD.SetSpinInteractable(interactable);
-        public void SetSpinButtonMode(bool isStopMode)           => mainHUD.SetSpinButtonMode(isStopMode);
-        public void SetAutoButtonText(string text)               => mainHUD.SetAutoButtonText(text);
-        public void SetAutoSpinCountInteractable(bool interactable) => mainHUD.SetAutoSpinCountInteractable(interactable);
+
+        public void SetSpinButtonMode(bool isStopMode) => mainHUD.SetSpinButtonMode(isStopMode);
+
+        public void SetAutoButtonText(string text) => mainHUD.SetAutoButtonText(text);
+
+        public void SetAutoSpinCountInteractable(bool interactable) =>
+            mainHUD.SetAutoSpinCountInteractable(interactable);
+
         public void SetTurbo(bool enabled) => mainHUD.SetTurbo(enabled);
 
-        public async UniTask ShowWinAmount(long amount, WinLevel level)
-            => await winPopup.Show(amount, level, this.GetCancellationTokenOnDestroy());
+        public async UniTask ShowWinAmount(long amount, WinLevel level) =>
+            await winPopup.Show(amount, level, this.GetCancellationTokenOnDestroy());
 
         /// <summary>
         /// WinPopup 表示とペイラインハイライトを連動させて実行する。
         /// ポップアップが閉じると同時にアニメーションを停止する。
         /// </summary>
-        public async UniTask ShowWinAndHighlightAsync(long amount, WinLevel level, SpinResult result, CancellationToken ct, PaylineData? overridePaylineData = null)
+        public async UniTask ShowWinAndHighlightAsync(
+            long amount,
+            WinLevel level,
+            SpinResult result,
+            CancellationToken ct,
+            PaylineData? overridePaylineData = null
+        )
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct, this.GetCancellationTokenOnDestroy());
 
@@ -170,7 +211,8 @@ namespace SlotGame.View
 
         private void StopWinAnimations()
         {
-            if (_reelViews == null) return;
+            if (_reelViews == null)
+                return;
             foreach (var reel in _reelViews)
             {
                 for (int row = 0; row < 3; row++)
@@ -189,7 +231,11 @@ namespace SlotGame.View
         /// 当選ペイラインと特殊シンボルのハイライトを表示する。
         /// 複数ライン当選時は順番に表示してから全点灯させる。
         /// </summary>
-        public async UniTask HighlightWinLinesAsync(SpinResult result, CancellationToken ct, PaylineData? overridePaylineData = null)
+        public async UniTask HighlightWinLinesAsync(
+            SpinResult result,
+            CancellationToken ct,
+            PaylineData? overridePaylineData = null
+        )
         {
             var currentPaylineData = overridePaylineData != null ? overridePaylineData : paylineData;
 
@@ -197,7 +243,8 @@ namespace SlotGame.View
             {
                 CacheReelViews();
             }
-            if (_reelViews == null || _reelViews.Length == 0) return;
+            if (_reelViews == null || _reelViews.Length == 0)
+                return;
 
             ClearLineHighlights();
 
@@ -237,14 +284,17 @@ namespace SlotGame.View
 
         private async UniTask ShowSingleLineWinAsync(LineWin win, PaylineData currentPaylineData, CancellationToken ct)
         {
-            if (_reelViews == null) return;
-            if (win.LineIndex < 0 || win.LineIndex >= currentPaylineData.lines.Length) return;
+            if (_reelViews == null)
+                return;
+            if (win.LineIndex < 0 || win.LineIndex >= currentPaylineData.lines.Length)
+                return;
 
             var lineDef = currentPaylineData.lines[win.LineIndex];
             var points = new Vector3[win.MatchCount];
             for (int i = 0; i < win.MatchCount; i++)
             {
-                if (i >= lineDef.rows.Length) break;
+                if (i >= lineDef.rows.Length)
+                    break;
                 points[i] = _reelViews[i].GetSymbolWorldPosition(lineDef.rows[i]);
             }
 
@@ -267,20 +317,23 @@ namespace SlotGame.View
 
         private void ShowAllWins(SpinResult result, PaylineData currentPaylineData)
         {
-            if (_reelViews == null) return;
+            if (_reelViews == null)
+                return;
             var destroyCt = this.GetCancellationTokenOnDestroy();
             var highlightedRowsByReel = new Dictionary<int, HashSet<int>>();
 
             // ペイライン描画
             foreach (var win in result.LineWins)
             {
-                if (win.LineIndex < 0 || win.LineIndex >= currentPaylineData.lines.Length) continue;
+                if (win.LineIndex < 0 || win.LineIndex >= currentPaylineData.lines.Length)
+                    continue;
 
                 var lineDef = currentPaylineData.lines[win.LineIndex];
                 var points = new Vector3[win.MatchCount];
                 for (int i = 0; i < win.MatchCount; i++)
                 {
-                    if (i >= lineDef.rows.Length) break;
+                    if (i >= lineDef.rows.Length)
+                        break;
                     points[i] = _reelViews[i].GetSymbolWorldPosition(lineDef.rows[i]);
                     AddHighlight(highlightedRowsByReel, i, lineDef.rows[i]);
                 }
@@ -374,7 +427,8 @@ namespace SlotGame.View
             {
                 CacheReelViews();
             }
-            if (_reelViews == null) return;
+            if (_reelViews == null)
+                return;
 
             foreach (var reelView in _reelViews)
             {
@@ -384,12 +438,17 @@ namespace SlotGame.View
 
         public void ShowFreeSpinHUD(int remaining, long totalWin)
         {
-            if (freeSpinHUD == null) return;
+            if (freeSpinHUD == null)
+                return;
             freeSpinHUD.gameObject.SetActive(true);
             freeSpinHUD.UpdateDisplay(remaining, totalWin);
         }
 
-        public void HideFreeSpinHUD() { if (freeSpinHUD != null) freeSpinHUD.gameObject.SetActive(false); }
+        public void HideFreeSpinHUD()
+        {
+            if (freeSpinHUD != null)
+                freeSpinHUD.gameObject.SetActive(false);
+        }
 
         public void ApplyModeVisual(ModeVisualType mode)
         {
@@ -399,17 +458,17 @@ namespace SlotGame.View
             {
                 _modeTintOverlay.color = mode switch
                 {
-                    ModeVisualType.FreeSpin   => FreeSpinTint,
+                    ModeVisualType.FreeSpin => FreeSpinTint,
                     ModeVisualType.BonusRound => BonusRoundTint,
-                    _                         => NormalTint,
+                    _ => NormalTint,
                 };
             }
 
             var bgColor = mode switch
             {
-                ModeVisualType.FreeSpin   => FreeSpinCameraColor,
+                ModeVisualType.FreeSpin => FreeSpinCameraColor,
                 ModeVisualType.BonusRound => BonusRoundCameraColor,
-                _                         => NormalCameraColor,
+                _ => NormalCameraColor,
             };
 
             _mainCamera ??= Camera.main;
@@ -424,7 +483,8 @@ namespace SlotGame.View
             string title,
             string subtitle,
             ModeVisualType mode,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken
+        )
         {
             EnsureModeVisuals();
             ApplyModeVisual(mode);
@@ -441,19 +501,13 @@ namespace SlotGame.View
 
             try
             {
-                await DOTween.To(
-                        () => _modeAnnouncementGroup.alpha,
-                        value => _modeAnnouncementGroup.alpha = value,
-                        1f,
-                        0.2f)
+                await DOTween
+                    .To(() => _modeAnnouncementGroup.alpha, value => _modeAnnouncementGroup.alpha = value, 1f, 0.2f)
                     .SetEase(Ease.OutQuad)
                     .ToUniTask(cancellationToken: cancellationToken);
                 await UniTask.Delay(900, cancellationToken: cancellationToken);
-                await DOTween.To(
-                        () => _modeAnnouncementGroup.alpha,
-                        value => _modeAnnouncementGroup.alpha = value,
-                        0f,
-                        0.25f)
+                await DOTween
+                    .To(() => _modeAnnouncementGroup.alpha, value => _modeAnnouncementGroup.alpha = value, 0f, 0.25f)
                     .SetEase(Ease.InQuad)
                     .ToUniTask(cancellationToken: cancellationToken);
             }
@@ -482,7 +536,8 @@ namespace SlotGame.View
 
         public void ShowStats()
         {
-            if (statsView == null) return;
+            if (statsView == null)
+                return;
             SetHudInteractable(false);
             statsView.ShowAsync(this.GetCancellationTokenOnDestroy()).Forget();
         }
@@ -497,10 +552,12 @@ namespace SlotGame.View
             {
                 // paytableView と同じ Canvas（Main Canvas）に置く。
                 // HUD Canvas に置くと SetHudInteractable(false) で閉じるボタンが無効化されるため。
-                var targetCanvas = paytableView != null
-                    ? paytableView.GetComponentInParent<Canvas>()
-                    : (mainHUD != null ? mainHUD.GetComponentInParent<Canvas>() : FindFirstObjectByType<Canvas>());
-                if (targetCanvas == null) return;
+                var targetCanvas =
+                    paytableView != null
+                        ? paytableView.GetComponentInParent<Canvas>()
+                        : (mainHUD != null ? mainHUD.GetComponentInParent<Canvas>() : FindFirstObjectByType<Canvas>());
+                if (targetCanvas == null)
+                    return;
 
                 var go = new GameObject("GameDescriptionView", typeof(RectTransform));
                 go.transform.SetParent(targetCanvas.transform, false);
@@ -520,15 +577,18 @@ namespace SlotGame.View
         public void SetGameDescriptionText(string text)
         {
             _lastDescriptionText = text;
-            if (gameDescriptionView != null) gameDescriptionView.SetDescription(text);
+            if (gameDescriptionView != null)
+                gameDescriptionView.SetDescription(text);
         }
 
         public async UniTask ShowTutorialAsync(CancellationToken ct)
         {
             if (_tutorialView == null)
             {
-                _rootCanvas ??= mainHUD != null ? mainHUD.GetComponentInParent<Canvas>() : FindFirstObjectByType<Canvas>();
-                if (_rootCanvas == null) return;
+                _rootCanvas ??=
+                    mainHUD != null ? mainHUD.GetComponentInParent<Canvas>() : FindFirstObjectByType<Canvas>();
+                if (_rootCanvas == null)
+                    return;
 
                 var go = new GameObject("TutorialView", typeof(RectTransform));
                 go.transform.SetParent(_rootCanvas.transform, false);
@@ -565,13 +625,15 @@ namespace SlotGame.View
 
         private async UniTaskVoid HideStatsAsync(CancellationToken ct)
         {
-            if (statsView != null) await statsView.HideAsync(ct);
+            if (statsView != null)
+                await statsView.HideAsync(ct);
             SetHudInteractable(true);
         }
 
         private async UniTaskVoid HideGameDescriptionAsync(CancellationToken ct)
         {
-            if (gameDescriptionView != null) await gameDescriptionView.HideAsync(ct);
+            if (gameDescriptionView != null)
+                await gameDescriptionView.HideAsync(ct);
             SetHudInteractable(true);
         }
 
@@ -587,20 +649,20 @@ namespace SlotGame.View
 
         private void CacheReelViews()
         {
-            if (_reelViews != null && _reelViews.Length == 5) return;
+            if (_reelViews != null && _reelViews.Length > 0)
+                return;
 
             var views = FindObjectsByType<ReelView>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
-            if (views.Length == 0) return;
+            if (views.Length == 0)
+                return;
 
-            _reelViews = views
-                .OrderBy(v => v.transform.position.x)
-                .ToArray();
+            _reelViews = views.OrderBy(v => v.transform.position.x).ToArray();
         }
 
         private void SetHudInteractable(bool interactable)
         {
             IsModalOpen = !interactable;
-            
+
             if (_hudCanvasGroup == null)
             {
                 var hudCanvas = mainHUD != null ? mainHUD.GetComponentInParent<Canvas>() : null;
@@ -629,7 +691,12 @@ namespace SlotGame.View
 
             if (_modeTintOverlay == null)
             {
-                var tintObject = new GameObject("ModeTintOverlay", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                var tintObject = new GameObject(
+                    "ModeTintOverlay",
+                    typeof(RectTransform),
+                    typeof(CanvasRenderer),
+                    typeof(Image)
+                );
                 tintObject.transform.SetParent(_rootCanvas.transform, false);
                 tintObject.transform.SetSiblingIndex(0);
 
@@ -646,7 +713,13 @@ namespace SlotGame.View
 
             if (_modeAnnouncementGroup == null)
             {
-                var overlayObject = new GameObject("ModeAnnouncementOverlay", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(CanvasGroup));
+                var overlayObject = new GameObject(
+                    "ModeAnnouncementOverlay",
+                    typeof(RectTransform),
+                    typeof(CanvasRenderer),
+                    typeof(Image),
+                    typeof(CanvasGroup)
+                );
                 overlayObject.transform.SetParent(_rootCanvas.transform, false);
                 overlayObject.transform.SetAsLastSibling();
 
