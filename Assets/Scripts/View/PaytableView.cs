@@ -56,6 +56,21 @@ namespace SlotGame.View
             EnsureRowPrefab();
             if (rowPrefab == null || contentRoot == null) return;
 
+            SetupRowPrefabLayout();
+            SetupHeaderLayout();
+            ClearExistingRows();
+
+            foreach (var sym in symbols)
+            {
+                if (sym.type != SymbolType.Normal) continue;
+                PopulateRow(sym);
+            }
+
+            LayoutRebuilder.MarkLayoutForRebuild((RectTransform)contentRoot);
+        }
+
+        private void SetupRowPrefabLayout()
+        {
             // RowTemplate: childControlWidth=true にして preferredWidth で列幅を制御
             var rowHlg = rowPrefab.GetComponent<HorizontalLayoutGroup>();
             if (rowHlg != null) rowHlg.childControlWidth = true;
@@ -71,7 +86,10 @@ namespace SlotGame.View
                 }
                 rowColIdx++;
             }
+        }
 
+        private void SetupHeaderLayout()
+        {
             // HeaderRow: childControlWidth=true にして同じ列幅を適用
             foreach (var hlg in GetComponentsInChildren<HorizontalLayoutGroup>(true))
             {
@@ -91,8 +109,10 @@ namespace SlotGame.View
                 }
                 break;
             }
+        }
 
-            // 既存の行を削除
+        private void ClearExistingRows()
+        {
             var staleRows = new List<GameObject>();
             foreach (Transform child in contentRoot)
             {
@@ -103,58 +123,53 @@ namespace SlotGame.View
 
             foreach (var staleRow in staleRows)
                 Destroy(staleRow);
+        }
 
-            foreach (var sym in symbols)
+        private void PopulateRow(SymbolData sym)
+        {
+            var row = Instantiate(rowPrefab, contentRoot);
+            row.SetActive(true);
+            row.name = $"Row_{sym.symbolName}";
+
+            var rowRect = row.GetComponent<RectTransform>();
+            if (rowRect != null)
             {
-                // Only show normal symbol payouts in the paytable UI
-                if (sym.type != SymbolType.Normal) continue;
-                
-                var row = Instantiate(rowPrefab, contentRoot);
-                row.SetActive(true);
-                row.name = $"Row_{sym.symbolName}";
-
-                var rowRect = row.GetComponent<RectTransform>();
-                if (rowRect != null)
-                {
-                    rowRect.localScale = Vector3.one;
-                    rowRect.anchoredPosition3D = Vector3.zero;
-                }
-
-                TMP_Text text0 = null;
-                TMP_Text text1 = null;
-                TMP_Text text2 = null;
-                int textIdx = 0;
-
-                foreach (Transform child in row.transform)
-                {
-                    if (child.TryGetComponent<TMP_Text>(out var tmp))
-                    {
-                        if (textIdx == 0) text0 = tmp;
-                        else if (textIdx == 1) text1 = tmp;
-                        else if (textIdx == 2) text2 = tmp;
-                        textIdx++;
-                    }
-                }
-
-                var iconTransform = row.transform.Find("SymbolCell/Icon");
-                var img = iconTransform != null ? iconTransform.GetComponent<Image>() : null;
-
-                if (img != null)
-                {
-                    img.sprite = sym.sprite;
-                    img.preserveAspect = true;
-                    img.SetNativeSize();
-
-                    var iconRect = img.rectTransform;
-                    iconRect.sizeDelta = new Vector2(IconSize, IconSize);
-                }
-
-                if (text0 != null) text0.text = sym.payouts.Length > 0 ? sym.payouts[0].ToString("N0") : "-";
-                if (text1 != null) text1.text = sym.payouts.Length > 1 ? sym.payouts[1].ToString("N0") : "-";
-                if (text2 != null) text2.text = sym.payouts.Length > 2 ? sym.payouts[2].ToString("N0") : "-";
+                rowRect.localScale = Vector3.one;
+                rowRect.anchoredPosition3D = Vector3.zero;
             }
 
-            LayoutRebuilder.MarkLayoutForRebuild((RectTransform)contentRoot);
+            TMP_Text text0 = null;
+            TMP_Text text1 = null;
+            TMP_Text text2 = null;
+            int textIdx = 0;
+
+            foreach (Transform child in row.transform)
+            {
+                if (child.TryGetComponent<TMP_Text>(out var tmp))
+                {
+                    if (textIdx == 0) text0 = tmp;
+                    else if (textIdx == 1) text1 = tmp;
+                    else if (textIdx == 2) text2 = tmp;
+                    textIdx++;
+                }
+            }
+
+            var iconTransform = row.transform.Find("SymbolCell/Icon");
+            var img = iconTransform != null ? iconTransform.GetComponent<Image>() : null;
+
+            if (img != null)
+            {
+                img.sprite = sym.sprite;
+                img.preserveAspect = true;
+                img.SetNativeSize();
+
+                var iconRect = img.rectTransform;
+                iconRect.sizeDelta = new Vector2(IconSize, IconSize);
+            }
+
+            if (text0 != null) text0.text = sym.payouts.Length > 0 ? sym.payouts[0].ToString("N0") : "-";
+            if (text1 != null) text1.text = sym.payouts.Length > 1 ? sym.payouts[1].ToString("N0") : "-";
+            if (text2 != null) text2.text = sym.payouts.Length > 2 ? sym.payouts[2].ToString("N0") : "-";
         }
 
         private void EnsureRowPrefab()
