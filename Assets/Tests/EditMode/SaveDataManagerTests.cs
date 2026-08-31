@@ -178,18 +178,33 @@ namespace SlotGame.Tests.EditMode
         }
 
         [Test]
-        public void SaveAsync_ExceptionThrown_HandlesErrorAndDeletesTempFile()
+        public void SaveAsync_FileMoveException_HandlesErrorAndDeletesTempFile()
         {
-            // Create a directory at _tempPath so File.Move throws IOException
-            Directory.CreateDirectory(_tempPath);
-
             var mgr = new SaveDataManager(_tempPath, null);
+            mgr.MoveFileAction = (src, dst) => throw new IOException("Mock Move Error");
             var save = new SaveData { coins = 5000 };
 
-            LogAssert.Expect(UnityEngine.LogType.Error, new System.Text.RegularExpressions.Regex(".*SaveAsync failed.*"));
+            LogAssert.Expect(UnityEngine.LogType.Error, new System.Text.RegularExpressions.Regex(".*SaveAsync failed.*Mock Move Error.*"));
             mgr.SaveAsync(save).AsTask().Wait();
 
-            // temp path is _tempPath + ".tmp". We need _tempPath to be the savePath.
+            // The .tmp file should have been cleaned up in the catch block
+            Assert.IsFalse(File.Exists(_tempPath + ".tmp"));
+        }
+
+        [Test]
+        public void SaveAsync_FileReplaceException_HandlesErrorAndDeletesTempFile()
+        {
+            // Create the initial file so File.Exists(_tempPath) is true and File.Replace is called instead of File.Move
+            File.WriteAllText(_tempPath, "{}");
+
+            var mgr = new SaveDataManager(_tempPath, null);
+            mgr.ReplaceFileAction = (src, dst, backup) => throw new IOException("Mock Replace Error");
+            var save = new SaveData { coins = 5000 };
+
+            LogAssert.Expect(UnityEngine.LogType.Error, new System.Text.RegularExpressions.Regex(".*SaveAsync failed.*Mock Replace Error.*"));
+            mgr.SaveAsync(save).AsTask().Wait();
+
+            // The .tmp file should have been cleaned up in the catch block
             Assert.IsFalse(File.Exists(_tempPath + ".tmp"));
         }
     }

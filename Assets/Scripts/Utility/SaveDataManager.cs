@@ -26,6 +26,10 @@ namespace SlotGame.Utility
             _config = config;
         }
 
+        // Test hooks to allow simulating file system failures without flaky OS-level locks.
+        internal Action<string, string, string?> ReplaceFileAction { get; set; } = File.Replace;
+        internal Action<string, string> MoveFileAction { get; set; } = File.Move;
+
         /// <summary>
         /// セーブデータを読み込む。
         /// ファイルが存在しない場合や破損している場合はデフォルト値を返す。
@@ -72,11 +76,11 @@ namespace SlotGame.Utility
                 await File.WriteAllTextAsync(tempPath, json);
                 if (File.Exists(_savePath))
                 {
-                    File.Replace(tempPath, _savePath, null);
+                    ReplaceFileAction(tempPath, _savePath, null);
                 }
                 else
                 {
-                    File.Move(tempPath, _savePath);
+                    MoveFileAction(tempPath, _savePath);
                 }
             }
             catch (Exception e)
