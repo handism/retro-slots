@@ -1,33 +1,53 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using DG.Tweening;
 using SlotGame.Audio;
 using SlotGame.Data;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using System.Collections.Generic;
+using UnityEngine.UI;
 
 namespace SlotGame.View
 {
     /// <summary>メイン HUD（コイン残高・ベット選択・スピンボタン）の表示担当 View。</summary>
     public class MainHUDView : MonoBehaviour
     {
-        [SerializeField] private TMP_Text coinText = null!;
-        [SerializeField] private TMP_Text winText = null!;
-        [SerializeField] private Button   spinButton = null!;
-        [SerializeField] private Button   autoSpinButton = null!;
-        [SerializeField] private Button   turboButton = null!;
-        [SerializeField] private int[]    autoSpinCounts = { 10, 25, 50, 100 };
-        [SerializeField] private TMP_Text spinButtonText = null!;
-        [SerializeField] private TMP_Text autoButtonText = null!;
+        [SerializeField]
+        private TMP_Text coinText = null!;
+
+        [SerializeField]
+        private TMP_Text winText = null!;
+
+        [SerializeField]
+        private Button spinButton = null!;
+
+        [SerializeField]
+        private Button autoSpinButton = null!;
+
+        [SerializeField]
+        private Button turboButton = null!;
+
+        [SerializeField]
+        private int[] autoSpinCounts = { 10, 25, 50, 100 };
+
+        [SerializeField]
+        private TMP_Text spinButtonText = null!;
+
+        [SerializeField]
+        private TMP_Text autoButtonText = null!;
 
         // ベット選択ボタン群（Inspector でボタンと値を紐付け）
-        [SerializeField] private Button[] betButtons = null!;
-        [SerializeField] private int[]    betValues = null!;   // { 10, 20, 50, 100 }
+        [SerializeField]
+        private Button[] betButtons = null!;
+
+        [SerializeField]
+        private int[] betValues = null!; // { 10, 20, 50, 100 }
+
         [Header("Theme")]
-        [SerializeField] private RetroColorTheme? colorTheme;
+        [SerializeField]
+        private RetroColorTheme? colorTheme;
 
         private long _displayedCoins;
         private long _displayedWin;
@@ -37,17 +57,17 @@ namespace SlotGame.View
         private bool _popupOpen;
 
         public event System.Action<int>? OnAutoSpinRequested;
-        public event System.Action?      OnAutoSpinStopRequested;
+        public event System.Action? OnAutoSpinStopRequested;
         public event System.Action<bool>? OnTurboToggled;
 
         private bool _isTurbo;
         private bool _isAutoRunning;
-        private int  _lastStateChangeFrame;
+        private int _lastStateChangeFrame;
 
         // ロングプレス（長押し）検知用
         private float _pointerDownTime;
-        private bool  _isPointerDown;
-        private bool  _longPressTriggered;
+        private bool _isPointerDown;
+        private bool _longPressTriggered;
         private const float LongPressThreshold = 0.5f;
 
         private void Awake()
@@ -70,7 +90,7 @@ namespace SlotGame.View
                 spinImg.color = Color.white;
                 var grad = spinImg.GetComponent<UIGradient>() ?? spinImg.gameObject.AddComponent<UIGradient>();
                 grad.SetColors(
-                    colorTheme != null ? colorTheme.spinButtonTop    : new Color(0.80f, 0.15f, 0.10f, 1f),
+                    colorTheme != null ? colorTheme.spinButtonTop : new Color(0.80f, 0.15f, 0.10f, 1f),
                     colorTheme != null ? colorTheme.spinButtonBottom : new Color(0.45f, 0.04f, 0.02f, 1f)
                 );
             }
@@ -82,7 +102,7 @@ namespace SlotGame.View
                 autoImg.color = Color.white;
                 var grad = autoImg.GetComponent<UIGradient>() ?? autoImg.gameObject.AddComponent<UIGradient>();
                 grad.SetColors(
-                    colorTheme != null ? colorTheme.autoSpinButtonTop    : new Color(0.65f, 0.12f, 0.08f, 1f),
+                    colorTheme != null ? colorTheme.autoSpinButtonTop : new Color(0.65f, 0.12f, 0.08f, 1f),
                     colorTheme != null ? colorTheme.autoSpinButtonBottom : new Color(0.35f, 0.04f, 0.02f, 1f)
                 );
             }
@@ -91,7 +111,8 @@ namespace SlotGame.View
             {
                 int bet = betValues[i];
                 var btn = betButtons[i];
-                btn.onClick.AddListener(() => {
+                btn.onClick.AddListener(() =>
+                {
                     btn.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
                     PlayButtonClickSe();
                     OnBetButtonClicked(bet);
@@ -104,7 +125,7 @@ namespace SlotGame.View
                     spinButton.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
                     PlayButtonClickSe();
                 });
-            
+
             if (autoSpinButton != null)
             {
                 SetupAutoSpinButtonEvents();
@@ -144,32 +165,38 @@ namespace SlotGame.View
 
             // PointerDown
             var pointerDown = new EventTrigger.Entry { eventID = EventTriggerType.PointerDown };
-            pointerDown.callback.AddListener((data) =>
-            {
-                _isPointerDown = true;
-                _pointerDownTime = Time.unscaledTime;
-                _longPressTriggered = false;
-            });
+            pointerDown.callback.AddListener(
+                (data) =>
+                {
+                    _isPointerDown = true;
+                    _pointerDownTime = Time.unscaledTime;
+                    _longPressTriggered = false;
+                }
+            );
             trigger.triggers.Add(pointerDown);
 
             // PointerUp
             var pointerUp = new EventTrigger.Entry { eventID = EventTriggerType.PointerUp };
-            pointerUp.callback.AddListener((data) =>
-            {
-                if (_isPointerDown && !_longPressTriggered)
+            pointerUp.callback.AddListener(
+                (data) =>
                 {
-                    OnAutoSpinButtonClick();
+                    if (_isPointerDown && !_longPressTriggered)
+                    {
+                        OnAutoSpinButtonClick();
+                    }
+                    _isPointerDown = false;
                 }
-                _isPointerDown = false;
-            });
+            );
             trigger.triggers.Add(pointerUp);
 
             // PointerExit (枠外に外れたらキャンセル)
             var pointerExit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
-            pointerExit.callback.AddListener((data) =>
-            {
-                _isPointerDown = false;
-            });
+            pointerExit.callback.AddListener(
+                (data) =>
+                {
+                    _isPointerDown = false;
+                }
+            );
             trigger.triggers.Add(pointerExit);
         }
 
@@ -197,7 +224,8 @@ namespace SlotGame.View
 
         private void BuildAutoSpinPopup()
         {
-            if (autoSpinButton == null || autoSpinCounts == null) return;
+            if (autoSpinButton == null || autoSpinCounts == null)
+                return;
 
             // autoSpinButton の RectTransform を基準にポップアップを作成
             var autoRect = autoSpinButton.GetComponent<RectTransform>();
@@ -210,10 +238,10 @@ namespace SlotGame.View
             // autoSpinButton と同じアンカー・ピボット・X位置に合わせる
             popupRect.anchorMin = autoRect.anchorMin;
             popupRect.anchorMax = autoRect.anchorMax;
-            popupRect.pivot     = new Vector2(autoRect.pivot.x, 0f);
+            popupRect.pivot = new Vector2(autoRect.pivot.x, 0f);
 
             const float btnH = 52f;
-            const float gap  = 4f;
+            const float gap = 4f;
             float totalH = autoSpinCounts.Length * btnH + (autoSpinCounts.Length - 1) * gap;
             popupRect.sizeDelta = new Vector2(autoRect.sizeDelta.x, totalH);
             // autoSpinButton の上端から gap 分上に配置
@@ -227,32 +255,49 @@ namespace SlotGame.View
             bg.color = colorTheme != null ? colorTheme.autoSpinPopupBackground : new Color(0.12f, 0.06f, 0.02f, 0.92f);
             bg.raycastTarget = true;
 
+            if (!autoSpinButton.TryGetComponent<AutoSpinButtonRef>(out var baseRef))
+            {
+                baseRef = autoSpinButton.gameObject.AddComponent<AutoSpinButtonRef>();
+                // Awake is not automatically called immediately upon AddComponent in EditMode/inactive objects in some cases,
+                // but for our prefab it will be initialized. Let's make sure fields are populated if it was just added.
+                baseRef.Button = autoSpinButton;
+                baseRef.RectTransform = autoRect;
+                baseRef.Text = autoButtonText;
+                baseRef.EventTrigger = autoSpinButton.GetComponent<EventTrigger>();
+            }
+
             for (int i = 0; i < autoSpinCounts.Length; i++)
             {
                 int count = autoSpinCounts[i];
-                var btnGo = Instantiate(autoSpinButton.gameObject, popupGo.transform);
+                var clonedRef = Instantiate(baseRef, popupGo.transform);
+                var btnGo = clonedRef.gameObject;
                 btnGo.name = $"AutoSpin_{count}";
-                
-                // 元のボタンの EventTrigger は不要（かつ誤作動の元）なので即座に削除
-                var oldTrigger = btnGo.GetComponent<EventTrigger>();
-                if (oldTrigger != null) DestroyImmediate(oldTrigger);
 
-                var btnRect = btnGo.GetComponent<RectTransform>();
+                // 元のボタンの EventTrigger は不要（かつ誤作動の元）なので即座に削除
+                var oldTrigger = clonedRef.EventTrigger;
+                if (oldTrigger != null)
+                    DestroyImmediate(oldTrigger);
+
+                var btnRect = clonedRef.RectTransform;
                 btnRect.anchorMin = new Vector2(0f, 0f);
                 btnRect.anchorMax = new Vector2(1f, 0f);
-                btnRect.pivot     = new Vector2(0.5f, 0f);
+                btnRect.pivot = new Vector2(0.5f, 0f);
                 // 下から順に積む（index 0 が一番下）
                 btnRect.anchoredPosition = new Vector2(0f, i * (btnH + gap));
                 btnRect.sizeDelta = new Vector2(0f, btnH);
 
-                var txt = btnGo.GetComponentInChildren<TMP_Text>();
-                if (txt != null) { txt.text = count.ToString(); txt.fontSize = 16f; }
+                var txt = clonedRef.Text;
+                if (txt != null)
+                {
+                    txt.text = count.ToString();
+                    txt.fontSize = 16f;
+                }
 
-                var btn = btnGo.GetComponent<Button>();
+                var btn = clonedRef.Button;
                 // 重要: インスペクター上で設定された永続イベント（Persistent Call）も含めて
                 // 全てクリアするために、新しいイベントインスタンスで上書きする。
-                btn.onClick = new Button.ButtonClickedEvent(); 
-                
+                btn.onClick = new Button.ButtonClickedEvent();
+
                 btn.onClick.AddListener(() =>
                 {
                     btn.transform.DOPunchScale(Vector3.one * 0.1f, 0.15f, 10, 1).SetUpdate(true);
@@ -270,7 +315,8 @@ namespace SlotGame.View
 
         private void OpenAutoSpinPopup()
         {
-            if (_autoSpinPopup == null) return;
+            if (_autoSpinPopup == null)
+                return;
             _popupOpen = true;
             _autoSpinPopup.SetActive(true);
             _autoSpinPopup.transform.localScale = new Vector3(1f, 0f, 1f);
@@ -289,12 +335,16 @@ namespace SlotGame.View
 
         private void CloseAutoSpinPopup()
         {
-            if (_autoSpinPopup == null) return;
+            if (_autoSpinPopup == null)
+                return;
             _popupOpen = false;
             try
             {
                 DOTween.Kill(_autoSpinPopup.transform, false);
-                _autoSpinPopup.transform.DOScaleY(0f, 0.1f).SetEase(Ease.InQuad).SetUpdate(true)
+                _autoSpinPopup
+                    .transform.DOScaleY(0f, 0.1f)
+                    .SetEase(Ease.InQuad)
+                    .SetUpdate(true)
                     .OnComplete(() => _autoSpinPopup.SetActive(false));
             }
             catch (Exception ex)
@@ -313,30 +363,42 @@ namespace SlotGame.View
             {
                 foreach (var btn in betButtons)
                 {
-                    if (btn != null) btn.onClick.RemoveAllListeners();
+                    if (btn != null)
+                        btn.onClick.RemoveAllListeners();
                 }
             }
 
-            if (spinButton != null) spinButton.onClick.RemoveAllListeners();
-            if (autoSpinButton != null) autoSpinButton.onClick.RemoveAllListeners();
-            if (turboButton != null) turboButton.onClick.RemoveAllListeners();
+            if (spinButton != null)
+                spinButton.onClick.RemoveAllListeners();
+            if (autoSpinButton != null)
+                autoSpinButton.onClick.RemoveAllListeners();
+            if (turboButton != null)
+                turboButton.onClick.RemoveAllListeners();
 
             if (_autoSpinCountButtons != null)
             {
                 foreach (var btn in _autoSpinCountButtons)
                 {
-                    if (btn != null) btn.onClick.RemoveAllListeners();
+                    if (btn != null)
+                        btn.onClick.RemoveAllListeners();
                 }
             }
         }
 
         public void SetCoins(long coins)
         {
-            DOTween.To(() => _displayedCoins, v =>
-            {
-                _displayedCoins = v;
-                coinText.text = v.ToString("N0");
-            }, coins, 0.5f).SetEase(Ease.OutQuad);
+            DOTween
+                .To(
+                    () => _displayedCoins,
+                    v =>
+                    {
+                        _displayedCoins = v;
+                        coinText.text = v.ToString("N0");
+                    },
+                    coins,
+                    0.5f
+                )
+                .SetEase(Ease.OutQuad);
         }
 
         public void SetBet(int bet)
@@ -355,14 +417,14 @@ namespace SlotGame.View
                     if (isSelected)
                     {
                         grad.SetColors(
-                            colorTheme != null ? colorTheme.betSelectedTop    : new Color(1f,    0.85f, 0.40f, 0.96f),
+                            colorTheme != null ? colorTheme.betSelectedTop : new Color(1f, 0.85f, 0.40f, 0.96f),
                             colorTheme != null ? colorTheme.betSelectedBottom : new Color(0.70f, 0.45f, 0.10f, 0.96f)
                         );
                     }
                     else
                     {
                         grad.SetColors(
-                            colorTheme != null ? colorTheme.betUnselectedTop    : new Color(0.22f, 0.14f, 0.06f, 0.92f),
+                            colorTheme != null ? colorTheme.betUnselectedTop : new Color(0.22f, 0.14f, 0.06f, 0.92f),
                             colorTheme != null ? colorTheme.betUnselectedBottom : new Color(0.12f, 0.07f, 0.03f, 0.92f)
                         );
                     }
@@ -370,49 +432,55 @@ namespace SlotGame.View
                     var colors = button.colors;
                     colors.normalColor = Color.white;
                     colors.highlightedColor = isSelected
-                        ? (colorTheme != null ? colorTheme.betSelectedHighlight   : new Color(1.00f, 0.92f, 0.55f, 1f))
+                        ? (colorTheme != null ? colorTheme.betSelectedHighlight : new Color(1.00f, 0.92f, 0.55f, 1f))
                         : (colorTheme != null ? colorTheme.betUnselectedHighlight : new Color(0.40f, 0.25f, 0.10f, 1f));
                     colors.pressedColor = isSelected
-                        ? (colorTheme != null ? colorTheme.betSelectedPressed   : new Color(0.85f, 0.60f, 0.20f, 1f))
+                        ? (colorTheme != null ? colorTheme.betSelectedPressed : new Color(0.85f, 0.60f, 0.20f, 1f))
                         : (colorTheme != null ? colorTheme.betUnselectedPressed : new Color(0.08f, 0.04f, 0.02f, 1f));
-                    colors.selectedColor    = colors.highlightedColor;
-                    colors.disabledColor    = new Color(1f, 1f, 1f, 0.35f);
+                    colors.selectedColor = colors.highlightedColor;
+                    colors.disabledColor = new Color(1f, 1f, 1f, 0.35f);
                     button.colors = colors;
                 }
 
                 if (label != null)
                 {
                     label.color = isSelected
-                        ? (colorTheme != null ? colorTheme.betSelectedLabelColor   : new Color(0.11f, 0.09f, 0.06f, 1f))
-                        : (colorTheme != null ? colorTheme.betUnselectedLabelColor : new Color(0.95f, 0.88f, 0.75f, 0.96f));
+                        ? (colorTheme != null ? colorTheme.betSelectedLabelColor : new Color(0.11f, 0.09f, 0.06f, 1f))
+                        : (
+                            colorTheme != null
+                                ? colorTheme.betUnselectedLabelColor
+                                : new Color(0.95f, 0.88f, 0.75f, 0.96f)
+                        );
                 }
             }
         }
 
         public void SetSpinInteractable(bool interactable)
         {
-            if (spinButton != null) spinButton.interactable = interactable;
+            if (spinButton != null)
+                spinButton.interactable = interactable;
         }
 
         public void SetSpinButtonMode(bool isStopMode)
         {
-            if (spinButtonText == null || spinButton == null) return;
+            if (spinButtonText == null || spinButton == null)
+                return;
             spinButtonText.text = isStopMode ? "STOP" : "SPIN";
-            
+
             var grad = spinButton.GetComponent<UIGradient>();
             if (grad != null)
             {
                 if (isStopMode)
                 {
                     grad.SetColors(
-                        colorTheme != null ? colorTheme.spinStopButtonTop    : new Color(1.00f, 0.40f, 0.30f, 1f),
+                        colorTheme != null ? colorTheme.spinStopButtonTop : new Color(1.00f, 0.40f, 0.30f, 1f),
                         colorTheme != null ? colorTheme.spinStopButtonBottom : new Color(0.60f, 0.10f, 0.05f, 1f)
                     );
                 }
                 else
                 {
                     grad.SetColors(
-                        colorTheme != null ? colorTheme.spinButtonTop    : new Color(0.80f, 0.15f, 0.10f, 1f),
+                        colorTheme != null ? colorTheme.spinButtonTop : new Color(0.80f, 0.15f, 0.10f, 1f),
                         colorTheme != null ? colorTheme.spinButtonBottom : new Color(0.45f, 0.04f, 0.02f, 1f)
                     );
                 }
@@ -423,7 +491,7 @@ namespace SlotGame.View
         {
             if (autoButtonText != null)
                 autoButtonText.text = text;
-            
+
             bool nextIsRunning = text == "ストップ" || text.Contains("ストップ");
             if (nextIsRunning && !_isAutoRunning)
             {
@@ -435,9 +503,11 @@ namespace SlotGame.View
         public void SetAutoSpinCountInteractable(bool interactable)
         {
             foreach (var btn in _autoSpinCountButtons)
-                if (btn != null) btn.interactable = interactable;
+                if (btn != null)
+                    btn.interactable = interactable;
 
-            if (!interactable) CloseAutoSpinPopup();
+            if (!interactable)
+                CloseAutoSpinPopup();
         }
 
         public void SetTurbo(bool enabled)
@@ -448,7 +518,8 @@ namespace SlotGame.View
 
         private void UpdateTurboVisual()
         {
-            if (turboButton == null) return;
+            if (turboButton == null)
+                return;
             var txt = turboButton.GetComponentInChildren<TMP_Text>();
             if (txt != null)
             {
@@ -480,11 +551,18 @@ namespace SlotGame.View
                 return;
             }
 
-            DOTween.To(() => _displayedWin, v =>
-            {
-                _displayedWin = v;
-                winText.text = v.ToString("N0");
-            }, amount, 1.0f).SetEase(Ease.OutCubic);
+            DOTween
+                .To(
+                    () => _displayedWin,
+                    v =>
+                    {
+                        _displayedWin = v;
+                        winText.text = v.ToString("N0");
+                    },
+                    amount,
+                    1.0f
+                )
+                .SetEase(Ease.OutCubic);
         }
 
         private void OnBetButtonClicked(int bet)
@@ -500,7 +578,8 @@ namespace SlotGame.View
 
         private static void ConfigureNumericText(TMP_Text text, float minFontSize)
         {
-            if (text == null) return;
+            if (text == null)
+                return;
             text.enableAutoSizing = true;
             text.fontSizeMax = text.fontSize;
             text.fontSizeMin = minFontSize;
