@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using SlotGame.Audio;
@@ -5,8 +7,6 @@ using SlotGame.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace SlotGame.View
 {
@@ -20,9 +20,14 @@ namespace SlotGame.View
         public const float RowSidePadding = 12f;
         public const float IconSize = 44f;
 
-        [SerializeField] private Transform     contentRoot;
-        [SerializeField] private GameObject    rowPrefab;   // Image + TMP_Text × 3（3/4/5 揃え）
-        [SerializeField] private Button        closeButton;
+        [SerializeField]
+        private Transform contentRoot;
+
+        [SerializeField]
+        private GameObject rowPrefab; // Image + TMP_Text × 3（3/4/5 揃え）
+
+        [SerializeField]
+        private Button closeButton;
 
         private CanvasGroup _canvasGroup;
         private AudioManager _audioManager;
@@ -33,7 +38,8 @@ namespace SlotGame.View
         {
             _audioManager = FindFirstObjectByType<AudioManager>();
             _canvasGroup = GetComponent<CanvasGroup>();
-            if (_canvasGroup == null) _canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            if (_canvasGroup == null)
+                _canvasGroup = gameObject.AddComponent<CanvasGroup>();
             _canvasGroup.alpha = 0;
 
             closeButton.onClick.AddListener(() =>
@@ -54,11 +60,13 @@ namespace SlotGame.View
         public void Populate(SymbolData[] symbols, PayoutTableData payoutData)
         {
             EnsureRowPrefab();
-            if (rowPrefab == null || contentRoot == null) return;
+            if (rowPrefab == null || contentRoot == null)
+                return;
 
             // RowTemplate: childControlWidth=true にして preferredWidth で列幅を制御
             var rowHlg = rowPrefab.GetComponent<HorizontalLayoutGroup>();
-            if (rowHlg != null) rowHlg.childControlWidth = true;
+            if (rowHlg != null)
+                rowHlg.childControlWidth = true;
 
             // RowTemplate のペイアウト列幅を ColumnWidth に統一（0番目はシンボル列なのでスキップ）
             int rowColIdx = 0;
@@ -67,7 +75,8 @@ namespace SlotGame.View
                 if (rowColIdx > 0)
                 {
                     var le = child.GetComponent<LayoutElement>();
-                    if (le != null) le.preferredWidth = ColumnWidth;
+                    if (le != null)
+                        le.preferredWidth = ColumnWidth;
                 }
                 rowColIdx++;
             }
@@ -75,7 +84,8 @@ namespace SlotGame.View
             // HeaderRow: childControlWidth=true にして同じ列幅を適用
             foreach (var hlg in GetComponentsInChildren<HorizontalLayoutGroup>(true))
             {
-                if (hlg.gameObject.name != "HeaderRow") continue;
+                if (hlg.gameObject.name != "HeaderRow")
+                    continue;
                 hlg.childControlWidth = true;
                 int headerColIdx = 0;
                 foreach (Transform child in hlg.transform)
@@ -83,9 +93,11 @@ namespace SlotGame.View
                     if (headerColIdx > 0)
                     {
                         var le = child.GetComponent<LayoutElement>();
-                        if (le != null) le.preferredWidth = ColumnWidth;
+                        if (le != null)
+                            le.preferredWidth = ColumnWidth;
                         var txt = child.GetComponent<TMP_Text>();
-                        if (txt != null) txt.alignment = TextAlignmentOptions.Right;
+                        if (txt != null)
+                            txt.alignment = TextAlignmentOptions.Right;
                     }
                     headerColIdx++;
                 }
@@ -96,8 +108,10 @@ namespace SlotGame.View
             var staleRows = new List<GameObject>();
             foreach (Transform child in contentRoot)
             {
-                if (child == null) continue;
-                if (rowPrefab != null && child.gameObject == rowPrefab) continue;
+                if (child == null)
+                    continue;
+                if (rowPrefab != null && child.gameObject == rowPrefab)
+                    continue;
                 staleRows.Add(child.gameObject);
             }
 
@@ -107,8 +121,9 @@ namespace SlotGame.View
             foreach (var sym in symbols)
             {
                 // Only show normal symbol payouts in the paytable UI
-                if (sym.type != SymbolType.Normal) continue;
-                
+                if (sym.type != SymbolType.Normal)
+                    continue;
+
                 var row = Instantiate(rowPrefab, contentRoot);
                 row.SetActive(true);
                 row.name = $"Row_{sym.symbolName}";
@@ -129,9 +144,12 @@ namespace SlotGame.View
                 {
                     if (child.TryGetComponent<TMP_Text>(out var tmp))
                     {
-                        if (textIdx == 0) text0 = tmp;
-                        else if (textIdx == 1) text1 = tmp;
-                        else if (textIdx == 2) text2 = tmp;
+                        if (textIdx == 0)
+                            text0 = tmp;
+                        else if (textIdx == 1)
+                            text1 = tmp;
+                        else if (textIdx == 2)
+                            text2 = tmp;
                         textIdx++;
                     }
                 }
@@ -149,9 +167,12 @@ namespace SlotGame.View
                     iconRect.sizeDelta = new Vector2(IconSize, IconSize);
                 }
 
-                if (text0 != null) text0.text = sym.payouts.Length > 0 ? sym.payouts[0].ToString("N0") : "-";
-                if (text1 != null) text1.text = sym.payouts.Length > 1 ? sym.payouts[1].ToString("N0") : "-";
-                if (text2 != null) text2.text = sym.payouts.Length > 2 ? sym.payouts[2].ToString("N0") : "-";
+                if (text0 != null)
+                    text0.text = sym.payouts.Length > 0 ? sym.payouts[0].ToString("N0") : "-";
+                if (text1 != null)
+                    text1.text = sym.payouts.Length > 1 ? sym.payouts[1].ToString("N0") : "-";
+                if (text2 != null)
+                    text2.text = sym.payouts.Length > 2 ? sym.payouts[2].ToString("N0") : "-";
             }
 
             LayoutRebuilder.MarkLayoutForRebuild((RectTransform)contentRoot);
@@ -159,14 +180,21 @@ namespace SlotGame.View
 
         private void EnsureRowPrefab()
         {
-            if (rowPrefab != null) return;
+            if (rowPrefab != null)
+                return;
 
             rowPrefab = CreateFallbackRowPrefab();
         }
 
         private GameObject CreateFallbackRowPrefab()
         {
-            var row = new GameObject("RuntimeRowPrefab", typeof(RectTransform), typeof(Image), typeof(HorizontalLayoutGroup), typeof(LayoutElement));
+            var row = new GameObject(
+                "RuntimeRowPrefab",
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(HorizontalLayoutGroup),
+                typeof(LayoutElement)
+            );
             row.SetActive(false);
             row.hideFlags = HideFlags.HideAndDontSave;
 
@@ -232,7 +260,10 @@ namespace SlotGame.View
             _canvasGroup.alpha = 0f;
 
             await UniTask.WhenAll(
-                DOTween.To(() => _canvasGroup.alpha, x => _canvasGroup.alpha = x, 1f, 0.2f).SetEase(Ease.OutQuad).ToUniTask(cancellationToken: ct),
+                DOTween
+                    .To(() => _canvasGroup.alpha, x => _canvasGroup.alpha = x, 1f, 0.2f)
+                    .SetEase(Ease.OutQuad)
+                    .ToUniTask(cancellationToken: ct),
                 transform.DOScale(1f, 0.2f).SetEase(Ease.OutBack).ToUniTask(cancellationToken: ct)
             );
         }
@@ -240,7 +271,10 @@ namespace SlotGame.View
         public async UniTask HideAsync(System.Threading.CancellationToken ct = default)
         {
             await UniTask.WhenAll(
-                DOTween.To(() => _canvasGroup.alpha, x => _canvasGroup.alpha = x, 0f, 0.15f).SetEase(Ease.InQuad).ToUniTask(cancellationToken: ct),
+                DOTween
+                    .To(() => _canvasGroup.alpha, x => _canvasGroup.alpha = x, 0f, 0.15f)
+                    .SetEase(Ease.InQuad)
+                    .ToUniTask(cancellationToken: ct),
                 transform.DOScale(0.9f, 0.15f).SetEase(Ease.InBack).ToUniTask(cancellationToken: ct)
             );
             gameObject.SetActive(false);
@@ -248,7 +282,6 @@ namespace SlotGame.View
 
         private void PlayButtonClickSe()
         {
-            _audioManager ??= FindFirstObjectByType<AudioManager>();
             _audioManager?.PlaySE(SEType.ButtonClick);
         }
     }
