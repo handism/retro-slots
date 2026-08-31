@@ -10,8 +10,11 @@ namespace SlotGame.View
     /// <summary>ゲーム説明モーダルを表示する View。</summary>
     public class GameDescriptionView : MonoBehaviour
     {
-        [SerializeField] private Button closeButton;
-        [SerializeField] private TMP_Text descriptionText;
+        [SerializeField]
+        private Button closeButton;
+
+        [SerializeField]
+        private TMP_Text descriptionText;
 
         private CanvasGroup _canvasGroup;
         private AudioManager _audioManager;
@@ -22,7 +25,8 @@ namespace SlotGame.View
         {
             _audioManager = FindFirstObjectByType<AudioManager>();
             _canvasGroup = GetComponent<CanvasGroup>();
-            if (_canvasGroup == null) _canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            if (_canvasGroup == null)
+                _canvasGroup = gameObject.AddComponent<CanvasGroup>();
             _canvasGroup.alpha = 0;
 
             if (closeButton != null)
@@ -50,27 +54,45 @@ namespace SlotGame.View
         public void Setup()
         {
             _audioManager ??= FindFirstObjectByType<AudioManager>();
-            if (!TryGetComponent(out _canvasGroup)) _canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            if (!TryGetComponent(out _canvasGroup))
+                _canvasGroup = gameObject.AddComponent<CanvasGroup>();
 
-            // フルスクリーン暗幕
-            if (!gameObject.TryGetComponent<RectTransform>(out var rect)) rect = gameObject.AddComponent<RectTransform>();
+            SetupBackground();
+            var panel = SetupPanel();
+            SetupTitle(panel);
+            SetupScrollView(panel);
+            SetupCloseButton(panel);
+
+            gameObject.SetActive(false);
+        }
+
+        private void SetupBackground()
+        {
+            if (!gameObject.TryGetComponent<RectTransform>(out var rect))
+                rect = gameObject.AddComponent<RectTransform>();
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
-            if (!gameObject.TryGetComponent<Image>(out var bg)) bg = gameObject.AddComponent<Image>();
+            if (!gameObject.TryGetComponent<Image>(out var bg))
+                bg = gameObject.AddComponent<Image>();
             bg.color = new Color(0f, 0f, 0f, 0.75f);
             bg.raycastTarget = true;
+        }
 
-            // 中央パネル
+        private RectTransform SetupPanel()
+        {
             var panel = new GameObject("Panel", typeof(RectTransform));
             panel.transform.SetParent(transform, false);
             var panelRect = (RectTransform)panel.transform;
             panelRect.sizeDelta = new Vector2(800f, 600f);
             var panelImg = panel.AddComponent<Image>();
             panelImg.color = new Color(0.12f, 0.12f, 0.18f, 1f);
+            return panelRect;
+        }
 
-            // タイトル
+        private void SetupTitle(RectTransform panel)
+        {
             var titleObj = new GameObject("Title", typeof(RectTransform));
             titleObj.transform.SetParent(panel.transform, false);
             var titleTxt = titleObj.AddComponent<TextMeshProUGUI>();
@@ -83,8 +105,10 @@ namespace SlotGame.View
             titleTxt.fontSize = 34f;
             titleTxt.alignment = TextAlignmentOptions.Center;
             titleTxt.color = Color.white;
+        }
 
-            // スクロールビュー（説明文用）
+        private void SetupScrollView(RectTransform panel)
+        {
             var scrollObj = new GameObject("ScrollView", typeof(RectTransform));
             scrollObj.transform.SetParent(panel.transform, false);
             var scrollRt = (RectTransform)scrollObj.transform;
@@ -136,8 +160,10 @@ namespace SlotGame.View
             sr.horizontal = false;
             sr.vertical = true;
             sr.scrollSensitivity = 30f;
+        }
 
-            // 閉じるボタン
+        private void SetupCloseButton(RectTransform panel)
+        {
             var closeObj = new GameObject("CloseButton", typeof(RectTransform));
             closeObj.transform.SetParent(panel.transform, false);
             var closeRt = (RectTransform)closeObj.transform;
@@ -166,13 +192,12 @@ namespace SlotGame.View
             closeTxt.color = Color.white;
             closeTxt.alignment = TextAlignmentOptions.Center;
             closeTxt.fontSize = 28f;
-
-            gameObject.SetActive(false);
         }
 
         public void SetDescription(string text)
         {
-            if (descriptionText != null) descriptionText.text = text;
+            if (descriptionText != null)
+                descriptionText.text = text;
         }
 
         public async UniTask ShowAsync(System.Threading.CancellationToken ct = default)
@@ -182,7 +207,10 @@ namespace SlotGame.View
             _canvasGroup.alpha = 0f;
 
             await UniTask.WhenAll(
-                DOTween.To(() => _canvasGroup.alpha, x => _canvasGroup.alpha = x, 1f, 0.2f).SetEase(Ease.OutQuad).ToUniTask(cancellationToken: ct),
+                DOTween
+                    .To(() => _canvasGroup.alpha, x => _canvasGroup.alpha = x, 1f, 0.2f)
+                    .SetEase(Ease.OutQuad)
+                    .ToUniTask(cancellationToken: ct),
                 transform.DOScale(1f, 0.2f).SetEase(Ease.OutBack).ToUniTask(cancellationToken: ct)
             );
         }
@@ -190,7 +218,10 @@ namespace SlotGame.View
         public async UniTask HideAsync(System.Threading.CancellationToken ct = default)
         {
             await UniTask.WhenAll(
-                DOTween.To(() => _canvasGroup.alpha, x => _canvasGroup.alpha = x, 0f, 0.15f).SetEase(Ease.InQuad).ToUniTask(cancellationToken: ct),
+                DOTween
+                    .To(() => _canvasGroup.alpha, x => _canvasGroup.alpha = x, 0f, 0.15f)
+                    .SetEase(Ease.InQuad)
+                    .ToUniTask(cancellationToken: ct),
                 transform.DOScale(0.9f, 0.15f).SetEase(Ease.InBack).ToUniTask(cancellationToken: ct)
             );
             gameObject.SetActive(false);
