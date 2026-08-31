@@ -113,7 +113,8 @@ namespace SlotGame.Utility
             return true;
         }
 
-        private const string FallbackChecksumSalt = "SALTY_SLOT_2026";
+        private const string LegacyFallbackChecksumSalt = "SALTY_SLOT_2026";
+        private const string DeviceSaltPrefsKey = "SlotGame_DeviceSalt";
 
         private static string CalculateChecksum(SaveData data, string salt)
         {
@@ -124,9 +125,27 @@ namespace SlotGame.Utility
             return Convert.ToBase64String(bytes);
         }
 
+        private string GetOrCreateDeviceSalt()
+        {
+            if (PlayerPrefs.HasKey(DeviceSaltPrefsKey))
+            {
+                return PlayerPrefs.GetString(DeviceSaltPrefsKey);
+            }
+
+            using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+            byte[] saltBytes = new byte[32];
+            rng.GetBytes(saltBytes);
+            string newSalt = Convert.ToBase64String(saltBytes);
+
+            PlayerPrefs.SetString(DeviceSaltPrefsKey, newSalt);
+            PlayerPrefs.Save();
+
+            return newSalt;
+        }
+
         private string GetActiveSalt()
         {
-            return _config != null ? _config.ChecksumSalt : FallbackChecksumSalt;
+            return _config != null ? _config.ChecksumSalt : GetOrCreateDeviceSalt();
         }
 
         private bool VerifyChecksum(SaveData data)
@@ -143,9 +162,9 @@ namespace SlotGame.Utility
             // Migration support: If the config uses a new salt, but the save file was created with the old hardcoded salt.
             // This is secure because we only check the fallback salt if the main check fails,
             // and this is necessary to not break existing user saves after the upgrade.
-            if (salt != FallbackChecksumSalt)
+            if (salt != LegacyFallbackChecksumSalt)
             {
-                string expectedFallback = CalculateChecksum(data, FallbackChecksumSalt);
+                string expectedFallback = CalculateChecksum(data, LegacyFallbackChecksumSalt);
                 if (actual == expectedFallback)
                 {
                     return true;
