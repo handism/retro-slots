@@ -75,7 +75,8 @@ namespace SlotGame.View
             if (backgroundGlows != null)
             {
                 float rotationPeriod = 360f / glowRotationSpeed;
-                for (int i = 0; i < backgroundGlows.Length; i++)
+                int bgLen = backgroundGlows.Length;
+                for (int i = 0; i < bgLen; i++)
                 {
                     if (backgroundGlows[i] == null) continue;
                     float direction = (i % 2 == 0) ? 1f : -1f;
@@ -90,7 +91,8 @@ namespace SlotGame.View
             if (floatingSymbols != null)
             {
                 float floatHalfPeriod = Mathf.PI / floatSpeed;
-                for (int i = 0; i < floatingSymbols.Length; i++)
+                int fsLen = floatingSymbols.Length;
+                for (int i = 0; i < fsLen; i++)
                 {
                     if (floatingSymbols[i] == null) continue;
                     var sym = floatingSymbols[i];
