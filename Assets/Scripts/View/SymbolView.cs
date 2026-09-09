@@ -14,15 +14,15 @@ namespace SlotGame.View
     {
         private const string IdleStateName = "Idle";
 
-        private Image?         _image;
-        private Animator?      _animator;
-        private int           _symbolId;
+        private Image? _image;
+        private Animator? _animator;
+        private int _symbolId;
         private AnimationClip? _winAnim;
-        private Tween?         _pulseTween;
+        private Tween? _pulseTween;
 
         private void Awake()
         {
-            _image    = GetComponent<Image>();
+            _image = GetComponent<Image>();
             _animator = GetComponent<Animator>();
         }
 
@@ -30,13 +30,13 @@ namespace SlotGame.View
 
         public void SetSymbol(SymbolData data)
         {
-            _symbolId    = data.symbolId;
+            _symbolId = data.symbolId;
             if (_image != null)
             {
                 _image.sprite = data.sprite;
                 _image.enabled = true;
             }
-            _winAnim     = data.winAnim;
+            _winAnim = data.winAnim;
         }
 
         public void SetSymbolId(int id) => _symbolId = id;
@@ -82,12 +82,11 @@ namespace SlotGame.View
         public void PlayPulseAnimation()
         {
             // If this object has been destroyed (Unity overloads ==), bail out.
-            if (this == null) return;
+            if (this == null)
+                return;
             StopPulseAnimation();
 
-            _pulseTween = transform.DOScale(1.2f, 0.5f)
-                .SetEase(Ease.InOutSine)
-                .SetLoops(-1, LoopType.Yoyo);
+            _pulseTween = transform.DOScale(1.2f, 0.5f).SetEase(Ease.InOutSine).SetLoops(-1, LoopType.Yoyo);
         }
 
         /// <summary>パルスアニメーションを停止する。</summary>
@@ -95,12 +94,20 @@ namespace SlotGame.View
         {
             if (_pulseTween != null && _pulseTween.IsActive())
             {
-                try { _pulseTween.Kill(); } catch { }
+                try
+                {
+                    _pulseTween.Kill();
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning($"SymbolView.StopPulseAnimation: {e.Message}");
+                }
             }
             _pulseTween = null;
 
             // Avoid accessing transform if the Unity object is already destroyed.
-            if (this == null) return;
+            if (this == null)
+                return;
 
             transform.localScale = Vector3.one;
         }
@@ -108,18 +115,27 @@ namespace SlotGame.View
         /// <summary>アイドル状態のアニメーションを再生する（当選演出の停止用）。</summary>
         public void PlayIdleAnimation()
         {
-            if (this == null) return;
+            if (this == null)
+                return;
             StopPulseAnimation();
             if (_animator != null)
             {
-                try { _animator.Play(IdleStateName, 0, 0f); } catch { }
+                try
+                {
+                    _animator.Play(IdleStateName, 0, 0f);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning($"SymbolView.PlayIdleAnimation: {e.Message}");
+                }
             }
         }
 
         /// <summary>当選アニメーションを再生して完了を待機する。</summary>
         private async UniTask PlayWinAnimationClip(AnimationClip clip, CancellationToken ct)
         {
-            if (_animator == null || clip == null) return;
+            if (_animator == null || clip == null)
+                return;
             _animator.Play(clip.name);
             await UniTask.Delay((int)(clip.length * 1000), cancellationToken: ct);
         }

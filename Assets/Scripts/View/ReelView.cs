@@ -149,7 +149,10 @@ namespace SlotGame.View
                             {
                                 tween?.Kill(false);
                             }
-                            catch { }
+                            catch (System.Exception e)
+                            {
+                                Debug.LogWarning($"ReelView.AwaitTweenWithCancellation kill: {e.Message}");
+                            }
                         });
                     }
 
@@ -162,7 +165,10 @@ namespace SlotGame.View
                     {
                         tween?.Kill(false);
                     }
-                    catch { }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogWarning($"ReelView.AwaitTweenWithCancellation kill: {e.Message}");
+                    }
                     tween = null;
                 }
             }
