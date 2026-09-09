@@ -16,6 +16,8 @@ namespace SlotGame.View
     /// </summary>
     public class BonusRoundView : MonoBehaviour
     {
+        public static BonusRoundView Instance { get; private set; }
+
         private const int ChestCount    = 9;
         private const int SelectCount   = 3;
 
@@ -35,6 +37,7 @@ namespace SlotGame.View
 
         private void Awake()
         {
+            Instance = this;
             _audioManager = FindFirstObjectByType<AudioManager>();
             for (int i = 0; i < chestButtons.Length; i++)
             {
@@ -46,6 +49,8 @@ namespace SlotGame.View
 
         private void OnDestroy()
         {
+            if (Instance == this) Instance = null;
+
             if (chestButtons != null)
             {
                 foreach (var btn in chestButtons)
