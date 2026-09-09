@@ -113,7 +113,8 @@ namespace SlotGame.Utility
             return true;
         }
 
-        private const string FallbackChecksumSalt = "SALTY_SLOT_2026";
+        private const string LegacyFallbackChecksumSalt = "SALTY_SLOT_2026";
+        private const string DeviceSaltPrefKey = "SlotGame_DeviceSalt";
 
         private static string CalculateChecksum(SaveData data, string salt)
         {
@@ -126,7 +127,18 @@ namespace SlotGame.Utility
 
         private string GetActiveSalt()
         {
-            return _config != null ? _config.ChecksumSalt : FallbackChecksumSalt;
+            if (_config != null)
+                return _config.ChecksumSalt;
+
+            if (PlayerPrefs.HasKey(DeviceSaltPrefKey))
+            {
+                return PlayerPrefs.GetString(DeviceSaltPrefKey);
+            }
+
+            string newSalt = Guid.NewGuid().ToString();
+            PlayerPrefs.SetString(DeviceSaltPrefKey, newSalt);
+            PlayerPrefs.Save();
+            return newSalt;
         }
 
         private bool VerifyChecksum(SaveData data)
@@ -143,9 +155,9 @@ namespace SlotGame.Utility
             // Migration support: If the config uses a new salt, but the save file was created with the old hardcoded salt.
             // This is secure because we only check the fallback salt if the main check fails,
             // and this is necessary to not break existing user saves after the upgrade.
-            if (salt != FallbackChecksumSalt)
+            if (salt != LegacyFallbackChecksumSalt)
             {
-                string expectedFallback = CalculateChecksum(data, FallbackChecksumSalt);
+                string expectedFallback = CalculateChecksum(data, LegacyFallbackChecksumSalt);
                 if (actual == expectedFallback)
                 {
                     return true;

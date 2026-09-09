@@ -26,6 +26,8 @@ namespace SlotGame.Tests.EditMode
                 File.Delete(_tempPath + ".bak");
             if (Directory.Exists(_tempPath))
                 Directory.Delete(_tempPath, true);
+
+            UnityEngine.PlayerPrefs.DeleteKey("SlotGame_DeviceSalt");
         }
 
         [Test]
@@ -127,6 +129,36 @@ namespace SlotGame.Tests.EditMode
         }
 
         [Test]
+        public void VerifyChecksum_LegacyFallbackSalt_Accepted()
+        {
+            // Calculate what the checksum WOULD have been using the old hardcoded salt
+            var data = new SaveData
+            {
+                coins = 5000,
+                betAmount = 50,
+                bgmVolume = 0.5f,
+                saveVersion = "1.0",
+            };
+
+            string raw =
+                $"{data.coins}:{data.betAmount}:{data.bgmVolume:F2}:{data.seVolume:F2}:{data.totalSpins}:{data.totalWins}:{data.maxWin}:{data.totalFreeSpinTriggers}:{data.saveVersion}:SALTY_SLOT_2026";
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            byte[] bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(raw));
+            data.checksum = System.Convert.ToBase64String(bytes);
+
+            File.WriteAllText(_tempPath, UnityEngine.JsonUtility.ToJson(data));
+
+            // Load it with a manager that has NO config, which will generate a new device salt
+            // but the migration logic should still accept the SALTY_SLOT_2026 checksum
+            var mgr = new SaveDataManager(_tempPath, null);
+            var loaded = mgr.Load();
+
+            Assert.AreEqual(5000, loaded.coins);
+            Assert.AreEqual(50, loaded.betAmount);
+            Assert.AreEqual(0.5f, loaded.bgmVolume, 0.001f);
+        }
+
+        [Test]
         public void Load_InvalidBetAmount_ReturnsDefault()
         {
             var config = new SlotConfig(
@@ -186,7 +218,10 @@ namespace SlotGame.Tests.EditMode
             var mgr = new SaveDataManager(_tempPath, null);
             var save = new SaveData { coins = 5000 };
 
-            LogAssert.Expect(UnityEngine.LogType.Error, new System.Text.RegularExpressions.Regex(".*SaveAsync failed.*"));
+            LogAssert.Expect(
+                UnityEngine.LogType.Error,
+                new System.Text.RegularExpressions.Regex(".*SaveAsync failed.*")
+            );
             mgr.SaveAsync(save).AsTask().Wait();
 
             // temp path is _tempPath + ".tmp". We need _tempPath to be the savePath.
