@@ -14,10 +14,10 @@ namespace SlotGame.Core
         /// <summary>シングルトンインスタンス。Boot シーンを経由しない場合は null。</summary>
         public static GameContextInitializer Instance { get; private set; }
 
-        public GameState        GameState       { get; private set; }
-        public SaveDataManager  SaveDataManager { get; private set; }
-        public IRandomGenerator Random          { get; private set; }
-        public SaveData         SaveData        { get; private set; }
+        public GameState GameState { get; private set; }
+        public SaveDataManager SaveDataManager { get; private set; }
+        public IRandomGenerator Random { get; private set; }
+        public SaveData SaveData { get; private set; }
 
         private void Awake()
         {
@@ -34,20 +34,27 @@ namespace SlotGame.Core
         private void OnDestroy()
         {
             if (Instance == this)
+            {
+                if (Random is System.IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
                 Instance = null;
+            }
         }
 
         /// <summary>Boot シーンから呼び出し、全依存データを一括設定する。</summary>
         public void Provide(
-            GameState        gameState,
-            SaveDataManager  saveDataManager,
+            GameState gameState,
+            SaveDataManager saveDataManager,
             IRandomGenerator random,
-            SaveData         saveData)
+            SaveData saveData
+        )
         {
-            GameState       = gameState;
+            GameState = gameState;
             SaveDataManager = saveDataManager;
-            Random          = random;
-            SaveData        = saveData;
+            Random = random;
+            SaveData = saveData;
         }
     }
 }
