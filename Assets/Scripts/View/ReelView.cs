@@ -149,7 +149,10 @@ namespace SlotGame.View
                             {
                                 tween?.Kill(false);
                             }
-                            catch { }
+                            catch (Exception e)
+                            {
+                                Debug.LogWarning($"Failed to kill tween: {e.Message}");
+                            }
                         });
                     }
 
@@ -162,7 +165,10 @@ namespace SlotGame.View
                     {
                         tween?.Kill(false);
                     }
-                    catch { }
+                    catch (Exception e)
+                    {
+                        Debug.LogWarning($"Failed to kill tween: {e.Message}");
+                    }
                     tween = null;
                 }
             }
