@@ -64,6 +64,15 @@ namespace SlotGame.View
 
         public bool IsModalOpen { get; private set; }
 
+        private Canvas GetRootCanvas()
+        {
+            if (_rootCanvas == null)
+            {
+                _rootCanvas = mainHUD != null ? mainHUD.GetComponentInParent<Canvas>() : FindFirstObjectByType<Canvas>();
+            }
+            return _rootCanvas;
+        }
+
         public event System.Action<float>? BgmVolumeChanged;
         public event System.Action<float>? SeVolumeChanged;
         public event System.Action? ResetCoinsRequested;
@@ -499,7 +508,7 @@ namespace SlotGame.View
                 // HUD Canvas に置くと SetHudInteractable(false) で閉じるボタンが無効化されるため。
                 var targetCanvas = paytableView != null
                     ? paytableView.GetComponentInParent<Canvas>()
-                    : (mainHUD != null ? mainHUD.GetComponentInParent<Canvas>() : FindFirstObjectByType<Canvas>());
+                    : GetRootCanvas();
                 if (targetCanvas == null) return;
 
                 var go = new GameObject("GameDescriptionView", typeof(RectTransform));
@@ -527,7 +536,7 @@ namespace SlotGame.View
         {
             if (_tutorialView == null)
             {
-                _rootCanvas ??= mainHUD != null ? mainHUD.GetComponentInParent<Canvas>() : FindFirstObjectByType<Canvas>();
+                _rootCanvas = GetRootCanvas();
                 if (_rootCanvas == null) return;
 
                 var go = new GameObject("TutorialView", typeof(RectTransform));
@@ -621,7 +630,7 @@ namespace SlotGame.View
                 return;
             }
 
-            _rootCanvas ??= mainHUD != null ? mainHUD.GetComponentInParent<Canvas>() : FindFirstObjectByType<Canvas>();
+            _rootCanvas = GetRootCanvas();
             if (_rootCanvas == null)
             {
                 return;
