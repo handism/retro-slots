@@ -61,7 +61,7 @@ namespace SlotGame.View
             for (int i = 0; i < BufferSize; i++)
             {
                 var view = Instantiate(symbolViewPrefab, transform);
-                var rt = view.GetComponent<RectTransform>();
+                var rt = view.RectTransform;
                 rt.anchoredPosition = new Vector2(0, GetSymbolYPosition(i));
                 _symbolViews[i] = view;
                 _symbolRects[i] = rt;
@@ -356,11 +356,11 @@ namespace SlotGame.View
             float width = symbolHeight;
             if (
                 symbolViewPrefab != null
-                && symbolViewPrefab.TryGetComponent<RectTransform>(out var symbolRect)
-                && symbolRect.rect.width > 0f
+                && symbolViewPrefab.RectTransform != null
+                && symbolViewPrefab.RectTransform.rect.width > 0f
             )
             {
-                width = symbolRect.rect.width;
+                width = symbolViewPrefab.RectTransform.rect.width;
             }
 
             _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);

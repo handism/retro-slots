@@ -19,6 +19,9 @@ namespace SlotGame.View
         private int           _symbolId;
         private AnimationClip? _winAnim;
         private Tween?         _pulseTween;
+        private RectTransform? _rectTransform;
+
+        public RectTransform RectTransform => _rectTransform ??= GetComponent<RectTransform>();
 
         private void Awake()
         {
