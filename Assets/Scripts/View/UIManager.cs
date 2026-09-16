@@ -44,7 +44,7 @@ namespace SlotGame.View
         private Queue<PaylineView> _paylinePool = new();
 
         private ReelView[]? _reelViews;
-        private Canvas? _rootCanvas;
+        [SerializeField] private Canvas? _rootCanvas;
         private Image? _modeTintOverlay;
         private CanvasGroup? _modeAnnouncementGroup;
         private RectTransform? _modeAnnouncementRoot;
@@ -66,10 +66,6 @@ namespace SlotGame.View
 
         private Canvas GetRootCanvas()
         {
-            if (_rootCanvas == null)
-            {
-                _rootCanvas = mainHUD != null ? mainHUD.GetComponentInParent<Canvas>() : FindFirstObjectByType<Canvas>();
-            }
             return _rootCanvas;
         }
 
@@ -86,6 +82,11 @@ namespace SlotGame.View
 
         private void Awake()
         {
+            if (_rootCanvas == null)
+            {
+                _rootCanvas = mainHUD != null ? mainHUD.GetComponentInParent<Canvas>() : FindFirstObjectByType<Canvas>();
+            }
+
             if (settingsView != null)
             {
                 settingsView.OnBGMVolumeChanged += volume => BgmVolumeChanged?.Invoke(volume);
