@@ -41,7 +41,7 @@ namespace SlotGame.Core
         /// スピンを 1 回実行して結果を返す。
         /// キャンセル時は OperationCanceledException を上位に伝播させる。
         /// </summary>
-        public async UniTask<SpinResult> ExecuteSpin(
+        public virtual async UniTask<SpinResult> ExecuteSpin(
             ReelStripData[] strips,
             PaylineData paylines,
             PayoutTableData payouts,
