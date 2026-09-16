@@ -308,6 +308,37 @@ namespace SlotGame.Tests.PlayMode
             Assert.Less(duration, 5.0f); // 演出含め 5秒以内なら OK としておく
         });
 
+
+        [UnityTest]
+        public IEnumerator Test_ToggleMute_CallsAudioManager() => UniTask.ToCoroutine(async () =>
+        {
+            // --- Setup ---
+            var mockRandom = new MockRandom { Values = new[] { 0, 0, 0, 0, 0 } };
+            GameContextInitializer.Instance.Provide(
+                new GameState(1000, 9_999_999, new[] { 10, 20, 50, 100 }, 1000, 10),
+                new SaveDataManager(),
+                mockRandom,
+                new SaveData { coins = 1000, betAmount = 10 });
+
+            await SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
+
+            var gm = GameObject.FindFirstObjectByType<GameManager>();
+            Assert.IsNotNull(gm, "GameManager not found");
+
+            var audioManagerField = typeof(GameManager).GetField("audioManager", BindingFlags.NonPublic | BindingFlags.Instance);
+            var audioManager = audioManagerField.GetValue(gm) as SlotGame.Audio.AudioManager;
+            Assert.IsNotNull(audioManager, "AudioManager not found");
+
+            // Verify initial state
+            Assert.IsFalse(audioManager.IsMuted, "AudioManager should initially be unmuted");
+
+            // --- Execute ---
+            gm.ToggleMute();
+
+            // --- Verify ---
+            Assert.IsTrue(audioManager.IsMuted, "AudioManager should be muted after ToggleMute is called");
+        });
+
         private GamePhase GetCurrentPhase(GameManager gm)
         {
             var field = typeof(GameManager).GetField("_currentPhase", BindingFlags.NonPublic | BindingFlags.Instance);
