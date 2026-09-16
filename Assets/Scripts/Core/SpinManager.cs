@@ -12,18 +12,19 @@ namespace SlotGame.Core
     /// <summary>全リールの回転・停止を調整し SpinResult を返す Presenter。</summary>
     public class SpinManager : MonoBehaviour
     {
-        [SerializeField] private ReelController[] reels;   // 5 個
+        [SerializeField]
+        private ReelController[] reels; // 5 個
         public IReadOnlyList<ReelController> Reels => reels;
         public event Action<int> ReelStopped;
 
         private IRandomGenerator _random;
         private bool _skipRequested;
-        private IReadOnlyDictionary<int, SymbolData> _cachedSymbolDefs;
+        private readonly Dictionary<int, SymbolData> _cachedSymbolDefs = new Dictionary<int, SymbolData>();
 
         public void Initialize(IRandomGenerator random, ReelStripData[] strips = null)
         {
             _random = random;
-            _cachedSymbolDefs = null; // キャッシュをクリア
+            _cachedSymbolDefs.Clear(); // キャッシュをクリア
 
             if (reels != null)
             {
@@ -31,7 +32,8 @@ namespace SlotGame.Core
                 System.Array.Sort(reels, (a, b) => a.transform.position.x.CompareTo(b.transform.position.x));
             }
 
-            if (strips == null) return;
+            if (strips == null)
+                return;
 
             for (int i = 0; i < reels.Length && i < strips.Length; i++)
                 reels[i].Initialize(strips[i]);
@@ -50,7 +52,8 @@ namespace SlotGame.Core
             int reelCount = 5,
             int rowCount = 3,
             int minMatch = 3,
-            int[] bonusReels = null)
+            int[] bonusReels = null
+        )
         {
             _skipRequested = false;
             var gameState = GameContext.GameState;
@@ -65,7 +68,8 @@ namespace SlotGame.Core
                 stopIndices[i] = _random.Next(0, strips[i].strip.Count);
 
             // 全リール同時にスクロール開始
-            foreach (var reel in reels) reel.StartSpin(ct);
+            foreach (var reel in reels)
+                reel.StartSpin(ct);
 
             try
             {
@@ -93,10 +97,12 @@ namespace SlotGame.Core
                         if (i > 0)
                         {
                             // 順次停止中もスキップをチェック
-                            if (_skipRequested) break;
+                            if (_skipRequested)
+                                break;
                             await UniTask.Delay(TimeSpan.FromSeconds(stopInterval), cancellationToken: ct);
                         }
-                        if (_skipRequested) break;
+                        if (_skipRequested)
+                            break;
                         await reels[i].StopSpin(stopIndices[i], ct);
                         ReelStopped?.Invoke(i);
                     }
@@ -140,10 +146,20 @@ namespace SlotGame.Core
             }
 
             // シンボル定義の辞書を集約（SymbolData は各ストリップに含まれる）
-            if (_cachedSymbolDefs == null)
-                _cachedSymbolDefs = CollectSymbolDefs(strips);
+            if (_cachedSymbolDefs.Count == 0)
+                CollectSymbolDefs(strips, _cachedSymbolDefs);
 
-            var result = PaylineEvaluator.Evaluate(grid, _cachedSymbolDefs, paylines, payouts, betAmount, reelCount, rowCount, minMatch, bonusReels);
+            var result = PaylineEvaluator.Evaluate(
+                grid,
+                _cachedSymbolDefs,
+                paylines,
+                payouts,
+                betAmount,
+                reelCount,
+                rowCount,
+                minMatch,
+                bonusReels
+            );
 
             return result;
         }
@@ -151,9 +167,9 @@ namespace SlotGame.Core
         /// <summary>スピン中に呼ぶとリールが即座に停止位置へスナップする。</summary>
         public void RequestSkip() => _skipRequested = true;
 
-        private static IReadOnlyDictionary<int, SymbolData> CollectSymbolDefs(ReelStripData[] strips)
+        private static void CollectSymbolDefs(ReelStripData[] strips, Dictionary<int, SymbolData> dict)
         {
-            var dict = new Dictionary<int, SymbolData>();
+            dict.Clear();
             foreach (var strip in strips)
             {
                 foreach (var sym in strip.strip)
@@ -162,7 +178,6 @@ namespace SlotGame.Core
                         dict.Add(sym.symbolId, sym);
                 }
             }
-            return dict;
         }
     }
 }
