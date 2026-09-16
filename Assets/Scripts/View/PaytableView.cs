@@ -26,6 +26,7 @@ namespace SlotGame.View
 
         private CanvasGroup _canvasGroup;
         private AudioManager _audioManager;
+        private bool _isLayoutInitialized = false;
 
         public event System.Action OnCloseRequested;
 
@@ -56,40 +57,66 @@ namespace SlotGame.View
             EnsureRowPrefab();
             if (rowPrefab == null || contentRoot == null) return;
 
-            // RowTemplate: childControlWidth=true にして preferredWidth で列幅を制御
-            var rowHlg = rowPrefab.GetComponent<HorizontalLayoutGroup>();
-            if (rowHlg != null) rowHlg.childControlWidth = true;
-
-            // RowTemplate のペイアウト列幅を ColumnWidth に統一（0番目はシンボル列なのでスキップ）
-            int rowColIdx = 0;
-            foreach (Transform child in rowPrefab.transform)
+            if (!_isLayoutInitialized)
             {
-                if (rowColIdx > 0)
-                {
-                    var le = child.GetComponent<LayoutElement>();
-                    if (le != null) le.preferredWidth = ColumnWidth;
-                }
-                rowColIdx++;
-            }
+                _isLayoutInitialized = true;
 
-            // HeaderRow: childControlWidth=true にして同じ列幅を適用
-            foreach (var hlg in GetComponentsInChildren<HorizontalLayoutGroup>(true))
-            {
-                if (hlg.gameObject.name != "HeaderRow") continue;
-                hlg.childControlWidth = true;
-                int headerColIdx = 0;
-                foreach (Transform child in hlg.transform)
+                // RowTemplate: childControlWidth=true にして preferredWidth で列幅を制御
+                var rowHlg = rowPrefab.GetComponent<HorizontalLayoutGroup>();
+                if (rowHlg != null) rowHlg.childControlWidth = true;
+
+                // RowTemplate のペイアウト列幅を ColumnWidth に統一（0番目はシンボル列なのでスキップ）
+                int rowColIdx = 0;
+                foreach (Transform child in rowPrefab.transform)
                 {
-                    if (headerColIdx > 0)
+                    if (rowColIdx > 0)
                     {
                         var le = child.GetComponent<LayoutElement>();
                         if (le != null) le.preferredWidth = ColumnWidth;
-                        var txt = child.GetComponent<TMP_Text>();
-                        if (txt != null) txt.alignment = TextAlignmentOptions.Right;
                     }
-                    headerColIdx++;
+                    rowColIdx++;
                 }
-                break;
+
+                // HeaderRow: childControlWidth=true にして同じ列幅を適用
+                foreach (var hlg in GetComponentsInChildren<HorizontalLayoutGroup>(true))
+                {
+                    if (hlg.gameObject.name != "HeaderRow") continue;
+                    hlg.childControlWidth = true;
+                    int headerColIdx = 0;
+                    foreach (Transform child in hlg.transform)
+                    {
+                        if (headerColIdx > 0)
+                        {
+                            var le = child.GetComponent<LayoutElement>();
+                            if (le != null) le.preferredWidth = ColumnWidth;
+                            var txt = child.GetComponent<TMP_Text>();
+                            if (txt != null) txt.alignment = TextAlignmentOptions.Right;
+                        }
+                        headerColIdx++;
+                    }
+                    break;
+                }
+
+                if (!rowPrefab.TryGetComponent<PaytableRowView>(out var view))
+                {
+                    view = rowPrefab.AddComponent<PaytableRowView>();
+                    view.RowRect = rowPrefab.GetComponent<RectTransform>();
+
+                    int textIdx = 0;
+                    foreach (Transform child in rowPrefab.transform)
+                    {
+                        if (child.TryGetComponent<TMP_Text>(out var tmp))
+                        {
+                            if (textIdx == 0) view.Text0 = tmp;
+                            else if (textIdx == 1) view.Text1 = tmp;
+                            else if (textIdx == 2) view.Text2 = tmp;
+                            textIdx++;
+                        }
+                    }
+
+                    var iconTransform = rowPrefab.transform.Find("SymbolCell/Icon");
+                    view.IconImage = iconTransform != null ? iconTransform.GetComponent<Image>() : null;
+                }
             }
 
             // 既存の行を削除
@@ -113,32 +140,15 @@ namespace SlotGame.View
                 row.SetActive(true);
                 row.name = $"Row_{sym.symbolName}";
 
-                var rowRect = row.GetComponent<RectTransform>();
+                var rowView = row.GetComponent<PaytableRowView>();
+                var rowRect = rowView.RowRect;
                 if (rowRect != null)
                 {
                     rowRect.localScale = Vector3.one;
                     rowRect.anchoredPosition3D = Vector3.zero;
                 }
 
-                TMP_Text text0 = null;
-                TMP_Text text1 = null;
-                TMP_Text text2 = null;
-                int textIdx = 0;
-
-                foreach (Transform child in row.transform)
-                {
-                    if (child.TryGetComponent<TMP_Text>(out var tmp))
-                    {
-                        if (textIdx == 0) text0 = tmp;
-                        else if (textIdx == 1) text1 = tmp;
-                        else if (textIdx == 2) text2 = tmp;
-                        textIdx++;
-                    }
-                }
-
-                var iconTransform = row.transform.Find("SymbolCell/Icon");
-                var img = iconTransform != null ? iconTransform.GetComponent<Image>() : null;
-
+                var img = rowView.IconImage;
                 if (img != null)
                 {
                     img.sprite = sym.sprite;
@@ -149,9 +159,9 @@ namespace SlotGame.View
                     iconRect.sizeDelta = new Vector2(IconSize, IconSize);
                 }
 
-                if (text0 != null) text0.text = sym.payouts.Length > 0 ? sym.payouts[0].ToString("N0") : "-";
-                if (text1 != null) text1.text = sym.payouts.Length > 1 ? sym.payouts[1].ToString("N0") : "-";
-                if (text2 != null) text2.text = sym.payouts.Length > 2 ? sym.payouts[2].ToString("N0") : "-";
+                if (rowView.Text0 != null) rowView.Text0.text = sym.payouts.Length > 0 ? sym.payouts[0].ToString("N0") : "-";
+                if (rowView.Text1 != null) rowView.Text1.text = sym.payouts.Length > 1 ? sym.payouts[1].ToString("N0") : "-";
+                if (rowView.Text2 != null) rowView.Text2.text = sym.payouts.Length > 2 ? sym.payouts[2].ToString("N0") : "-";
             }
 
             LayoutRebuilder.MarkLayoutForRebuild((RectTransform)contentRoot);
