@@ -22,66 +22,88 @@ namespace SlotGame.Utility
         /// <param name="payouts">Scatter 配当・ボーナス報酬テーブル</param>
         /// <param name="betAmount">ベット額（コイン）</param>
         public static SpinResult Evaluate(
-            int[,]                               symbolGrid,
+            int[,] symbolGrid,
             IReadOnlyDictionary<int, SymbolData> symbolDefs,
-            PaylineData                          paylines,
-            PayoutTableData                      payouts,
-            int                                  betAmount,
-            int                                  reelCount = 5,
-            int                                  rowCount = 3,
-            int                                  minMatch = 3,
-            int[]?                               bonusReels = null)
+            PaylineData paylines,
+            PayoutTableData payouts,
+            int betAmount,
+            int reelCount = 5,
+            int rowCount = 3,
+            int minMatch = 3,
+            int[]? bonusReels = null
+        )
         {
-
             var lineWins = EvaluatePaylines(symbolGrid, symbolDefs, paylines, betAmount, reelCount, minMatch);
 
-            GetSpecialPositions(symbolGrid, symbolDefs, reelCount, rowCount,
-                out var scatterPositions, out var bonusPositions);
-            int scatterCount      = scatterPositions.Count;
-            bool hasScatter       = scatterCount >= 3;
-            long scatterWin       = CalcScatterWin(scatterCount, payouts, betAmount);
+            GetSpecialPositions(
+                symbolGrid,
+                symbolDefs,
+                reelCount,
+                rowCount,
+                out var scatterPositions,
+                out var bonusPositions
+            );
+            int scatterCount = scatterPositions.Count;
+            bool hasScatter = scatterCount >= 3;
+            long scatterWin = CalcScatterWin(scatterCount, payouts, betAmount);
             bool hasBonusCondition = CheckBonusConditionFromPositions(bonusPositions, bonusReels);
 
             long totalWin = scatterWin;
-            foreach (var w in lineWins) totalWin += w.WinAmount;
+            foreach (var w in lineWins)
+                totalWin += w.WinAmount;
 
             return new SpinResult(
-                StoppedSymbolIds:  symbolGrid,
-                LineWins:          lineWins,
-                HasScatter:        hasScatter,
-                ScatterCount:      scatterCount,
-                ScatterPositions:  scatterPositions,
+                StoppedSymbolIds: symbolGrid,
+                LineWins: lineWins,
+                HasScatter: hasScatter,
+                ScatterCount: scatterCount,
+                ScatterPositions: scatterPositions,
                 HasBonusCondition: hasBonusCondition,
-                BonusPositions:    bonusPositions,
-                TotalWinAmount:    totalWin
+                BonusPositions: bonusPositions,
+                TotalWinAmount: totalWin
             );
         }
 
         // ─── ペイライン判定 ───────────────────────────────────────────────
 
         private static IReadOnlyList<LineWin> EvaluatePaylines(
-            int[,] grid, IReadOnlyDictionary<int, SymbolData> defs, PaylineData paylines, int bet, int reelCount, int minMatch)
+            int[,] grid,
+            IReadOnlyDictionary<int, SymbolData> defs,
+            PaylineData paylines,
+            int bet,
+            int reelCount,
+            int minMatch
+        )
         {
             var wins = new List<LineWin>();
             for (int li = 0; li < paylines.lines.Length; li++)
             {
                 var entry = paylines.lines[li];
-                var win   = EvaluateLine(li, entry.rows, grid, defs, bet, reelCount, minMatch);
-                if (win != null) wins.Add(win);
+                var win = EvaluateLine(li, entry.rows, grid, defs, bet, reelCount, minMatch);
+                if (win != null)
+                    wins.Add(win);
             }
             return wins;
         }
 
         private static LineWin? EvaluateLine(
-            int lineIndex, int[] rows, int[,] grid, IReadOnlyDictionary<int, SymbolData> defs, int bet, int reelCount, int minMatch)
+            int lineIndex,
+            int[] rows,
+            int[,] grid,
+            IReadOnlyDictionary<int, SymbolData> defs,
+            int bet,
+            int reelCount,
+            int minMatch
+        )
         {
             // 左端のシンボルを確定（Wild の場合は後続シンボルで補完）
             int baseSymbolId = -1;
             for (int r = 0; r < reelCount; r++)
             {
-                int id   = grid[r, rows[r]];
-                var sym  = FindSymbol(defs, id);
-                if (sym == null) return null;
+                int id = grid[r, rows[r]];
+                var sym = FindSymbol(defs, id);
+                if (sym == null)
+                    return null;
 
                 if (sym.type == SymbolType.Normal)
                 {
@@ -98,9 +120,10 @@ namespace SlotGame.Utility
             int matchCount = 0;
             for (int r = 0; r < reelCount; r++)
             {
-                int id  = grid[r, rows[r]];
+                int id = grid[r, rows[r]];
                 var sym = FindSymbol(defs, id);
-                if (sym == null) break;
+                if (sym == null)
+                    break;
 
                 if (sym.type == SymbolType.Wild || id == baseSymbolId)
                     matchCount++;
@@ -108,7 +131,8 @@ namespace SlotGame.Utility
                     break;
             }
 
-            if (matchCount < minMatch) return null;
+            if (matchCount < minMatch)
+                return null;
 
             var baseSym = FindSymbol(defs, baseSymbolId);
             if (baseSym == null || baseSym.payouts == null || matchCount - minMatch >= baseSym.payouts.Length)
@@ -122,21 +146,27 @@ namespace SlotGame.Utility
 
         /// <summary>グリッドをシングルパスで走査し、Scatter と Bonus それぞれの位置リストを返す。</summary>
         private static void GetSpecialPositions(
-            int[,] grid, IReadOnlyDictionary<int, SymbolData> defs, int reelCount, int rowCount,
+            int[,] grid,
+            IReadOnlyDictionary<int, SymbolData> defs,
+            int reelCount,
+            int rowCount,
             out IReadOnlyList<SymbolPosition> scatterPositions,
-            out IReadOnlyList<SymbolPosition> bonusPositions)
+            out IReadOnlyList<SymbolPosition> bonusPositions
+        )
         {
             var scatter = new List<SymbolPosition>();
-            var bonus   = new List<SymbolPosition>();
+            var bonus = new List<SymbolPosition>();
             for (int r = 0; r < reelCount; r++)
-                for (int row = 0; row < rowCount; row++)
-                {
-                    var sym = FindSymbol(defs, grid[r, row]);
-                    if (sym?.type == SymbolType.Scatter) scatter.Add(new SymbolPosition(r, row));
-                    else if (sym?.type == SymbolType.Bonus) bonus.Add(new SymbolPosition(r, row));
-                }
+            for (int row = 0; row < rowCount; row++)
+            {
+                var sym = FindSymbol(defs, grid[r, row]);
+                if (sym?.type == SymbolType.Scatter)
+                    scatter.Add(new SymbolPosition(r, row));
+                else if (sym?.type == SymbolType.Bonus)
+                    bonus.Add(new SymbolPosition(r, row));
+            }
             scatterPositions = scatter;
-            bonusPositions   = bonus;
+            bonusPositions = bonus;
         }
 
         private static long CalcScatterWin(int count, PayoutTableData payouts, int bet)
@@ -165,20 +195,40 @@ namespace SlotGame.Utility
                 3 => 10,
                 4 => 15,
                 >= 5 => 20,
-                _ => 0
+                _ => 0,
             };
         }
 
         // ─── ボーナス条件判定 ─────────────────────────────────────────────
 
+        private static readonly int[] DefaultBonusReels = new[] { 0, 2, 4 };
+
         /// <summary>指定されたリールインデックス（デフォルト: 0/2/4）それぞれに Bonus タイプのシンボルが 1 つ以上あれば true。</summary>
         private static bool CheckBonusConditionFromPositions(
             IReadOnlyList<SymbolPosition> positions,
-            int[]? bonusReels = null)
+            int[]? bonusReels = null
+        )
         {
-            bonusReels ??= new[] { 0, 2, 4 };
-            return bonusReels.Length > 0 &&
-                   bonusReels.All(reelIdx => positions.Any(p => p.Reel == reelIdx));
+            bonusReels ??= DefaultBonusReels;
+            if (bonusReels.Length == 0)
+                return false;
+
+            for (int i = 0; i < bonusReels.Length; i++)
+            {
+                int reelIdx = bonusReels[i];
+                bool found = false;
+                for (int j = 0; j < positions.Count; j++)
+                {
+                    if (positions[j].Reel == reelIdx)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                    return false;
+            }
+            return true;
         }
 
         // ─── ヘルパー ─────────────────────────────────────────────────────
@@ -190,16 +240,18 @@ namespace SlotGame.Utility
 
         private static int FindHighestNormalSymbolId(IReadOnlyDictionary<int, SymbolData> defs)
         {
-            int bestId      = 0;
-            int bestPayout  = -1;
+            int bestId = 0;
+            int bestPayout = -1;
             foreach (var d in defs.Values)
             {
-                if (d.type != SymbolType.Normal) continue;
-                if (d.payouts == null || d.payouts.Length < 3) continue;
+                if (d.type != SymbolType.Normal)
+                    continue;
+                if (d.payouts == null || d.payouts.Length < 3)
+                    continue;
                 if (d.payouts[2] > bestPayout)
                 {
                     bestPayout = d.payouts[2];
-                    bestId     = d.symbolId;
+                    bestId = d.symbolId;
                 }
             }
             return bestId;
