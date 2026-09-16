@@ -33,6 +33,11 @@ namespace SlotGame.Core
 
         private void OnDestroy()
         {
+            if (Random is System.IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+
             if (Instance == this)
                 Instance = null;
         }
