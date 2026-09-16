@@ -26,6 +26,8 @@ namespace SlotGame.Tests.EditMode
                 File.Delete(_tempPath + ".bak");
             if (Directory.Exists(_tempPath))
                 Directory.Delete(_tempPath, true);
+
+            UnityEngine.PlayerPrefs.DeleteKey("SlotGame_DeviceSalt");
         }
 
         [Test]
@@ -205,7 +207,10 @@ namespace SlotGame.Tests.EditMode
             var mgr = new SaveDataManager(_tempPath, null);
             var save = new SaveData { coins = 5000 };
 
-            LogAssert.Expect(UnityEngine.LogType.Error, new System.Text.RegularExpressions.Regex(".*SaveAsync failed.*"));
+            LogAssert.Expect(
+                UnityEngine.LogType.Error,
+                new System.Text.RegularExpressions.Regex(".*SaveAsync failed.*")
+            );
             mgr.SaveAsync(save).AsTask().Wait();
 
             // temp path is _tempPath + ".tmp". We need _tempPath to be the savePath.

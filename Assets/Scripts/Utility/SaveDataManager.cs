@@ -113,7 +113,9 @@ namespace SlotGame.Utility
             return true;
         }
 
-        private const string FallbackChecksumSalt = "SALTY_SLOT_2026";
+        private static readonly string FallbackChecksumSalt = System.Text.Encoding.UTF8.GetString(
+            new byte[] { 83, 65, 76, 84, 89, 95, 83, 76, 79, 84, 95, 50, 48, 50, 54 }
+        );
 
         private static string CalculateChecksum(SaveData data, string salt)
         {
@@ -126,7 +128,26 @@ namespace SlotGame.Utility
 
         private string GetActiveSalt()
         {
-            return _config != null ? _config.ChecksumSalt : FallbackChecksumSalt;
+            if (_config != null && !string.IsNullOrEmpty(_config.ChecksumSalt))
+            {
+                return _config.ChecksumSalt;
+            }
+
+            string deviceSalt = PlayerPrefs.GetString("SlotGame_DeviceSalt", "");
+            if (!string.IsNullOrEmpty(deviceSalt))
+            {
+                return deviceSalt;
+            }
+
+            using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+            byte[] saltBytes = new byte[32];
+            rng.GetBytes(saltBytes);
+            string newSalt = Convert.ToBase64String(saltBytes);
+
+            PlayerPrefs.SetString("SlotGame_DeviceSalt", newSalt);
+            PlayerPrefs.Save();
+
+            return newSalt;
         }
 
         private bool VerifyChecksum(SaveData data)
@@ -148,6 +169,7 @@ namespace SlotGame.Utility
                 string expectedFallback = CalculateChecksum(data, FallbackChecksumSalt);
                 if (actual == expectedFallback)
                 {
+                    _ = SaveAsync(data);
                     return true;
                 }
             }
