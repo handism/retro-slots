@@ -79,7 +79,13 @@ namespace SlotGame.Utility
                     File.Move(tempPath, _savePath);
                 }
             }
-            catch (Exception e)
+            catch (IOException e)
+            {
+                Debug.LogError($"[SaveDataManager] SaveAsync failed: {e.Message}");
+                if (File.Exists(tempPath))
+                    File.Delete(tempPath);
+            }
+            catch (UnauthorizedAccessException e)
             {
                 Debug.LogError($"[SaveDataManager] SaveAsync failed: {e.Message}");
                 if (File.Exists(tempPath))
