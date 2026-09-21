@@ -82,10 +82,8 @@ namespace SlotGame.View
                 {
                     if (headerColIdx > 0)
                     {
-                        var le = child.GetComponent<LayoutElement>();
-                        if (le != null) le.preferredWidth = ColumnWidth;
-                        var txt = child.GetComponent<TMP_Text>();
-                        if (txt != null) txt.alignment = TextAlignmentOptions.Right;
+                        if (child.TryGetComponent<LayoutElement>(out var le)) le.preferredWidth = ColumnWidth;
+                        if (child.TryGetComponent<TMP_Text>(out var txt)) txt.alignment = TextAlignmentOptions.Right;
                     }
                     headerColIdx++;
                 }
