@@ -35,8 +35,19 @@ namespace SlotGame.Data
         public float defaultBgmVolume = 0.8f;
         public float defaultSeVolume = 1.0f;
 
-        [Header("Security")]
-        public string checksumSalt = "SECURE_SALT_REPLACE_ME";
+        public string checksumSalt
+        {
+            get
+            {
+                const string prefsKey = "SecureChecksumSalt";
+                if (!PlayerPrefs.HasKey(prefsKey))
+                {
+                    PlayerPrefs.SetString(prefsKey, System.Guid.NewGuid().ToString());
+                    PlayerPrefs.Save();
+                }
+                return PlayerPrefs.GetString(prefsKey, "");
+            }
+        }
 
         public SlotConfig ToModelConfig(int freeSpinMultiplier = 2)
         {
