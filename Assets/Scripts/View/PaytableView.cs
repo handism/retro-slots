@@ -26,6 +26,7 @@ namespace SlotGame.View
 
         private CanvasGroup _canvasGroup;
         private AudioManager _audioManager;
+        private List<LayoutElement> _rowLayoutElements;
 
         public event System.Action OnCloseRequested;
 
@@ -61,15 +62,24 @@ namespace SlotGame.View
             if (rowHlg != null) rowHlg.childControlWidth = true;
 
             // RowTemplate のペイアウト列幅を ColumnWidth に統一（0番目はシンボル列なのでスキップ）
-            int rowColIdx = 0;
-            foreach (Transform child in rowPrefab.transform)
+            if (_rowLayoutElements == null)
             {
-                if (rowColIdx > 0)
+                _rowLayoutElements = new List<LayoutElement>();
+                int rowColIdx = 0;
+                foreach (Transform child in rowPrefab.transform)
                 {
-                    var le = child.GetComponent<LayoutElement>();
-                    if (le != null) le.preferredWidth = ColumnWidth;
+                    if (rowColIdx > 0)
+                    {
+                        var le = child.GetComponent<LayoutElement>();
+                        if (le != null) _rowLayoutElements.Add(le);
+                    }
+                    rowColIdx++;
                 }
-                rowColIdx++;
+            }
+
+            foreach (var le in _rowLayoutElements)
+            {
+                le.preferredWidth = ColumnWidth;
             }
 
             // HeaderRow: childControlWidth=true にして同じ列幅を適用
