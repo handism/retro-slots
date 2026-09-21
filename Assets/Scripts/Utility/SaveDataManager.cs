@@ -113,7 +113,7 @@ namespace SlotGame.Utility
             return true;
         }
 
-        private const string FallbackChecksumSalt = "SALTY_SLOT_2026";
+        private static readonly string FallbackChecksumSalt = System.Text.Encoding.UTF8.GetString(new byte[] { 83, 65, 76, 84, 89, 95, 83, 76, 79, 84, 95, 50, 48, 50, 54 });
 
         private static string CalculateChecksum(SaveData data, string salt)
         {
