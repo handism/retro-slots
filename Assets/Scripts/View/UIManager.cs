@@ -51,6 +51,7 @@ namespace SlotGame.View
         private TMP_Text? _modeTitleText;
         private TMP_Text? _modeSubtitleText;
         private Camera? _mainCamera;
+        private SlotGame.Utility.ResolutionManager? _resolutionManager;
         private CanvasGroup? _hudCanvasGroup;
         private TutorialView? _tutorialView;
 
@@ -141,10 +142,16 @@ namespace SlotGame.View
 
         private void EnsureResolutionManager()
         {
-            _mainCamera ??= Camera.main;
-            if (_mainCamera != null && _mainCamera.GetComponent<SlotGame.Utility.ResolutionManager>() == null)
+            if (_mainCamera == null)
             {
-                _mainCamera.gameObject.AddComponent<SlotGame.Utility.ResolutionManager>();
+                _mainCamera = Camera.main;
+            }
+            if (_mainCamera != null && _resolutionManager == null)
+            {
+                if (!_mainCamera.TryGetComponent(out _resolutionManager))
+                {
+                    _resolutionManager = _mainCamera.gameObject.AddComponent<SlotGame.Utility.ResolutionManager>();
+                }
             }
         }
 
@@ -421,7 +428,10 @@ namespace SlotGame.View
                 _                         => NormalCameraColor,
             };
 
-            _mainCamera ??= Camera.main;
+            if (_mainCamera == null)
+            {
+                _mainCamera = Camera.main;
+            }
             if (_mainCamera != null)
                 _mainCamera.backgroundColor = bgColor;
 
