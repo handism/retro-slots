@@ -71,12 +71,14 @@ namespace SlotGame.Core
             op.allowSceneActivation = true;
         }
 
-        private static string ResolveStartupSceneName()
+        internal static string ResolveStartupSceneName(System.Func<string, bool> canStreamedLevelBeLoaded = null)
         {
-            if (Application.CanStreamedLevelBeLoaded(TitleSceneName))
+            canStreamedLevelBeLoaded ??= Application.CanStreamedLevelBeLoaded;
+
+            if (canStreamedLevelBeLoaded(TitleSceneName))
                 return TitleSceneName;
 
-            if (Application.CanStreamedLevelBeLoaded(MainSceneName))
+            if (canStreamedLevelBeLoaded(MainSceneName))
             {
                 Debug.LogWarning($"[BootManager] Scene '{TitleSceneName}' is not in the active build profile/shared scene list. Falling back to '{MainSceneName}'.");
                 return MainSceneName;
