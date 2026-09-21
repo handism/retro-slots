@@ -27,6 +27,11 @@ namespace SlotGame.View
         private CanvasGroup _canvasGroup;
         private AudioManager _audioManager;
 
+        private bool _headerCached = false;
+        private HorizontalLayoutGroup _headerRowGroup;
+        private List<LayoutElement> _headerLayoutElements;
+        private List<TMP_Text> _headerTexts;
+
         public event System.Action OnCloseRequested;
 
         private void Awake()
@@ -73,23 +78,45 @@ namespace SlotGame.View
             }
 
             // HeaderRow: childControlWidth=true にして同じ列幅を適用
-            foreach (var hlg in GetComponentsInChildren<HorizontalLayoutGroup>(true))
+            if (!_headerCached)
             {
-                if (hlg.gameObject.name != "HeaderRow") continue;
-                hlg.childControlWidth = true;
-                int headerColIdx = 0;
-                foreach (Transform child in hlg.transform)
+                foreach (var hlg in GetComponentsInChildren<HorizontalLayoutGroup>(true))
                 {
-                    if (headerColIdx > 0)
+                    if (hlg.gameObject.name != "HeaderRow") continue;
+                    _headerRowGroup = hlg;
+                    _headerLayoutElements = new List<LayoutElement>();
+                    _headerTexts = new List<TMP_Text>();
+
+                    int headerColIdx = 0;
+                    foreach (Transform child in hlg.transform)
                     {
-                        var le = child.GetComponent<LayoutElement>();
-                        if (le != null) le.preferredWidth = ColumnWidth;
-                        var txt = child.GetComponent<TMP_Text>();
-                        if (txt != null) txt.alignment = TextAlignmentOptions.Right;
+                        if (headerColIdx > 0)
+                        {
+                            var le = child.GetComponent<LayoutElement>();
+                            if (le != null) _headerLayoutElements.Add(le);
+                            var txt = child.GetComponent<TMP_Text>();
+                            if (txt != null) _headerTexts.Add(txt);
+                        }
+                        headerColIdx++;
                     }
-                    headerColIdx++;
+                    break;
                 }
-                break;
+                _headerCached = true;
+            }
+
+            if (_headerRowGroup != null)
+            {
+                _headerRowGroup.childControlWidth = true;
+                if (_headerLayoutElements != null)
+                {
+                    foreach (var le in _headerLayoutElements)
+                        le.preferredWidth = ColumnWidth;
+                }
+                if (_headerTexts != null)
+                {
+                    foreach (var txt in _headerTexts)
+                        txt.alignment = TextAlignmentOptions.Right;
+                }
             }
 
             // 既存の行を削除
