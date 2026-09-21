@@ -35,6 +35,11 @@ namespace SlotGame.Core
         {
             if (Instance == this)
                 Instance = null;
+
+            if (Random is System.IDisposable disposableRandom)
+            {
+                disposableRandom.Dispose();
+            }
         }
 
         /// <summary>Boot シーンから呼び出し、全依存データを一括設定する。</summary>
