@@ -308,6 +308,101 @@ namespace SlotGame.Tests.PlayMode
             Assert.Less(duration, 5.0f); // 演出含め 5秒以内なら OK としておく
         });
 
+        [UnityTest]
+        public IEnumerator Test_RequestSkip_WhileSpinning_SetsSkipRequested() => UniTask.ToCoroutine(async () =>
+        {
+            // --- Setup ---
+            var mockRandom = new MockRandom { Values = new[] { 0, 0, 0, 0, 0 } };
+            GameContextInitializer.Instance.Provide(
+                new GameState(1000, 9_999_999, new[] { 10, 20, 50, 100 }, 1000, 10),
+                new SaveDataManager(),
+                mockRandom,
+                new SaveData { coins = 1000, betAmount = 10 });
+
+            await SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
+            var gm = GameObject.FindFirstObjectByType<GameManager>();
+
+            // --- Execute ---
+            gm.OnSpinButtonPressed();
+            await UniTask.WaitUntil(() => GetCurrentPhase(gm) == GamePhase.Spinning);
+
+            gm.RequestSkip();
+
+            // --- Verify ---
+            var spinManagerField = typeof(GameManager).GetField("spinManager", BindingFlags.NonPublic | BindingFlags.Instance);
+            var spinManager = spinManagerField.GetValue(gm) as SpinManager;
+            Assert.IsNotNull(spinManager);
+
+            var skipRequestedField = typeof(SpinManager).GetField("_skipRequested", BindingFlags.NonPublic | BindingFlags.Instance);
+            var skipRequested = (bool)skipRequestedField.GetValue(spinManager);
+
+            Assert.IsTrue(skipRequested, "SpinManager._skipRequested should be true when RequestSkip is called during Spinning.");
+        });
+
+        [UnityTest]
+        public IEnumerator Test_RequestSkip_WhileModalOpen_DoesNothing() => UniTask.ToCoroutine(async () =>
+        {
+            // --- Setup ---
+            var mockRandom = new MockRandom { Values = new[] { 0, 0, 0, 0, 0 } };
+            GameContextInitializer.Instance.Provide(
+                new GameState(1000, 9_999_999, new[] { 10, 20, 50, 100 }, 1000, 10),
+                new SaveDataManager(),
+                mockRandom,
+                new SaveData { coins = 1000, betAmount = 10 });
+
+            await SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
+            var gm = GameObject.FindFirstObjectByType<GameManager>();
+
+            // Open a modal via public API to set IsModalOpen to true
+            var uiManagerField = typeof(GameManager).GetField("uiManager", BindingFlags.NonPublic | BindingFlags.Instance);
+            var uiManager = uiManagerField.GetValue(gm) as SlotGame.View.UIManager;
+            uiManager.ShowSettings();
+
+            Assert.IsTrue(uiManager.IsModalOpen, "UIManager should report modal is open after showing settings.");
+
+            // --- Execute ---
+            gm.RequestSkip();
+
+            // --- Verify ---
+            var spinManagerField = typeof(GameManager).GetField("spinManager", BindingFlags.NonPublic | BindingFlags.Instance);
+            var spinManager = spinManagerField.GetValue(gm) as SpinManager;
+
+            var skipRequestedField = typeof(SpinManager).GetField("_skipRequested", BindingFlags.NonPublic | BindingFlags.Instance);
+            var skipRequested = (bool)skipRequestedField.GetValue(spinManager);
+
+            Assert.IsFalse(skipRequested, "RequestSkip should do nothing if modal is open.");
+        });
+
+        [UnityTest]
+        public IEnumerator Test_RequestSkip_WhileNotSpinning_DoesNothing() => UniTask.ToCoroutine(async () =>
+        {
+            // --- Setup ---
+            var mockRandom = new MockRandom { Values = new[] { 0, 0, 0, 0, 0 } };
+            GameContextInitializer.Instance.Provide(
+                new GameState(1000, 9_999_999, new[] { 10, 20, 50, 100 }, 1000, 10),
+                new SaveDataManager(),
+                mockRandom,
+                new SaveData { coins = 1000, betAmount = 10 });
+
+            await SceneManager.LoadSceneAsync("Main", LoadSceneMode.Single);
+            var gm = GameObject.FindFirstObjectByType<GameManager>();
+
+            // Ensure we are not spinning
+            Assert.AreEqual(GamePhase.Idle, GetCurrentPhase(gm));
+
+            // --- Execute ---
+            gm.RequestSkip();
+
+            // --- Verify ---
+            var spinManagerField = typeof(GameManager).GetField("spinManager", BindingFlags.NonPublic | BindingFlags.Instance);
+            var spinManager = spinManagerField.GetValue(gm) as SpinManager;
+
+            var skipRequestedField = typeof(SpinManager).GetField("_skipRequested", BindingFlags.NonPublic | BindingFlags.Instance);
+            var skipRequested = (bool)skipRequestedField.GetValue(spinManager);
+
+            Assert.IsFalse(skipRequested, "RequestSkip should do nothing if not in Spinning phase.");
+        });
+
         private GamePhase GetCurrentPhase(GameManager gm)
         {
             var field = typeof(GameManager).GetField("_currentPhase", BindingFlags.NonPublic | BindingFlags.Instance);
