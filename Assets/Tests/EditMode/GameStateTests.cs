@@ -29,6 +29,15 @@ namespace SlotGame.Tests.EditMode
         }
 
         [Test]
+        public void DeductBet_ZeroCoins_ReturnsFalseAndCoinsUnchanged()
+        {
+            var state = CreateState(coins: 0, betAmount: 10);
+            bool result = state.DeductBet();
+            Assert.IsFalse(result);
+            Assert.AreEqual(0, state.Coins);
+        }
+
+        [Test]
         public void DeductBet_ExactlyEnough_ReturnsTrueAndCoinsZero()
         {
             var state = CreateState(coins: 10, betAmount: 10);
