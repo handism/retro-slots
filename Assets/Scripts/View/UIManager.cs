@@ -288,20 +288,7 @@ namespace SlotGame.View
             // ペイライン描画
             foreach (var win in result.LineWins)
             {
-                if (win.LineIndex < 0 || win.LineIndex >= currentPaylineData.lines.Length) continue;
-
-                var lineDef = currentPaylineData.lines[win.LineIndex];
-                var points = new Vector3[win.MatchCount];
-                for (int i = 0; i < win.MatchCount; i++)
-                {
-                    if (i >= lineDef.rows.Length) break;
-                    points[i] = _reelViews[i].GetSymbolWorldPosition(lineDef.rows[i]);
-                    AddHighlight(highlightedRowsByReel, i, lineDef.rows[i]);
-                }
-
-                var lineView = GetPaylineView();
-                lineView.DrawLine(points, GetLineColor(win.LineIndex));
-                _activePaylines.Add(lineView);
+                DrawSingleWinLine(win, currentPaylineData, highlightedRowsByReel);
             }
 
             // Scatter / Bonus ハイライト
@@ -330,6 +317,25 @@ namespace SlotGame.View
                     }
                 }
             }
+        }
+
+        private void DrawSingleWinLine(LineWin win, PaylineData currentPaylineData, Dictionary<int, HashSet<int>> highlightedRowsByReel)
+        {
+            if (_reelViews == null) return;
+            if (win.LineIndex < 0 || win.LineIndex >= currentPaylineData.lines.Length) return;
+
+            var lineDef = currentPaylineData.lines[win.LineIndex];
+            var points = new Vector3[win.MatchCount];
+            for (int i = 0; i < win.MatchCount; i++)
+            {
+                if (i >= lineDef.rows.Length) break;
+                points[i] = _reelViews[i].GetSymbolWorldPosition(lineDef.rows[i]);
+                AddHighlight(highlightedRowsByReel, i, lineDef.rows[i]);
+            }
+
+            var lineView = GetPaylineView();
+            lineView.DrawLine(points, GetLineColor(win.LineIndex));
+            _activePaylines.Add(lineView);
         }
 
         private void AddHighlight(Dictionary<int, HashSet<int>> dict, int reel, int row)
