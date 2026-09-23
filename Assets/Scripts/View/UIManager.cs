@@ -86,6 +86,8 @@ namespace SlotGame.View
 
         private void Awake()
         {
+            GetRootCanvas(); // Eagerly resolve and cache _rootCanvas to avoid FindFirstObjectByType overhead at runtime
+
             if (settingsView != null)
             {
                 settingsView.OnBGMVolumeChanged += volume => BgmVolumeChanged?.Invoke(volume);
