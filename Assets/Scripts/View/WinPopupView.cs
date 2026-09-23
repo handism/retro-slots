@@ -55,7 +55,7 @@ namespace SlotGame.View
             text.UpdateMeshPadding(); 
         }
 
-        public async UniTask Show(long amount, WinLevel level, CancellationToken ct)
+        public virtual async UniTask Show(long amount, WinLevel level, CancellationToken ct)
         {
             _currentSequence?.Kill();
             transform.DOKill();

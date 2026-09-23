@@ -158,7 +158,12 @@ namespace SlotGame.View
         public void SetTurbo(bool enabled) => mainHUD.SetTurbo(enabled);
 
         public async UniTask ShowWinAmount(long amount, WinLevel level)
-            => await winPopup.Show(amount, level, this.GetCancellationTokenOnDestroy());
+        {
+            if (winPopup != null)
+            {
+                await winPopup.Show(amount, level, this.GetCancellationTokenOnDestroy());
+            }
+        }
 
         /// <summary>
         /// WinPopup 表示とペイラインハイライトを連動させて実行する。
