@@ -23,9 +23,12 @@ namespace SlotGame.Utility
             UpdateLayout();
         }
 
+        protected virtual int GetScreenWidth() => Screen.width;
+        protected virtual int GetScreenHeight() => Screen.height;
+
         private void UpdateLayout()
         {
-            float windowAspect = (float)Screen.width / Screen.height;
+            float windowAspect = (float)GetScreenWidth() / GetScreenHeight();
             float scale = windowAspect / TargetAspect;
 
             Rect rect = _camera.rect;
